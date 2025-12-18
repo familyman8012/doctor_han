@@ -1,0 +1,43 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.labelRow {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #0a3b41;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.datePicker {
+    flex: 1 1 220px;
+    min-width: 220px;
+}
+
+.timeInputWrapper {
+    flex: 0 0 140px;
+}
+
+.timeInput {
+    width: 100%;
+    text-align: center;
+}
+
+.timeInputError {
+    border-color: #fca5a5 !important;
+}
+
+.helperText {
+    font-size: 0.75rem;
+    color: #5f6b6d;
+}

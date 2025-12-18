@@ -1,0 +1,61 @@
+.resizeHandle {
+    outline: none;
+    cursor: ew-resize;
+}
+
+.resizeHandleBar {
+    opacity: 0;
+    transition:
+        opacity 0.15s ease,
+        background-color 0.15s ease;
+}
+
+.resizeHandle:focus-visible .resizeHandleBar,
+.resizeHandle:hover .resizeHandleBar {
+    opacity: 1;
+    background-color: #0a3b41;
+}
+
+.simpleBar {
+    position: relative;
+    overflow: visible;
+    padding-bottom: 12px;
+}
+
+.simpleBar :global(.simplebar-content-wrapper) {
+    overflow: auto;
+}
+
+.simpleBar :global(.simplebar-content) {
+    min-width: 100%;
+}
+
+.simpleBar :global(.simplebar-track.simplebar-horizontal) {
+    height: 8px;
+    bottom: -4px;
+    left: 12px;
+    right: 12px;
+    border-radius: 9999px;
+    background-color: rgba(148, 163, 184, 0.25);
+}
+
+.simpleBar :global(.simplebar-scrollbar::before) {
+    background-color: #94a3b8;
+    opacity: 0.9;
+    border-radius: 9999px;
+}
+
+.simpleBar :global(.simplebar-scrollbar.simplebar-visible::before) {
+    opacity: 1;
+}
+
+.cellContent {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    text-align: inherit;
+}

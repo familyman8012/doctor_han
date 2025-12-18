@@ -1,0 +1,1 @@
+🚀 NextJS 프로젝트 초기 설정 (TypeScript + Tailwind + ESLint)

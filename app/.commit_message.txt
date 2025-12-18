@@ -1,0 +1,1 @@
+🔧 cn 유틸 import 경로 @/lib/utils → @/components/utils 일괄 변경
