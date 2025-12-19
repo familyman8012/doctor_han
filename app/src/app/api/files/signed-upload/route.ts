@@ -1,0 +1,110 @@
+import { FileSignedUploadBodySchema } from "@/lib/schema/file";
+import { forbidden, internalServerError } from "@/server/api/errors";
+import { created } from "@/server/api/response";
+import { withApi } from "@/server/api/with-api";
+import { withAuth } from "@/server/auth/guards";
+import { mapFileRow } from "@/server/file/mapper";
+import { createSupabaseAdminClient } from "@/server/supabase/admin";
+
+const DEFAULT_BUCKET = "uploads";
+
+function sanitizeFileName(input: string): string {
+    const base = input.trim().split(/[\\/]/).pop() ?? "file";
+    const sanitized = base
+        .replace(/[^a-zA-Z0-9._-]+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^\.+/, "")
+        .slice(0, 120);
+
+    return sanitized.length > 0 ? sanitized : "file";
+}
+
+async function ensurePrivateBucketExists(bucket: string): Promise<void> {
+    const admin = createSupabaseAdminClient();
+    const { error } = await admin.storage.createBucket(bucket, { public: false });
+
+    const status = typeof (error as any)?.status === "number" ? (error as any).status : undefined;
+    const statusCode = typeof (error as any)?.statusCode === "string" ? (error as any).statusCode : undefined;
+
+    if (error && status !== 409) {
+        throw internalServerError("스토리지 버킷을 준비할 수 없습니다.", {
+            message: error.message,
+            ...(typeof status === "undefined" ? {} : { status }),
+            ...(typeof statusCode === "undefined" ? {} : { statusCode }),
+        });
+    }
+}
+
+export const POST = withApi(
+    withAuth(async (ctx) => {
+        const body = FileSignedUploadBodySchema.parse(await ctx.req.json());
+
+        const allowedPurposesByRole: Record<string, readonly string[]> = {
+            doctor: ["doctor_license", "lead_attachment", "avatar"],
+            vendor: ["vendor_business_license", "portfolio", "lead_attachment", "avatar"],
+            admin: ["doctor_license", "vendor_business_license", "portfolio", "lead_attachment", "avatar"],
+        };
+
+        const allowed = allowedPurposesByRole[ctx.profile.role] ?? [];
+        if (!allowed.includes(body.purpose)) {
+            throw forbidden();
+        }
+
+        await ensurePrivateBucketExists(DEFAULT_BUCKET);
+
+        const fileId = crypto.randomUUID();
+        const safeName = sanitizeFileName(body.fileName);
+        const path = `${ctx.user.id}/${body.purpose}/${fileId}-${safeName}`;
+
+        const { data: fileRow, error: fileError } = await ctx.supabase
+            .from("files")
+            .insert({
+                id: fileId,
+                owner_user_id: ctx.user.id,
+                bucket: DEFAULT_BUCKET,
+                path,
+                purpose: body.purpose,
+                mime_type: body.mimeType ?? null,
+                size_bytes: body.sizeBytes ?? null,
+            })
+            .select("*")
+            .single();
+
+        if (fileError) {
+            throw internalServerError("파일 메타데이터를 저장할 수 없습니다.", {
+                message: fileError.message,
+                code: fileError.code,
+            });
+        }
+
+        const admin = createSupabaseAdminClient();
+        const { data: upload, error: uploadError } = await admin.storage
+            .from(fileRow.bucket)
+            .createSignedUploadUrl(fileRow.path);
+
+        if (uploadError || !upload) {
+            const cleanup = await ctx.supabase.from("files").delete().eq("id", fileRow.id);
+            if (cleanup.error) {
+                console.error("[POST /api/files/signed-upload] cleanup failed", cleanup.error);
+            }
+
+            throw internalServerError("업로드 URL을 발급할 수 없습니다.", {
+                message: uploadError?.message,
+                ...(typeof (uploadError as any)?.status === "number" ? { status: (uploadError as any).status } : {}),
+                ...(typeof (uploadError as any)?.statusCode === "string"
+                    ? { statusCode: (uploadError as any).statusCode }
+                    : {}),
+            });
+        }
+
+        return created({
+            file: mapFileRow(fileRow),
+            upload: {
+                signedUrl: upload.signedUrl,
+                token: upload.token,
+                bucket: fileRow.bucket,
+                path: fileRow.path,
+            },
+        });
+    }),
+);

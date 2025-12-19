@@ -102,31 +102,44 @@
 - [x] 입력 검증(Zod) 패턴 확정(`src/lib/schema` 신설)
 
 ### 3-2. 엔드포인트(우선순위)
-- [ ] Auth/Me: `GET /api/me`
-- [ ] Category: `GET /api/categories`
-- [ ] Vendor:
-  - [ ] `GET /api/vendors` (리스트 + 필터/정렬)
-  - [ ] `GET /api/vendors/:id` (상세)
-  - [ ] `POST /api/vendors/me` / `PATCH /api/vendors/me` (업체 프로필 편집)
+- [x] Auth/Me:
+  - [x] `GET /api/me`
+  - [x] `POST /api/profile` (signup 직후 role/profile 생성)
+  - [x] `PATCH /api/profile` (내 프로필 수정)
+- [x] Verification:
+  - [x] `GET /api/doctor/verification` / `POST /api/doctor/verification`
+  - [x] `GET /api/vendor/verification` / `POST /api/vendor/verification`
+- [x] Category: `GET /api/categories`
+- [x] Vendor:
+  - [x] `GET /api/vendors` (리스트 + 필터/정렬)
+  - [x] `GET /api/vendors/:id` (상세)
+  - [x] `GET /api/vendors/me`
+  - [x] `POST /api/vendors/me` / `PATCH /api/vendors/me` (업체 프로필 편집)
+  - [x] `POST /api/vendors/me/portfolio`
+  - [x] `DELETE /api/vendors/me/portfolio/:id`
 - [ ] Lead:
-  - [ ] `POST /api/leads` (문의 생성)
-  - [ ] `GET /api/leads` (역할별 목록)
-  - [ ] `GET /api/leads/:id` (상세)
-  - [ ] `PATCH /api/leads/:id/status`
+  - [x] `POST /api/leads` (문의 생성)
+  - [x] `GET /api/leads` (역할별 목록)
+  - [x] `GET /api/leads/:id` (상세)
+  - [x] `PATCH /api/leads/:id/status`
   - [ ] (후순위) `POST /api/leads/:id/messages`
-- [ ] Review/Favorite:
-  - [ ] `POST /api/favorites/toggle`
-  - [ ] `GET /api/favorites`
-  - [ ] `POST /api/reviews`
-  - [ ] `GET /api/vendors/:id/reviews`
-- [ ] Admin(MVP):
-  - [ ] `GET /api/admin/verifications` (승인 큐)
-  - [ ] `POST /api/admin/verifications/:id/approve`
-  - [ ] `POST /api/admin/verifications/:id/reject`
-  - [ ] `POST /api/admin/categories` / `PATCH` / `DELETE`
-- [ ] File:
-  - [ ] `POST /api/files/signed-upload`
-  - [ ] `GET /api/files/signed-download`
+- [x] Review/Favorite:
+  - [x] `POST /api/favorites/toggle`
+  - [x] `GET /api/favorites`
+  - [x] `POST /api/reviews`
+  - [x] `GET /api/vendors/:id/reviews`
+- [x] Admin(MVP):
+  - [x] `GET /api/admin/verifications` (승인 큐)
+  - [x] `POST /api/admin/verifications/:id/approve`
+  - [x] `POST /api/admin/verifications/:id/reject`
+  - [x] `GET /api/admin/users`
+  - [x] `GET /api/admin/vendors`
+  - [x] `POST /api/admin/categories`
+  - [x] `PATCH /api/admin/categories/:id`
+  - [x] `DELETE /api/admin/categories/:id`
+- [x] File:
+  - [x] `POST /api/files/signed-upload`
+  - [x] `GET /api/files/signed-download`
 
 ## 4) 프론트엔드(UI) — MVP 화면부터
 ### 4-1. 공통 레이아웃/내비게이션

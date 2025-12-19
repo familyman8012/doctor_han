@@ -1,13 +1,20 @@
 import "server-only";
 
 import type { Database, Tables } from "@/lib/database.types";
-import { approvalRequired, forbidden, unauthorized } from "@/server/api/errors";
+import { approvalRequired, forbidden, notFound, unauthorized } from "@/server/api/errors";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { NextRequest } from "next/server";
 
 export type ProfileRow = Tables<"profiles">;
 export type ProfileRole = ProfileRow["role"];
+
+export type UserContext<TParams = Record<string, string>> = {
+    req: NextRequest;
+    params: TParams;
+    supabase: SupabaseClient<Database>;
+    user: User;
+};
 
 export type AuthedContext<TParams = Record<string, string>> = {
     req: NextRequest;
@@ -28,7 +35,7 @@ export async function requireUser(supabase: SupabaseClient<Database>): Promise<U
 export async function requireProfile(supabase: SupabaseClient<Database>, userId: string): Promise<ProfileRow> {
     const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
     if (error || !data) {
-        throw unauthorized("프로필이 없습니다.");
+        throw notFound("프로필이 없습니다.");
     }
     return data;
 }
@@ -69,22 +76,29 @@ export async function requireApprovedVendor(supabase: SupabaseClient<Database>, 
     }
 }
 
-export function withAuth<TParams = Record<string, string>>(
-    handler: (ctx: AuthedContext<TParams>) => Promise<Response>,
+export function withUser<TParams = Record<string, string>>(
+    handler: (ctx: UserContext<TParams>) => Promise<Response>,
 ): (req: NextRequest, routeCtx: { params?: TParams }) => Promise<Response> {
     return async (req, routeCtx) => {
         const supabase = await createSupabaseServerClient();
         const user = await requireUser(supabase);
-        const profile = await requireProfile(supabase, user.id);
 
         return handler({
             req,
             params: (routeCtx?.params ?? {}) as TParams,
             supabase,
             user,
-            profile,
         });
     };
+}
+
+export function withAuth<TParams = Record<string, string>>(
+    handler: (ctx: AuthedContext<TParams>) => Promise<Response>,
+): (req: NextRequest, routeCtx: { params?: TParams }) => Promise<Response> {
+    return withUser(async (ctx) => {
+        const profile = await requireProfile(ctx.supabase, ctx.user.id);
+        return handler({ ...ctx, profile });
+    });
 }
 
 export function withRole<TParams = Record<string, string>>(
