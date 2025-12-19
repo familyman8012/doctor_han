@@ -1,0 +1,2 @@
+-- Seed file for local development.
+-- This project currently seeds initial categories via migrations.

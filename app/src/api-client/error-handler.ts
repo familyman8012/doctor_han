@@ -60,9 +60,9 @@ const getSpecialErrorMessage = (code: string): string | null => {
     // 8xxx: 인증/권한 에러만 특별 처리
     switch (code) {
         case "8001":
-            return "승인이 필요한 계정입니다. 관리자에게 문의하십시오.";
+            return "승인 대기/반려 상태입니다. 검수 페이지에서 확인해주세요.";
         case "8999":
-            return "접근 권한이 없습니다. 다시 로그인해 주세요.";
+            return "로그인이 필요합니다. 다시 로그인해 주세요.";
         case "8991":
             return "해당 페이지의 접근권한이 없습니다.";
         default:
@@ -83,11 +83,10 @@ export const errorHandler = (errorData: unknown): void => {
 
     // 8xxx: 인증 에러 처리
     if (errorCode >= 8000 && errorCode < 9000) {
-        toast.error(errorMessage, { id: code });
+        toast.error(errorMessage, { id: code, ...(description ? { description } : {}) });
 
-        // 로그인 필요한 경우 - Better Auth signOut 사용
-        if (code === "8001" || code === "8999") {
-            // Better Auth가 쿠키 기반 세션을 자동으로 정리
+        // 세션 없음(로그인 필요)만 로그아웃 처리
+        if (code === "8999") {
             signOut()
                 .then(() => {
                     window.location.href = "/";
@@ -96,6 +95,15 @@ export const errorHandler = (errorData: unknown): void => {
                     // signOut 실패해도 홈으로 이동
                     window.location.href = "/";
                 });
+            return;
+        }
+
+        // 승인 필요(검수) - 로그아웃 금지 + 검수 페이지로 이동
+        if (code === "8001") {
+            if (!window.location.pathname.startsWith("/verification")) {
+                window.location.href = "/verification";
+            }
+            return;
         }
 
         // 권한 없음 - 홈으로

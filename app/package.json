@@ -10,6 +10,7 @@
     "db:start": "pnpm exec supabase start",
     "db:stop": "pnpm exec supabase stop",
     "db:status": "pnpm exec supabase status",
+    "db:env": "tsx scripts/db-env.ts",
     "db:new": "tsx scripts/db-new.ts",
     "db:migrate": "tsx scripts/db-migrate.ts",
     "db:reset": "tsx scripts/db-reset.ts",

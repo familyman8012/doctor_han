@@ -31,7 +31,7 @@
 ```
 
 ### 1-3. `details` 규칙
-- 입력 검증(Zod) 실패: `details = ZodError["errors"]`
+- 입력 검증(Zod) 실패: `details = ZodError["issues"]` (Zod v4)
 - 비즈니스/도메인 실패: `details = 추가 컨텍스트(필드, 충돌 원인, 제약조건 등)`
 - 외부/서버 오류: `details`는 운영상 필요한 최소 정보만(PII/민감정보 금지)
 
@@ -107,7 +107,7 @@
 - 라우트는 “검증 → 서비스 호출 → 응답”만 담당하고, 에러 변환/로깅은 공통 핸들러에서 처리한다.
 
 ### 4-3. ZodError 처리 규칙
-- ZodError → `400` + `code:"4000"` + `details=zod.errors`
+- ZodError → `400` + `code:"4000"` + `details=zod.issues`
 
 ---
 
@@ -123,4 +123,3 @@
   - `/Users/julian/workspace/ncos-prototype/web/src/server/http/middleware/with-api-error.ts`
 - 권한 미들웨어(우리는 role 기반으로 단순화):
   - `/Users/julian/workspace/ncos-prototype/web/src/server/http/middleware/with-permission.ts`
-
