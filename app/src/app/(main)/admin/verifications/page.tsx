@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/Badge/Badge";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
 import Pagination from "@/components/widgets/Pagination/Pagination";
-import type { AdminVerificationType } from "@/lib/schema/admin";
+import type { AdminVerificationType, AdminDoctorVerificationListItem, AdminVendorVerificationListItem } from "@/lib/schema/admin";
 import type { VerificationStatus } from "@/lib/schema/verification";
 import { RejectModal } from "./components/RejectModal";
 import { VerificationDetailModal } from "./components/DetailModal";
@@ -31,6 +31,8 @@ const STATUS_OPTIONS: { value: VerificationStatus | "all"; label: string }[] = [
     { value: "rejected", label: "반려됨" },
 ];
 
+type VerificationListItem = AdminDoctorVerificationListItem | AdminVendorVerificationListItem;
+
 export default function AdminVerificationsPage() {
     const queryClient = useQueryClient();
     const [type, setType] = useState<AdminVerificationType>("doctor");
@@ -40,7 +42,7 @@ export default function AdminVerificationsPage() {
 
     // 모달 상태
     const [rejectTarget, setRejectTarget] = useState<{ id: string; type: AdminVerificationType } | null>(null);
-    const [detailTarget, setDetailTarget] = useState<{ id: string; type: AdminVerificationType } | null>(null);
+    const [detailTarget, setDetailTarget] = useState<VerificationListItem | null>(null);
 
     const { data, isLoading } = useQuery({
         queryKey: ["admin", "verifications", type, status, search, page],
@@ -84,8 +86,13 @@ export default function AdminVerificationsPage() {
         rejectMutation.mutate({ id: rejectTarget.id, type: rejectTarget.type, reason });
     };
 
-    const items = data?.data?.items ?? [];
+    const items = (data?.data?.items ?? []) as VerificationListItem[];
     const total = data?.data?.total ?? 0;
+
+    const searchPlaceholder =
+        type === "doctor"
+            ? "면허번호, 이름, 병원명으로 검색"
+            : "회사명, 사업자번호, 담당자, 연락처, 이메일로 검색";
 
     const getStatusBadge = (status: VerificationStatus) => {
         switch (status) {
@@ -165,7 +172,7 @@ export default function AdminVerificationsPage() {
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <Input
-                                placeholder="이름, 이메일로 검색"
+                                placeholder={searchPlaceholder}
                                 value={search}
                                 onChange={(e) => {
                                     setSearch(e.target.value);
@@ -197,7 +204,7 @@ export default function AdminVerificationsPage() {
                                 <div
                                     key={verification.id}
                                     className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                                    onClick={() => setDetailTarget({ id: verification.id, type })}
+                                    onClick={() => setDetailTarget(item)}
                                 >
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="flex-1 min-w-0">
@@ -286,8 +293,7 @@ export default function AdminVerificationsPage() {
                 <VerificationDetailModal
                     isOpen={!!detailTarget}
                     onClose={() => setDetailTarget(null)}
-                    verificationId={detailTarget.id}
-                    type={detailTarget.type}
+                    item={detailTarget}
                 />
             )}
         </div>

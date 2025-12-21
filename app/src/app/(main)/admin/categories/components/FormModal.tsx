@@ -8,6 +8,7 @@ import { X } from "lucide-react";
 import { adminApi } from "@/api-client/admin";
 import { Button } from "@/components/ui/Button/Button";
 import { Input } from "@/components/ui/Input/Input";
+import { InputNumber } from "@/components/ui/InputNumber";
 import { Select } from "@/components/ui/Select/Select";
 import { Toggle } from "@/components/ui/Toggle/Toggle";
 import type { CategoryView } from "@/lib/schema/category";
@@ -64,10 +65,11 @@ export function CategoryFormModal({
     useEffect(() => {
         if (mode === "create" && name) {
             const slug = name
+                .trim()
                 .toLowerCase()
-                .replace(/[^a-z0-9가-힣]/g, "-")
+                .replace(/[^a-z0-9]+/g, "-")
                 .replace(/-+/g, "-")
-                .replace(/^-|-$/g, "");
+                .replace(/^-+|-+$/g, "");
             setValue("slug", slug);
         }
     }, [name, mode, setValue]);
@@ -255,13 +257,19 @@ export function CategoryFormModal({
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                 정렬 순서
                             </label>
-                            <Input
-                                type="number"
-                                {...register("sortOrder", {
-                                    valueAsNumber: true,
-                                    min: { value: 0, message: "0 이상이어야 합니다." },
-                                })}
-                                placeholder="0"
+                            <Controller
+                                name="sortOrder"
+                                control={control}
+                                rules={{ min: { value: 0, message: "0 이상이어야 합니다." } }}
+                                render={({ field }) => (
+                                    <InputNumber
+                                        value={field.value}
+                                        onValueChange={(value) => field.onChange(value ?? 0)}
+                                        mode="integer"
+                                        min={0}
+                                        placeholder="0"
+                                    />
+                                )}
                             />
                             {errors.sortOrder && (
                                 <p className="text-xs text-red-500 mt-1">{errors.sortOrder.message}</p>

@@ -3,8 +3,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ChevronRight, FolderTree, GripVertical } from "lucide-react";
-import dayjs from "dayjs";
+import { Plus, Pencil, Trash2, ChevronRight, FolderTree } from "lucide-react";
 import { adminApi } from "@/api-client/admin";
 import { Button } from "@/components/ui/Button/Button";
 import { Badge } from "@/components/ui/Badge/Badge";
@@ -84,7 +83,7 @@ export default function AdminCategoriesPage() {
     };
 
     const handleDelete = (id: string, name: string) => {
-        if (confirm(`"${name}" 카테고리를 삭제하시겠습니까?\n하위 카테고리가 있다면 함께 삭제됩니다.`)) {
+        if (confirm(`"${name}" 카테고리를 삭제하시겠습니까?\n하위 카테고리가 있으면 삭제할 수 없습니다.`)) {
             deleteMutation.mutate(id);
         }
     };

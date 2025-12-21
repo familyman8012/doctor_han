@@ -56,14 +56,6 @@ export default function AdminVendorsPage() {
         }
     };
 
-    const formatPrice = (min: number | null, max: number | null) => {
-        if (!min && !max) return "-";
-        if (min && max) return `${min.toLocaleString()}원 ~ ${max.toLocaleString()}원`;
-        if (min) return `${min.toLocaleString()}원 ~`;
-        if (max) return `~ ${max.toLocaleString()}원`;
-        return "-";
-    };
-
     return (
         <div className="space-y-6">
             {/* 헤더 */}
@@ -95,7 +87,7 @@ export default function AdminVendorsPage() {
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <Input
-                                placeholder="업체명, 담당자로 검색"
+                                placeholder="업체명, 소개로 검색"
                                 value={search}
                                 onChange={(e) => {
                                     setSearch(e.target.value);
