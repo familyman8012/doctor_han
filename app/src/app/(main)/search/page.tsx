@@ -3,11 +3,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { Search, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import api from "@/api-client/client";
 import { Input } from "@/components/ui/Input/Input";
 import { Button } from "@/components/ui/Button/button";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
+import { useIsAuthenticated, useUserRole } from "@/stores/auth";
 import { VendorCard } from "../categories/[slug]/components/VendorCard";
 import { VendorFilter } from "../categories/[slug]/components/VendorFilter";
 import { SimplePagination } from "../categories/[slug]/components/SimplePagination";
@@ -23,14 +25,27 @@ export default function SearchPage() {
     const [priceMax, setPriceMax] = useQueryState("priceMax", parseAsInteger);
     const [sort, setSort] = useQueryState("sort", parseAsString.withDefault("newest"));
 
+    const [searchText, setSearchText] = useState(q);
+
+    useEffect(() => {
+        setSearchText(q);
+    }, [q]);
+
+    const isAuthenticated = useIsAuthenticated();
+    const role = useUserRole();
+    const canFetchFavorites = isAuthenticated && role === "doctor";
+
     // 찜 목록 조회
     const { data: favorites = [] } = useQuery({
-        queryKey: ["favorites"],
+        queryKey: ["favorites", "ids"],
         queryFn: async (): Promise<string[]> => {
-            const response = await api.get<{ data: { items: { vendorId: string }[] } }>("/api/favorites");
-            return response.data.data.items.map((f) => f.vendorId);
+            const response = await api.get<{ data: { items: { vendor: { id: string } | null }[] } }>("/api/favorites");
+            return (response.data.data.items ?? [])
+                .map((item) => item.vendor?.id)
+                .filter((id): id is string => Boolean(id));
         },
         staleTime: 60 * 1000,
+        enabled: canFetchFavorites,
     });
 
     // 업체 검색
@@ -55,9 +70,7 @@ export default function SearchPage() {
 
     const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const searchQuery = formData.get("search") as string;
-        setQ(searchQuery.trim());
+        setQ(searchText.trim());
         setPage(1);
     };
 
@@ -79,7 +92,8 @@ export default function SearchPage() {
                     <div className="flex-1 relative">
                         <Input
                             name="search"
-                            defaultValue={q}
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
                             placeholder="업체명, 서비스, 키워드로 검색"
                             size="lg"
                             LeadingIcon={<Search className="w-5 h-5 text-gray-400" />}
@@ -97,7 +111,7 @@ export default function SearchPage() {
                         <button
                             key={keyword}
                             type="button"
-                            onClick={() => { setQ(keyword); setPage(1); }}
+                            onClick={() => { setSearchText(keyword); setQ(keyword); setPage(1); }}
                             className="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-600 hover:bg-[#62e3d5]/20 hover:text-[#0a3b41] transition-colors"
                         >
                             {keyword}
@@ -121,7 +135,7 @@ export default function SearchPage() {
                         </p>
                         <button
                             type="button"
-                            onClick={() => setQ("")}
+                            onClick={() => { setSearchText(""); setQ(""); setPage(1); }}
                             className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
                         >
                             <X className="w-4 h-4" />

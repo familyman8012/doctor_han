@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Star, User } from "lucide-react";
 import dayjs from "dayjs";
+import { useEffect, useState } from "react";
 import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
@@ -18,12 +19,18 @@ interface ReviewSectionProps {
 const PAGE_SIZE = 5;
 
 export function ReviewSection({ vendorId, ratingAvg, reviewCount }: ReviewSectionProps) {
+    const [page, setPage] = useState(1);
+
+    useEffect(() => {
+        setPage(1);
+    }, [vendorId]);
+
     const { data: reviewData, isLoading, isError } = useQuery({
-        queryKey: ["reviews", vendorId, 1],
+        queryKey: ["reviews", vendorId, page],
         queryFn: async () => {
             const response = await api.get<{
                 data: { items: ReviewView[]; page: number; pageSize: number; total: number };
-            }>(`/api/vendors/${vendorId}/reviews?pageSize=${PAGE_SIZE}`);
+            }>(`/api/vendors/${vendorId}/reviews?page=${page}&pageSize=${PAGE_SIZE}`);
             return response.data.data;
         },
     });
@@ -93,36 +100,51 @@ export function ReviewSection({ vendorId, ratingAvg, reviewCount }: ReviewSectio
                 />
             ) : (
                 <div className="space-y-6">
-                    {reviewData?.items.map((review) => (
-                        <div key={review.id} className="border-b border-gray-100 pb-6 last:border-0">
-                            <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                    <User className="w-5 h-5 text-gray-400" />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        {renderStars(review.rating)}
-                                        <span className="text-sm text-gray-500">
-                                            {dayjs(review.createdAt).format("YYYY.MM.DD")}
-                                        </span>
+                    {reviewData?.items.map((review) => {
+                        const hasAmount = review.amount !== null;
+                        const hasWorkedAt = Boolean(review.workedAt);
+
+                        return (
+                            <div key={review.id} className="border-b border-gray-100 pb-6 last:border-0">
+                                <div className="flex items-start gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                        <User className="w-5 h-5 text-gray-400" />
                                     </div>
-                                    <p className="text-[#0a3b41] whitespace-pre-wrap">
-                                        {review.content}
-                                    </p>
-                                    {(review.amount || review.workedAt) && (
-                                        <div className="flex flex-wrap gap-3 mt-2 text-sm text-gray-500">
-                                            {review.amount && (
-                                                <span>결제 금액: {review.amount.toLocaleString()}원</span>
-                                            )}
-                                            {review.workedAt && (
-                                                <span>작업일: {review.workedAt}</span>
-                                            )}
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            {renderStars(review.rating)}
+                                            <span className="text-sm text-gray-500">
+                                                {dayjs(review.createdAt).format("YYYY.MM.DD")}
+                                            </span>
                                         </div>
-                                    )}
+                                        <p className="text-[#0a3b41] whitespace-pre-wrap">
+                                            {review.content}
+                                        </p>
+                                        {(hasAmount || hasWorkedAt) && (
+                                            <div className="flex flex-wrap gap-3 mt-2 text-sm text-gray-500">
+                                                {hasAmount && (
+                                                    <span>결제 금액: {review.amount.toLocaleString()}원</span>
+                                                )}
+                                                {hasWorkedAt && (
+                                                    <span>작업일: {review.workedAt}</span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
+                        );
+                    })}
+
+                    {reviewData && reviewData.total > PAGE_SIZE && (
+                        <div className="flex justify-center pt-2">
+                            <SimplePagination
+                                currentPage={page}
+                                totalPages={Math.ceil(reviewData.total / PAGE_SIZE)}
+                                onPageChange={setPage}
+                            />
                         </div>
-                    ))}
+                    )}
                 </div>
             )}
         </div>

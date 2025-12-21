@@ -5,7 +5,7 @@ import { Star, MapPin, Heart } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/components/utils";
 import api from "@/api-client/client";
-import { useIsAuthenticated } from "@/stores/auth";
+import { useIsAuthenticated, useUserRole } from "@/stores/auth";
 import { toast } from "sonner";
 
 interface VendorCardProps {
@@ -25,6 +25,7 @@ interface VendorCardProps {
 
 export function VendorCard({ vendor, isFavorited = false }: VendorCardProps) {
     const isAuthenticated = useIsAuthenticated();
+    const role = useUserRole();
     const queryClient = useQueryClient();
 
     const favoriteMutation = useMutation({
@@ -42,6 +43,10 @@ export function VendorCard({ vendor, isFavorited = false }: VendorCardProps) {
         e.stopPropagation();
         if (!isAuthenticated) {
             toast.error("로그인이 필요합니다");
+            return;
+        }
+        if (role !== "doctor") {
+            toast.error("한의사 회원만 찜할 수 있습니다");
             return;
         }
         favoriteMutation.mutate();

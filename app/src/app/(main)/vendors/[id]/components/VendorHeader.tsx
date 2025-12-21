@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button/button";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { cn } from "@/components/utils";
 import api from "@/api-client/client";
-import { useIsAuthenticated } from "@/stores/auth";
+import { useIsAuthenticated, useUserRole } from "@/stores/auth";
 import type { VendorDetail } from "@/lib/schema/vendor";
 
 interface VendorHeaderProps {
@@ -17,22 +17,30 @@ interface VendorHeaderProps {
 
 export function VendorHeader({ vendor, isFavorited }: VendorHeaderProps) {
     const isAuthenticated = useIsAuthenticated();
+    const role = useUserRole();
     const queryClient = useQueryClient();
 
     const favoriteMutation = useMutation({
         mutationFn: async () => {
-            await api.post("/api/favorites/toggle", { vendorId: vendor.id });
+            const response = await api.post<{ data: { vendorId: string; isFavorited: boolean } }>("/api/favorites/toggle", {
+                vendorId: vendor.id,
+            });
+            return response.data.data;
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["favorites"] });
             queryClient.invalidateQueries({ queryKey: ["vendor", vendor.id] });
-            toast.success(isFavorited ? "찜 목록에서 삭제되었습니다" : "찜 목록에 추가되었습니다");
+            toast.success(data.isFavorited ? "찜 목록에 추가되었습니다" : "찜 목록에서 삭제되었습니다");
         },
     });
 
     const handleFavoriteClick = () => {
         if (!isAuthenticated) {
             toast.error("로그인이 필요합니다");
+            return;
+        }
+        if (role !== "doctor") {
+            toast.error("한의사 회원만 찜할 수 있습니다");
             return;
         }
         favoriteMutation.mutate();
