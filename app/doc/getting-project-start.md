@@ -257,5 +257,6 @@ export function TodoList() {
 ## UI 개발시 컴포넌트 및 스타일 가이드 
 
 DESIGN.md 문서를 확인해서 진행.
+widgets 폴더의 경로는, /Users/yun-eunseog/workspace/doctor_han/app/src/components/widgets 임.
 
 ```
