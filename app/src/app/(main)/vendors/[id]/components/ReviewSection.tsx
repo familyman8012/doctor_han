@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
-import { SimplePagination } from "../../categories/[slug]/components/SimplePagination";
+import { SimplePagination } from "../../../categories/[slug]/components/SimplePagination";
 import type { ReviewView } from "@/lib/schema/review";
 
 interface ReviewSectionProps {
