@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { Building2, MapPin, Tag, CheckCircle, Clock, XCircle, AlertCircle } from "lucide-react";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
@@ -18,7 +18,7 @@ interface Category {
     name: string;
     slug: string;
     parentId: string | null;
-    level: number;
+    depth: number;
 }
 
 interface VendorFormData {
@@ -33,17 +33,9 @@ interface VendorFormData {
 
 export default function PartnerProfilePage() {
     const queryClient = useQueryClient();
-    const { setAuth } = useAuthStore();
+    const vendorVerification = useAuthStore((state) => state.vendorVerification);
+    const setAuth = useAuthStore((state) => state.setAuth);
     const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
-
-    // 현재 사용자 정보 조회
-    const { data: meData } = useQuery({
-        queryKey: ["me"],
-        queryFn: async () => {
-            const res = await api.get<{ data: MeData }>("/api/me");
-            return res.data.data;
-        },
-    });
 
     // 내 업체 정보 조회
     const { data: vendorData, isLoading: vendorLoading } = useQuery({
@@ -58,12 +50,12 @@ export default function PartnerProfilePage() {
     const { data: categories } = useQuery({
         queryKey: ["categories"],
         queryFn: async () => {
-            const res = await api.get<{ data: { categories: Category[] } }>("/api/categories");
-            return res.data.data.categories;
+            const res = await api.get<{ data: { items: Category[] } }>("/api/categories");
+            return res.data.data.items;
         },
     });
 
-    const { register, handleSubmit, reset, formState: { errors, isDirty } } = useForm<VendorFormData>({
+    const { register, handleSubmit, reset, formState: { errors } } = useForm<VendorFormData>({
         defaultValues: {
             name: "",
             summary: "",
@@ -123,7 +115,7 @@ export default function PartnerProfilePage() {
                 onboardingRequired: data.onboardingRequired,
             });
             queryClient.invalidateQueries({ queryKey: ["vendor", "me"] });
-            queryClient.invalidateQueries({ queryKey: ["me"] });
+            queryClient.setQueryData(["auth", "me"], data);
         },
     });
 
@@ -137,11 +129,11 @@ export default function PartnerProfilePage() {
         saveMutation.mutate(data);
     };
 
-    const verification = meData?.vendorVerification;
+    const verification = vendorVerification;
     const verificationStatus = verification?.status;
 
     // 최상위 카테고리만 필터링
-    const topCategories = categories?.filter((c) => c.level === 0) ?? [];
+    const topCategories = categories?.filter((c) => c.depth === 1) ?? [];
 
     if (vendorLoading) {
         return (

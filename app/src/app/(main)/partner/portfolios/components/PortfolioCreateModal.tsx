@@ -3,12 +3,14 @@
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
-import { X, Camera, Trash2, GripVertical } from "lucide-react";
+import { X, Camera, Trash2 } from "lucide-react";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { toast } from "sonner";
+import { getSupabaseBrowserClient } from "@/server/supabase/browser";
+import type { FileSignedUploadResponse } from "@/lib/schema/file";
 
 interface PortfolioCreateModalProps {
     onClose: () => void;
@@ -70,6 +72,7 @@ export function PortfolioCreateModal({ onClose, onSuccess }: PortfolioCreateModa
 
         setIsUploading(true);
         try {
+            const supabase = getSupabaseBrowserClient();
             const newFiles: UploadedFile[] = [];
 
             for (const file of Array.from(files)) {
@@ -79,30 +82,30 @@ export function PortfolioCreateModal({ onClose, onSuccess }: PortfolioCreateModa
                     continue;
                 }
 
-                // Signed URL 발급
-                const signedRes = await api.post<{
-                    data: { uploadUrl: string; file: { id: string } };
-                }>("/api/files/signed-upload", {
-                    fileName: file.name,
-                    contentType: file.type,
+                const signedRes = await api.post<FileSignedUploadResponse>("/api/files/signed-upload", {
                     purpose: "portfolio",
+                    fileName: file.name,
+                    mimeType: file.type,
+                    sizeBytes: file.size,
                 });
 
-                const { uploadUrl, file: fileData } = signedRes.data.data;
+                const { bucket, path, token } = signedRes.data.data.upload;
+                const fileId = signedRes.data.data.file.id;
 
-                // 파일 업로드
-                await fetch(uploadUrl, {
-                    method: "PUT",
-                    body: file,
-                    headers: { "Content-Type": file.type },
-                });
+                const { error: uploadError } = await supabase.storage
+                    .from(bucket)
+                    .uploadToSignedUrl(path, token, file, { cacheControl: "3600" });
+
+                if (uploadError) {
+                    throw uploadError;
+                }
 
                 // 프리뷰 URL 생성
                 const previewUrl = URL.createObjectURL(file);
 
                 newFiles.push({
                     id: crypto.randomUUID(),
-                    fileId: fileData.id,
+                    fileId,
                     previewUrl,
                 });
             }

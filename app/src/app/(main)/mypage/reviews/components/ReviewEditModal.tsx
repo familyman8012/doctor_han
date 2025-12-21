@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/Input/Input";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { cn } from "@/components/utils";
 import { toast } from "sonner";
+import { getSupabaseBrowserClient } from "@/server/supabase/browser";
+import type { FileSignedUploadResponse } from "@/lib/schema/file";
 import type { MyReviewListItem, ReviewPatchBody } from "@/lib/schema/review";
 
 interface ReviewEditModalProps {
@@ -62,6 +64,7 @@ export function ReviewEditModal({ review, onClose, onSuccess }: ReviewEditModalP
 
         setIsUploading(true);
         try {
+            const supabase = getSupabaseBrowserClient();
             const uploadedIds: string[] = [];
 
             for (const file of Array.from(files)) {
@@ -71,25 +74,25 @@ export function ReviewEditModal({ review, onClose, onSuccess }: ReviewEditModalP
                     continue;
                 }
 
-                // Signed URL 발급
-                const signedRes = await api.post<{
-                    data: { uploadUrl: string; file: { id: string } };
-                }>("/api/files/signed-upload", {
-                    fileName: file.name,
-                    contentType: file.type,
+                const signedRes = await api.post<FileSignedUploadResponse>("/api/files/signed-upload", {
                     purpose: "review_photo",
+                    fileName: file.name,
+                    mimeType: file.type,
+                    sizeBytes: file.size,
                 });
 
-                const { uploadUrl, file: fileData } = signedRes.data.data;
+                const { bucket, path, token } = signedRes.data.data.upload;
+                const fileId = signedRes.data.data.file.id;
 
-                // 파일 업로드
-                await fetch(uploadUrl, {
-                    method: "PUT",
-                    body: file,
-                    headers: { "Content-Type": file.type },
-                });
+                const { error: uploadError } = await supabase.storage
+                    .from(bucket)
+                    .uploadToSignedUrl(path, token, file, { cacheControl: "3600" });
 
-                uploadedIds.push(fileData.id);
+                if (uploadError) {
+                    throw uploadError;
+                }
+
+                uploadedIds.push(fileId);
             }
 
             setPhotoFileIds((prev) => [...prev, ...uploadedIds]);

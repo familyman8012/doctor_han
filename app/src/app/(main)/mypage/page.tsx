@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { Camera, User, Mail, Phone, Shield, CheckCircle, Clock, XCircle } from "lucide-react";
 import api from "@/api-client/client";
@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/Input/Input";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { useAuthStore, useProfile } from "@/stores/auth";
 import { toast } from "sonner";
+import { getSupabaseBrowserClient } from "@/server/supabase/browser";
+import type { FileSignedUploadResponse } from "@/lib/schema/file";
 import type { MeData } from "@/lib/schema/profile";
 
 interface ProfileFormData {
@@ -20,7 +22,9 @@ interface ProfileFormData {
 export default function MyProfilePage() {
     const queryClient = useQueryClient();
     const profile = useProfile();
-    const { setAuth } = useAuthStore();
+    const user = useAuthStore((state) => state.user);
+    const doctorVerification = useAuthStore((state) => state.doctorVerification);
+    const setAuth = useAuthStore((state) => state.setAuth);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -28,15 +32,6 @@ export default function MyProfilePage() {
         defaultValues: {
             displayName: profile?.displayName ?? "",
             phone: profile?.phone ?? "",
-        },
-    });
-
-    // 현재 사용자 정보 조회
-    const { data: meData } = useQuery({
-        queryKey: ["me"],
-        queryFn: async () => {
-            const res = await api.get<{ data: MeData }>("/api/me");
-            return res.data.data;
         },
     });
 
@@ -58,7 +53,7 @@ export default function MyProfilePage() {
                 vendorVerification: data.vendorVerification,
                 onboardingRequired: data.onboardingRequired,
             });
-            queryClient.invalidateQueries({ queryKey: ["me"] });
+            queryClient.setQueryData(["auth", "me"], data);
         },
     });
 
@@ -79,26 +74,27 @@ export default function MyProfilePage() {
 
         setIsUploading(true);
         try {
-            // Signed URL 발급
-            const signedRes = await api.post<{
-                data: { uploadUrl: string; file: { id: string } };
-            }>("/api/files/signed-upload", {
-                fileName: file.name,
-                contentType: file.type,
+            const signedRes = await api.post<FileSignedUploadResponse>("/api/files/signed-upload", {
                 purpose: "avatar",
+                fileName: file.name,
+                mimeType: file.type,
+                sizeBytes: file.size,
             });
 
-            const { uploadUrl, file: fileData } = signedRes.data.data;
+            const { bucket, path, token } = signedRes.data.data.upload;
+            const fileId = signedRes.data.data.file.id;
 
-            // 파일 업로드
-            await fetch(uploadUrl, {
-                method: "PUT",
-                body: file,
-                headers: { "Content-Type": file.type },
-            });
+            const supabase = getSupabaseBrowserClient();
+            const { error: uploadError } = await supabase.storage
+                .from(bucket)
+                .uploadToSignedUrl(path, token, file, { cacheControl: "3600" });
+
+            if (uploadError) {
+                throw uploadError;
+            }
 
             // 프로필 업데이트
-            await updateMutation.mutateAsync({ avatarFileId: fileData.id });
+            await updateMutation.mutateAsync({ avatarFileId: fileId });
         } catch {
             toast.error("아바타 업로드에 실패했습니다");
         } finally {
@@ -115,7 +111,7 @@ export default function MyProfilePage() {
         });
     };
 
-    const verification = meData?.doctorVerification;
+    const verification = doctorVerification;
     const verificationStatus = verification?.status;
 
     return (
@@ -234,7 +230,7 @@ export default function MyProfilePage() {
                         <div className="relative">
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <Input
-                                value={meData?.user?.email ?? ""}
+                                value={user?.email ?? ""}
                                 disabled
                                 className="pl-10 bg-gray-50"
                             />
