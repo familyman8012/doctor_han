@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button/button";
@@ -14,7 +14,7 @@ interface LoginForm {
     password: string;
 }
 
-export default function LoginPage() {
+function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const rawReturnUrl = searchParams.get("returnUrl");
@@ -109,5 +109,31 @@ export default function LoginPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+function LoginFormSkeleton() {
+    return (
+        <div className="w-full max-w-md">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 animate-pulse">
+                <div className="text-center mb-8">
+                    <div className="h-8 w-24 bg-gray-200 rounded mx-auto" />
+                    <div className="h-4 w-48 bg-gray-200 rounded mx-auto mt-2" />
+                </div>
+                <div className="space-y-4">
+                    <div className="h-10 bg-gray-200 rounded" />
+                    <div className="h-10 bg-gray-200 rounded" />
+                    <div className="h-12 bg-gray-200 rounded" />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<LoginFormSkeleton />}>
+            <LoginForm />
+        </Suspense>
     );
 }

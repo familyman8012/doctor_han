@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ import { cn } from "@/components/utils";
 
 type UserRole = "doctor" | "vendor";
 
-interface SignupForm {
+interface SignupFormData {
     email: string;
     password: string;
     passwordConfirm: string;
@@ -24,7 +24,7 @@ interface SignupForm {
     nickname: string;
 }
 
-export default function SignupPage() {
+function SignupForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const roleParam = searchParams.get("role");
@@ -39,7 +39,7 @@ export default function SignupPage() {
         handleSubmit,
         watch,
         formState: { errors },
-    } = useForm<SignupForm>();
+    } = useForm<SignupFormData>();
 
     const password = watch("password");
 
@@ -53,7 +53,7 @@ export default function SignupPage() {
         },
     });
 
-    const onSubmit = async (data: SignupForm) => {
+    const onSubmit = async (data: SignupFormData) => {
         setIsLoading(true);
         try {
             const supabase = getSupabaseBrowserClient();
@@ -263,5 +263,41 @@ function RoleCard({
             </span>
             <span className="text-xs text-gray-500 text-center">{description}</span>
         </button>
+    );
+}
+
+function SignupFormSkeleton() {
+    return (
+        <div className="w-full max-w-md">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 animate-pulse">
+                <div className="text-center mb-8">
+                    <div className="h-8 w-28 bg-gray-200 rounded mx-auto" />
+                    <div className="h-4 w-48 bg-gray-200 rounded mx-auto mt-2" />
+                </div>
+                <div className="mb-6">
+                    <div className="h-4 w-16 bg-gray-200 rounded mb-2" />
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="h-28 bg-gray-200 rounded-xl" />
+                        <div className="h-28 bg-gray-200 rounded-xl" />
+                    </div>
+                </div>
+                <div className="space-y-4">
+                    <div className="h-10 bg-gray-200 rounded" />
+                    <div className="h-10 bg-gray-200 rounded" />
+                    <div className="h-10 bg-gray-200 rounded" />
+                    <div className="h-10 bg-gray-200 rounded" />
+                    <div className="h-10 bg-gray-200 rounded" />
+                    <div className="h-12 bg-gray-200 rounded" />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function SignupPage() {
+    return (
+        <Suspense fallback={<SignupFormSkeleton />}>
+            <SignupForm />
+        </Suspense>
     );
 }
