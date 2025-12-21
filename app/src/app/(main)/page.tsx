@@ -2,29 +2,24 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Search, Shield, Star, Users } from "lucide-react";
+import { ArrowRight, Image as ImageIcon, Search, Shield, Star, Users } from "lucide-react";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
-
-interface Category {
-    id: string;
-    name: string;
-    slug: string;
-    parentId: string | null;
-    depth: number;
-}
+import type { HomeCategoryGridSection, HomeScreen, HomeVendorCarouselSection } from "@/lib/schema/home";
 
 export default function HomePage() {
-    const { data: categories = [] } = useQuery({
-        queryKey: ["categories"],
-        queryFn: async (): Promise<Category[]> => {
-            const response = await api.get<{ data: { items: Category[] } }>("/api/categories");
-            return response.data.data.items;
+    const { data: home } = useQuery({
+        queryKey: ["home"],
+        queryFn: async (): Promise<HomeScreen> => {
+            const response = await api.get<{ data: HomeScreen }>("/api/home");
+            return response.data.data;
         },
-        staleTime: 5 * 60 * 1000,
+        staleTime: 60 * 1000,
     });
 
-    const mainCategories = categories.filter((c) => c.depth === 1);
+    const sections = home?.sections ?? [];
+    const categorySection = sections.find((s): s is HomeCategoryGridSection => s.type === "category_grid");
+    const vendorSections = sections.filter((s): s is HomeVendorCarouselSection => s.type === "vendor_carousel");
 
     return (
         <div className="space-y-12">
@@ -90,7 +85,7 @@ export default function HomePage() {
                     </Link>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    {mainCategories.slice(0, 10).map((category) => (
+                    {(categorySection?.items ?? []).slice(0, 10).map((category) => (
                         <Link
                             key={category.id}
                             href={`/categories/${category.slug}`}
@@ -106,6 +101,11 @@ export default function HomePage() {
                     ))}
                 </div>
             </section>
+
+            {/* 업체 섹션 */}
+            {vendorSections.map((section) => (
+                <VendorCarouselSection key={section.id} section={section} />
+            ))}
 
             {/* CTA 섹션 */}
             <section className="bg-white rounded-2xl border border-gray-100 p-8 md:p-12">
@@ -132,6 +132,103 @@ export default function HomePage() {
             </section>
         </div>
     );
+}
+
+function VendorCarouselSection({ section }: { section: HomeVendorCarouselSection }) {
+    const viewAllHref = section.category ? `/categories/${section.category.slug}` : "/categories";
+
+    return (
+        <section>
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-[#0a3b41]">{section.title}</h2>
+                <Link
+                    href={viewAllHref}
+                    className="text-sm text-gray-500 hover:text-[#0a3b41] flex items-center gap-1"
+                >
+                    전체보기 <ArrowRight className="w-4 h-4" />
+                </Link>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-2">
+                {section.items.map((vendor) => (
+                    <Link
+                        key={vendor.id}
+                        href={`/vendors/${vendor.id}`}
+                        className="group min-w-[280px] max-w-[280px] bg-white rounded-xl border border-gray-100 overflow-hidden hover:border-[#62e3d5] hover:shadow-md transition-all"
+                    >
+                        <VendorCardThumbnail vendor={vendor} />
+                        <div className="p-4 space-y-2">
+                            <div className="flex items-start justify-between gap-2">
+                                <h3 className="font-semibold text-[#0a3b41] leading-snug line-clamp-2">
+                                    {vendor.name}
+                                </h3>
+                                {typeof vendor.ratingAvg === "number" && (
+                                    <div className="flex items-center gap-1 text-sm text-gray-600 shrink-0">
+                                        <Star className="w-4 h-4 text-[#62e3d5]" />
+                                        <span className="font-medium">{vendor.ratingAvg.toFixed(1)}</span>
+                                        <span className="text-gray-400">({vendor.reviewCount})</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {vendor.summary && (
+                                <p className="text-sm text-gray-500 line-clamp-2">{vendor.summary}</p>
+                            )}
+
+                            <div className="flex flex-wrap gap-1">
+                                {vendor.categories
+                                    .filter((c) => c.depth === 2)
+                                    .slice(0, 2)
+                                    .map((c) => (
+                                        <span
+                                            key={c.id}
+                                            className="text-xs px-2 py-1 rounded-full bg-[#62e3d5]/10 text-[#0a3b41]"
+                                        >
+                                            {c.name}
+                                        </span>
+                                    ))}
+                            </div>
+
+                            <div className="flex items-center justify-between text-xs text-gray-500 pt-1">
+                                <span>
+                                    {vendor.regionPrimary
+                                        ? `${vendor.regionPrimary}${vendor.regionSecondary ? ` · ${vendor.regionSecondary}` : ""}`
+                                        : "지역 정보 없음"}
+                                </span>
+                                <span className="text-[#0a3b41] font-medium">{formatPriceRange(vendor.priceMin, vendor.priceMax)}</span>
+                            </div>
+                        </div>
+                    </Link>
+                ))}
+            </div>
+        </section>
+    );
+}
+
+function VendorCardThumbnail({ vendor }: { vendor: HomeVendorCarouselSection["items"][number] }) {
+    const src = vendor.thumbnail?.fileId
+        ? `/api/files/open?fileId=${vendor.thumbnail.fileId}`
+        : vendor.thumbnail?.url
+          ? vendor.thumbnail.url
+          : null;
+
+    return (
+        <div className="relative aspect-video bg-gray-100">
+            {src ? (
+                <img src={src} alt={vendor.name} className="w-full h-full object-cover" />
+            ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                    <ImageIcon className="w-10 h-10 text-gray-300" />
+                </div>
+            )}
+        </div>
+    );
+}
+
+function formatPriceRange(priceMin: number | null, priceMax: number | null) {
+    if (priceMin == null && priceMax == null) return "가격 협의";
+    if (priceMin != null && priceMax != null) return `${priceMin.toLocaleString()}~${priceMax.toLocaleString()}원`;
+    if (priceMin != null) return `${priceMin.toLocaleString()}원~`;
+    return `~${priceMax!.toLocaleString()}원`;
 }
 
 function FeatureCard({
