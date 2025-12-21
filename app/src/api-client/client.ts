@@ -1,7 +1,7 @@
-import axios, { type AxiosInstance, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
+import axios, { type AxiosInstance, type AxiosProgressEvent, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
 
-// 환경 변수에서 API URL 가져오기 (Next.js API Routes 사용시 빈 문자열)
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+// 기본은 same-origin(relative)로 호출하고, 필요 시 NEXT_PUBLIC_API_URL로 오버라이드한다.
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 // Axios 인스턴스 생성 - Next.js 15의 fetch 어댑터와 캐싱 지원
 const api: AxiosInstance = axios.create({
@@ -11,7 +11,7 @@ const api: AxiosInstance = axios.create({
         "Content-Type": "application/json",
     },
     // Next.js 15와의 호환성을 위한 fetch 어댑터 사용
-    adapter: "fetch" as any,
+    adapter: "fetch",
 });
 
 // Request 인터셉터 - 모든 요청 전 처리
@@ -151,10 +151,10 @@ export interface FetchOptions {
 }
 
 // 파일 업로드를 위한 특별 메서드 (multipart/form-data 헤더 자동 설정)
-export const apiUpload = async <T = any>(
+export const apiUpload = async <T = unknown>(
     url: string,
     formData: FormData,
-    onUploadProgress?: (progressEvent: any) => void,
+    onUploadProgress?: (progressEvent: AxiosProgressEvent) => void,
 ): Promise<T> => {
     const response = await api.post<T>(url, formData, {
         headers: {

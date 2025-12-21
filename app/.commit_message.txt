@@ -1,1 +1,1 @@
-🔧 cn 유틸 import 경로 @/lib/utils → @/components/utils 일괄 변경
+🎨 프론트엔드 공통 레이아웃/내비게이션 및 역할별 가드 구현

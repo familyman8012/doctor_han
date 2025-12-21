@@ -13,6 +13,7 @@ export const ProfileViewSchema = z.object({
     role: ProfileRoleSchema,
     status: ProfileStatusSchema,
     displayName: z.string().nullable(),
+    avatarUrl: z.string().nullable(),
     phone: z.string().nullable(),
     email: z.string().nullable(),
     createdAt: z.string(),
