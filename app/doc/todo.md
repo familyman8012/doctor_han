@@ -231,3 +231,12 @@ todo.md 기준으로 MVP→P1→P4까지 뼈대를 먼저 만들고, 실제로 �
   - 정책/권한/검수/정산처럼 운영 이슈가 터지는 지점
 
   이런 것들부터 우선순위 재정렬해서 수정·추가하면 돼.
+
+
+시드데이터. pnpm -C app db:reset
+
+  테스트 계정(비번 공통 Password123!):
+
+  - admin: admin@medihub.local
+  - doctor: doctor1@medihub.local
+  - vendor: vendor01@medihub.local

@@ -36,6 +36,7 @@ export async function fetchVendorCategories(
         if (category) items.push(mapCategoryRow(category));
     }
 
+    items.sort((a, b) => a.depth - b.depth || a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, "ko"));
     return items;
 }
 

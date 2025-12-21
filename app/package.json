@@ -14,6 +14,7 @@
     "db:new": "tsx scripts/db-new.ts",
     "db:migrate": "tsx scripts/db-migrate.ts",
     "db:reset": "tsx scripts/db-reset.ts",
+    "db:seed": "tsx scripts/db-seed.ts",
     "db:gen": "tsx scripts/db-gen.ts"
   },
   "dependencies": {
