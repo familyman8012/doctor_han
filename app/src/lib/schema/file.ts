@@ -8,6 +8,7 @@ export const FilePurposeSchema = z.enum([
     "portfolio",
     "lead_attachment",
     "avatar",
+    "review_photo",
 ]);
 
 export type FilePurpose = z.infer<typeof FilePurposeSchema>;
@@ -71,4 +72,3 @@ export const FileSignedDownloadResponseSchema = z.object({
 });
 
 export type FileSignedDownloadResponse = z.infer<typeof FileSignedDownloadResponseSchema>;
-

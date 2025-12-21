@@ -34,9 +34,10 @@ export const ProfilePatchBodySchema = z
     .object({
         displayName: zNonEmptyString.optional(),
         phone: z.union([z.string().trim().min(1), z.null()]).optional(),
+        avatarFileId: z.union([zUuid, z.null()]).optional(),
     })
     .strict()
-    .refine((value) => value.displayName !== undefined || value.phone !== undefined, {
+    .refine((value) => value.displayName !== undefined || value.phone !== undefined || value.avatarFileId !== undefined, {
         message: "수정할 필드가 없습니다.",
     });
 

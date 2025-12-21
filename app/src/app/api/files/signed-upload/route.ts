@@ -8,6 +8,19 @@ import { createSupabaseAdminClient } from "@/server/supabase/admin";
 
 const DEFAULT_BUCKET = "uploads";
 
+function pickSupabaseErrorMeta(error: unknown): { status?: number; statusCode?: string } {
+    if (!error || typeof error !== "object") return {};
+
+    const record = error as Record<string, unknown>;
+    const status = typeof record.status === "number" ? record.status : undefined;
+    const statusCode = typeof record.statusCode === "string" ? record.statusCode : undefined;
+
+    return {
+        ...(typeof status === "undefined" ? {} : { status }),
+        ...(typeof statusCode === "undefined" ? {} : { statusCode }),
+    };
+}
+
 function sanitizeFileName(input: string): string {
     const base = input.trim().split(/[\\/]/).pop() ?? "file";
     const sanitized = base
@@ -22,15 +35,12 @@ function sanitizeFileName(input: string): string {
 async function ensurePrivateBucketExists(bucket: string): Promise<void> {
     const admin = createSupabaseAdminClient();
     const { error } = await admin.storage.createBucket(bucket, { public: false });
+    const meta = pickSupabaseErrorMeta(error);
 
-    const status = typeof (error as any)?.status === "number" ? (error as any).status : undefined;
-    const statusCode = typeof (error as any)?.statusCode === "string" ? (error as any).statusCode : undefined;
-
-    if (error && status !== 409) {
+    if (error && meta.status !== 409) {
         throw internalServerError("스토리지 버킷을 준비할 수 없습니다.", {
             message: error.message,
-            ...(typeof status === "undefined" ? {} : { status }),
-            ...(typeof statusCode === "undefined" ? {} : { statusCode }),
+            ...meta,
         });
     }
 }
@@ -40,9 +50,9 @@ export const POST = withApi(
         const body = FileSignedUploadBodySchema.parse(await ctx.req.json());
 
         const allowedPurposesByRole: Record<string, readonly string[]> = {
-            doctor: ["doctor_license", "lead_attachment", "avatar"],
+            doctor: ["doctor_license", "lead_attachment", "avatar", "review_photo"],
             vendor: ["vendor_business_license", "portfolio", "lead_attachment", "avatar"],
-            admin: ["doctor_license", "vendor_business_license", "portfolio", "lead_attachment", "avatar"],
+            admin: ["doctor_license", "vendor_business_license", "portfolio", "lead_attachment", "avatar", "review_photo"],
         };
 
         const allowed = allowedPurposesByRole[ctx.profile.role] ?? [];
@@ -83,6 +93,7 @@ export const POST = withApi(
             .createSignedUploadUrl(fileRow.path);
 
         if (uploadError || !upload) {
+            const meta = pickSupabaseErrorMeta(uploadError);
             const cleanup = await ctx.supabase.from("files").delete().eq("id", fileRow.id);
             if (cleanup.error) {
                 console.error("[POST /api/files/signed-upload] cleanup failed", cleanup.error);
@@ -90,10 +101,7 @@ export const POST = withApi(
 
             throw internalServerError("업로드 URL을 발급할 수 없습니다.", {
                 message: uploadError?.message,
-                ...(typeof (uploadError as any)?.status === "number" ? { status: (uploadError as any).status } : {}),
-                ...(typeof (uploadError as any)?.statusCode === "string"
-                    ? { statusCode: (uploadError as any).statusCode }
-                    : {}),
+                ...meta,
             });
         }
 

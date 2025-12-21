@@ -1,10 +1,12 @@
 import type { TablesUpdate } from "@/lib/database.types";
 import { ProfileCreateBodySchema, ProfilePatchBodySchema } from "@/lib/schema/profile";
-import { conflict, internalServerError } from "@/server/api/errors";
+import { badRequest, conflict, internalServerError, notFound } from "@/server/api/errors";
 import { created, ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withAuth, withUser } from "@/server/auth/guards";
 import { mapProfileRow } from "@/server/profile/mapper";
+
+type ProfileUpdateWithAvatar = TablesUpdate<"profiles"> & { avatar_url?: string | null };
 
 export const POST = withApi(
     withUser(async (ctx) => {
@@ -58,12 +60,40 @@ export const PATCH = withApi(
     withAuth(async (ctx) => {
         const body = ProfilePatchBodySchema.parse(await ctx.req.json());
 
-        const update: TablesUpdate<"profiles"> = {};
+        const update: ProfileUpdateWithAvatar = {};
         if (typeof body.displayName !== "undefined") {
             update.display_name = body.displayName;
         }
         if (typeof body.phone !== "undefined") {
             update.phone = body.phone;
+        }
+        if (typeof body.avatarFileId !== "undefined") {
+            if (body.avatarFileId === null) {
+                update.avatar_url = null;
+            } else {
+                const { data: fileRow, error: fileError } = await ctx.supabase
+                    .from("files")
+                    .select("id, purpose")
+                    .eq("id", body.avatarFileId)
+                    .maybeSingle();
+
+                if (fileError) {
+                    throw internalServerError("아바타 파일을 확인할 수 없습니다.", {
+                        message: fileError.message,
+                        code: fileError.code,
+                    });
+                }
+
+                if (!fileRow) {
+                    throw notFound("아바타 파일을 찾을 수 없습니다.");
+                }
+
+                if (fileRow.purpose !== "avatar") {
+                    throw badRequest("아바타 용도로 업로드된 파일만 사용할 수 있습니다.");
+                }
+
+                update.avatar_url = `/api/files/open?fileId=${fileRow.id}`;
+            }
         }
 
         const { data: profileRow, error: updateError } = await ctx.supabase

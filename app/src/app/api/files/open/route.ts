@@ -1,5 +1,4 @@
 import { FileSignedDownloadQuerySchema } from "@/lib/schema/file";
-import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import {
     createAuthorizedSignedDownloadUrl,
@@ -7,6 +6,7 @@ import {
     parseDownloadOption,
 } from "@/server/file/signed-download";
 import { createSupabaseServerClient } from "@/server/supabase/server";
+import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export const GET = withApi(async (req: NextRequest) => {
@@ -21,8 +21,7 @@ export const GET = withApi(async (req: NextRequest) => {
     const user = userResult.user;
 
     const download = parseDownloadOption(query.download);
-
-    const { signedUrl, expiresIn } = await createAuthorizedSignedDownloadUrl({
+    const { signedUrl } = await createAuthorizedSignedDownloadUrl({
         supabase,
         user,
         fileId: query.fileId,
@@ -30,8 +29,6 @@ export const GET = withApi(async (req: NextRequest) => {
         expiresIn: DEFAULT_SIGNED_DOWNLOAD_EXPIRES_IN,
     });
 
-    return ok({
-        signedUrl,
-        expiresIn,
-    });
+    return NextResponse.redirect(signedUrl, 302);
 });
+

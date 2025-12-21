@@ -391,6 +391,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           display_name: string | null
           email: string | null
@@ -401,6 +402,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
@@ -411,6 +413,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
@@ -466,6 +469,7 @@ export type Database = {
           doctor_user_id: string
           id: string
           lead_id: string | null
+          photo_file_ids: string[]
           rating: number
           status: Database["public"]["Enums"]["review_status"]
           updated_at: string
@@ -479,6 +483,7 @@ export type Database = {
           doctor_user_id: string
           id?: string
           lead_id?: string | null
+          photo_file_ids?: string[]
           rating: number
           status?: Database["public"]["Enums"]["review_status"]
           updated_at?: string
@@ -492,6 +497,7 @@ export type Database = {
           doctor_user_id?: string
           id?: string
           lead_id?: string | null
+          photo_file_ids?: string[]
           rating?: number
           status?: Database["public"]["Enums"]["review_status"]
           updated_at?: string
@@ -798,6 +804,7 @@ export type Database = {
         | "portfolio"
         | "lead_attachment"
         | "avatar"
+        | "review_photo"
       lead_status:
         | "submitted"
         | "in_progress"
@@ -945,6 +952,7 @@ export const Constants = {
         "portfolio",
         "lead_attachment",
         "avatar",
+        "review_photo",
       ],
       lead_status: [
         "submitted",
