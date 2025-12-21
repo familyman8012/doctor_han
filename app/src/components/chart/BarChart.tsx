@@ -37,7 +37,7 @@ export interface BarChartProps {
     isLegend?: boolean;
     diffSet?: { name: string; dataKey: string; fill: string }[];
     isLabelList?: boolean;
-    LabelListFormatter?: (value: number) => string;
+    LabelListFormatter?: (value: string | number | boolean | null | undefined) => string;
     angle?: number;
     className?: string;
     loading?: boolean;

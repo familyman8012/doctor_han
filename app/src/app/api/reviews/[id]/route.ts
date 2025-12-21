@@ -65,8 +65,8 @@ async function validateReviewPhotoFileIds(ctx: AuthedContext, input: string[]): 
     return photoFileIds;
 }
 
-export const GET = withApi(async (_req: NextRequest, routeCtx: { params: { id: string } }) => {
-    const reviewId = zUuid.parse(routeCtx.params.id);
+export const GET = withApi(async (_req: NextRequest, routeCtx: { params: Promise<{ id: string }> }) => {
+    const reviewId = zUuid.parse((await routeCtx.params).id);
 
     const supabase = await createSupabaseServerClient();
     const { data: reviewRow, error } = await supabase

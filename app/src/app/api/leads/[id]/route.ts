@@ -5,10 +5,9 @@ import { withAuth } from "@/server/auth/guards";
 import { fetchLeadDetail } from "@/server/lead/repository";
 
 export const GET = withApi(
-    withAuth(async (ctx) => {
+    withAuth<{ id: string }>(async (ctx) => {
         const leadId = zUuid.parse(ctx.params.id);
         const lead = await fetchLeadDetail(ctx.supabase, leadId);
         return ok({ lead });
     }),
 );
-

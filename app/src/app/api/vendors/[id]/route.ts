@@ -7,8 +7,8 @@ import { mapVendorDetail } from "@/server/vendor/mapper";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import type { NextRequest } from "next/server";
 
-export const GET = withApi(async (_req: NextRequest, routeCtx: { params: { id: string } }) => {
-    const vendorId = zUuid.parse(routeCtx.params.id);
+export const GET = withApi(async (_req: NextRequest, routeCtx: { params: Promise<{ id: string }> }) => {
+    const vendorId = zUuid.parse((await routeCtx.params).id);
     const supabase = await createSupabaseServerClient();
 
     const { data: vendorRow, error: vendorError } = await supabase

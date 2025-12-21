@@ -7,7 +7,7 @@ import { withAuth } from "@/server/auth/guards";
 import { fetchLeadDetail } from "@/server/lead/repository";
 
 export const PATCH = withApi(
-    withAuth(async (ctx) => {
+    withAuth<{ id: string }>(async (ctx) => {
         const leadId = zUuid.parse(ctx.params.id);
         const body = LeadStatusPatchBodySchema.parse(await ctx.req.json());
 
@@ -66,4 +66,3 @@ export const PATCH = withApi(
         return ok({ lead: detail });
     }),
 );
-
