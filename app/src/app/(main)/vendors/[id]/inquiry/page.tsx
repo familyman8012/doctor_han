@@ -7,8 +7,8 @@ import { ArrowLeft, ChevronRight } from "lucide-react";
 import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
-import { useIsAuthenticated, useUserRole } from "@/stores/auth";
-import type { VendorDetail } from "@/lib/schema/vendor";
+import { useAuthStore, useIsAuthenticated, useUserRole } from "@/stores/auth";
+import type { VendorDetailResponse } from "@/lib/schema/vendor";
 import { InquiryForm } from "./components/InquiryForm";
 
 export default function VendorInquiryPage() {
@@ -17,19 +17,28 @@ export default function VendorInquiryPage() {
     const vendorId = params.id as string;
     const isAuthenticated = useIsAuthenticated();
     const role = useUserRole();
+    const { isInitialized } = useAuthStore();
+    const canAccess = isInitialized && isAuthenticated && role === "doctor";
 
     // 업체 상세 조회
     const { data: vendorData, isLoading, isError } = useQuery({
         queryKey: ["vendor", vendorId],
         queryFn: async () => {
-            const response = await api.get<{ data: { vendor: VendorDetail } }>(
-                `/api/vendors/${vendorId}`
-            );
+            const response = await api.get<VendorDetailResponse>(`/api/vendors/${vendorId}`);
             return response.data.data;
         },
+        enabled: canAccess,
     });
 
     // 권한 체크: 로그인한 한의사만 접근 가능
+    if (!isInitialized) {
+        return (
+            <div className="flex justify-center items-center py-20">
+                <Spinner size="lg" />
+            </div>
+        );
+    }
+
     if (!isAuthenticated) {
         router.replace("/login");
         return null;

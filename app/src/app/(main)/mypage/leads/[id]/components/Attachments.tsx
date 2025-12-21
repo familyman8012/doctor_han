@@ -1,21 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Paperclip, Download, FileText, Image as ImageIcon } from "lucide-react";
+import { Paperclip, Download, FileText } from "lucide-react";
 import api from "@/api-client/client";
+import { errorHandler } from "@/api-client/error-handler";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
+import type { FileSignedDownloadResponse } from "@/lib/schema/file";
 import type { LeadAttachment } from "@/lib/schema/lead";
 
 interface LeadAttachmentsProps {
     attachments: LeadAttachment[];
-}
-
-interface FileInfo {
-    id: string;
-    fileName: string;
-    mimeType: string | null;
-    sizeBytes: number | null;
 }
 
 export function LeadAttachments({ attachments }: LeadAttachmentsProps) {
@@ -24,25 +18,16 @@ export function LeadAttachments({ attachments }: LeadAttachmentsProps) {
     const handleDownload = async (fileId: string) => {
         setDownloadingId(fileId);
         try {
-            const response = await api.get<{ data: { url: string } }>(
-                `/api/files/signed-download?fileId=${fileId}`
-            );
-            window.open(response.data.data.url, "_blank");
-        } catch {
-            // Error handled by global handler
+            const response = await api.get<FileSignedDownloadResponse>("/api/files/signed-download", {
+                params: { fileId },
+            });
+            window.open(response.data.data.signedUrl, "_blank", "noopener,noreferrer");
+        } catch (error) {
+            errorHandler(error);
         } finally {
             setDownloadingId(null);
         }
     };
-
-    const formatFileSize = (size: number | null) => {
-        if (!size) return "";
-        if (size < 1024) return `${size} B`;
-        if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-        return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-    };
-
-    const isImage = (mimeType: string | null) => mimeType?.startsWith("image/");
 
     return (
         <div className="bg-white rounded-xl border border-gray-100 p-6">
@@ -58,8 +43,6 @@ export function LeadAttachments({ attachments }: LeadAttachmentsProps) {
                         attachment={att}
                         isDownloading={downloadingId === att.fileId}
                         onDownload={() => handleDownload(att.fileId)}
-                        formatFileSize={formatFileSize}
-                        isImage={isImage}
                     />
                 ))}
             </div>
@@ -71,16 +54,12 @@ interface AttachmentItemProps {
     attachment: LeadAttachment;
     isDownloading: boolean;
     onDownload: () => void;
-    formatFileSize: (size: number | null) => string;
-    isImage: (mimeType: string | null) => boolean;
 }
 
 function AttachmentItem({
     attachment,
     isDownloading,
     onDownload,
-    formatFileSize,
-    isImage,
 }: AttachmentItemProps) {
     // 파일 정보는 별도 API가 필요할 수 있으나, 여기서는 fileId만으로 다운로드 가능
     return (

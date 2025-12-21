@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, ChevronRight } from "lucide-react";
+import { FileText } from "lucide-react";
 import { leadsApi } from "@/api-client/leads";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";

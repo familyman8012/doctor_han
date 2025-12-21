@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { Paperclip, Download, FileText } from "lucide-react";
 import api from "@/api-client/client";
+import { errorHandler } from "@/api-client/error-handler";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
+import type { FileSignedDownloadResponse } from "@/lib/schema/file";
 import type { LeadAttachment } from "@/lib/schema/lead";
 
 interface LeadAttachmentsProps {
@@ -16,12 +18,12 @@ export function LeadAttachments({ attachments }: LeadAttachmentsProps) {
     const handleDownload = async (fileId: string) => {
         setDownloadingId(fileId);
         try {
-            const response = await api.get<{ data: { url: string } }>(
-                `/api/files/signed-download?fileId=${fileId}`
-            );
-            window.open(response.data.data.url, "_blank");
-        } catch {
-            // Error handled by global handler
+            const response = await api.get<FileSignedDownloadResponse>("/api/files/signed-download", {
+                params: { fileId },
+            });
+            window.open(response.data.data.signedUrl, "_blank", "noopener,noreferrer");
+        } catch (error) {
+            errorHandler(error);
         } finally {
             setDownloadingId(null);
         }
