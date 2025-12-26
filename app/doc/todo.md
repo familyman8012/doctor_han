@@ -195,7 +195,7 @@
     - 도입 조건: 계정 복구/분실 문의가 운영 병목 / 휴대폰 로그인·2FA 필요 / 스팸·어뷰징 억제에 강한 신원확인이 필요할 때
 - [x] Backend (API/DB)
   - [x] 엔드포인트: 없음(비밀번호 재설정은 Supabase Auth(`supabase.auth.*`)로 처리)
-- [x] Frontend (UI)
+- [] Frontend (UI)
   - [ ] `/auth/reset-password`(요청) 페이지
   - [ ] `/auth/update-password`(변경) 페이지 + redirect 처리
   - [ ] 보안 UX: 가입 여부를 노출하지 않는 동일 문구/응답 + (필요 시) 스텝업 캡차
