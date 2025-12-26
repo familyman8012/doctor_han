@@ -79,15 +79,22 @@ function LoginForm() {
                         })}
                     />
 
-                    <Input
-                        label="비밀번호"
-                        type="password"
-                        placeholder="비밀번호를 입력하세요"
-                        error={errors.password?.message}
-                        {...register("password", {
-                            required: "비밀번호를 입력해주세요",
-                        })}
-                    />
+                    <div>
+                        <Input
+                            label="비밀번호"
+                            type="password"
+                            placeholder="비밀번호를 입력하세요"
+                            error={errors.password?.message}
+                            {...register("password", {
+                                required: "비밀번호를 입력해주세요",
+                            })}
+                        />
+                        <div className="mt-1.5 text-right">
+                            <Link href="/reset-password" className="text-sm text-gray-500 hover:text-[#0a3b41]">
+                                비밀번호를 잊으셨나요?
+                            </Link>
+                        </div>
+                    </div>
 
                     <Button
                         type="submit"

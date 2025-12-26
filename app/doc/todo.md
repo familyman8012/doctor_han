@@ -181,15 +181,150 @@
 ## Post-MVP Roadmap (P1 → P4)
 
 ## 5) P1 — 계정/신뢰/전환 개선
-- [ ] 계정찾기: 아이디 찾기 / 비밀번호 재설정
-- [ ] 소셜 로그인: 카카오/구글(연동 후 자동가입/로그인)
-- [ ] 승인/반려 알림(최소): 인앱/이메일 중 1개부터 시작
-- [ ] 알림 설정: 수단(카톡/문자/이메일) + 알림 종류 on/off
-- [ ] 온보딩: 역할별 첫 방문 퍼널 가이드 + 프로필 완성도(체크리스트)
-- [ ] 약관/동의: 이용약관/개인정보/광고성 수신 동의(버전 관리 + 이력 저장 + 철회)
-- [ ] SEO 기본: 카테고리/업체 메타/OG 템플릿
-- [ ] 리뷰 고도화: 정렬 + 노출 정책 안내(운영 정책/블라인드/스팸 대응 등)
-- [ ] 운영 최소: Rate limit / 스팸 방지(리드 남발 방지), 서버/클라 오류 로그 수집
+목표: “가입 → 인증 → 첫 리드/응답” 전환을 높이고, 운영 신뢰(약관/알림/리뷰/스팸 대응)를 최소 단위로 갖춘다.
+
+### 5-1. 계정 복구(비밀번호 재설정) — 로그인 ID는 이메일 고정
+- [ ] 공통(Supabase/Resend/운영)
+  - [x] 정책: 로그인 ID는 `email`로 고정(아이디 찾기 기능은 제공하지 않음)
+  - [x] Supabase Auth: Password Recovery Redirect URL에 `/auth/update-password` 등록(로컬/운영)
+  - [x] Supabase Auth: SMTP를 Resend로 설정(Confirm email/Reset email 템플릿 포함) - https://supabase.com/dashboard/project/qhyzwhblglxodbcbkgem/auth/templates
+  - [x] Resend: `RESEND_FROM_EMAIL` 도메인 인증(DKIM/SPF) + 발신자 고정
+  - [ ] 이메일 분실(예외 처리): 카카오채널/채널톡 오픈 + 운영 처리 룰(응답 시간/필수 확인 정보)만 정리 (**P1에서는 개발 X**)
+  - [ ] (P2+ 검토) OTP/PASS(휴대폰 본인인증) — **P1에서는 구현하지 않음**
+    - 이유: 인프라/비용/장애 대응 등 운영 부담이 커서 “지금” 핵심 가치(리드/전환) 대비 효율이 낮음
+    - 도입 조건: 계정 복구/분실 문의가 운영 병목 / 휴대폰 로그인·2FA 필요 / 스팸·어뷰징 억제에 강한 신원확인이 필요할 때
+- [x] Backend (API/DB)
+  - [x] 엔드포인트: 없음(비밀번호 재설정은 Supabase Auth(`supabase.auth.*`)로 처리)
+- [ ] Frontend (UI)
+  - [ ] `/auth/reset-password`(요청) 페이지
+  - [ ] `/auth/update-password`(변경) 페이지 + redirect 처리
+  - [ ] 보안 UX: 가입 여부를 노출하지 않는 동일 문구/응답 + (필요 시) 스텝업 캡차
+  - [ ] 이메일 분실: “계정 복구 문의” 링크(카카오채널/채널톡) 노출
+- [ ] 완료 기준(AC): 비로그인 사용자가 안전하게 비번 재설정을 수행 가능
+
+### 5-2. 소셜 로그인(카카오/구글)
+- [ ] 공통(Supabase/Kakao/Google)
+  - [ ] Supabase Auth Provider 설정: Kakao/Google OAuth(redirect URL, scopes, local/production 도메인)
+  - [ ] Kakao: 비즈 앱 전환 + 이메일 수집(동의항목) 설정(비즈 앱 전환 전에는 이메일 미수집 가능)
+  - [ ] Google: OAuth 동의 화면/credentials 설정 + redirect URI(로컬/운영)
+  - [ ] 키/시크릿 정리: Kakao REST API 키, Google Client ID/Secret, Redirect URI(로컬/운영) 문서화 + 운영 키 보관
+  - [ ] 계정 연결 정책 확정: 동일 이메일 기존 계정과의 연동/중복 처리(가이드 문구 포함)
+- [x] Backend (API/DB)
+  - [x] 기존 엔드포인트: `GET /api/me` (`onboardingRequired` 분기), `POST /api/profile` (소셜 첫 로그인 후 프로필 생성)
+- [ ] Frontend (UI)
+  - [ ] 로그인/가입 화면에 소셜 버튼 추가(카카오/구글)
+  - [ ] OAuth 콜백 라우트: `/auth/callback/kakao`, `/auth/callback/google` (code 교환 → 세션 저장 → 리다이렉트)
+  - [ ] 최초 로그인 온보딩: `GET /api/me`에서 `onboardingRequired=true`면 역할 선택 → `POST /api/profile`
+- [ ] 완료 기준(AC): 소셜 로그인 후 역할 기반 가드/세션이 기존 이메일 로그인과 동일하게 동작
+
+### 5-3. 알림(이메일 1st) — 승인/반려 알림 + 설정
+- [ ] 공통(Resend/Vercel)
+  - [x] 정책: 알림 채널 1순위는 이메일(카카오/문자/인앱은 P2+)
+  - [x] 이메일 발송 인프라: Resend (Vercel 배포 기준)
+  - [ ] Resend: 도메인 인증(DKIM/SPF) + 발신자 고정(`RESEND_FROM_EMAIL`)
+  - [ ] 환경변수: `RESEND_API_KEY`, `RESEND_FROM_EMAIL` (Vercel/운영 환경 설정)
+- [ ] Backend (API/DB)
+  - [ ] 원칙: 이메일 발송은 서버(API)에서만 수행(클라에서 Resend 직접 호출 금지)
+  - [ ] 이메일 발송 유틸/서비스: Resend API 호출 모듈 + 템플릿(한의사/업체 승인/반려)
+  - [ ] DB: 사용자 알림 설정 최소 스키마
+    - [ ] `notification_settings`(user_id, email on/off, 알림 종류 on/off)
+    - [ ] (선택) `notification_deliveries`(type, channel, provider_response, sent_at, failed_at)
+  - [ ] 엔드포인트: `GET /api/notification-settings`, `PATCH /api/notification-settings`
+  - [ ] 엔드포인트(수정): `POST /api/admin/verifications/:id/approve`, `POST /api/admin/verifications/:id/reject`에서 이메일 발송 + 실패 로깅
+  - [ ] api-client: `src/api-client/notification-settings` 추가/연결
+- [ ] Frontend (UI)
+  - [ ] 알림 설정 UI: 마이페이지에서 알림 종류 on/off(최소: 인증 결과, 리드 관련, 마케팅)
+- [ ] 완료 기준(AC): 승인/반려 시 이메일이 발송되고, 설정에 따라 발송 여부가 제어됨
+
+### 5-4. 온보딩(역할별) + 프로필 완성도
+- [ ] 공통(정책/설계)
+  - [ ] 온보딩 퍼널 정의: doctor(인증 제출 → 업체 탐색/찜 → 첫 문의) / vendor(프로필/포트폴리오 → 인증 제출 → 리드 응답)
+  - [ ] 프로필 완성도 규칙 정의(역할별 체크리스트)
+- [ ] Backend (API/DB)
+  - [x] 기존: `GET /api/me`에 `onboardingRequired` 존재(프로필 생성 필요 여부)
+  - [ ] 온보딩 상태 저장 방식 결정: `profiles` 컬럼(jsonb) vs `user_onboarding_steps` 테이블
+  - [ ] 완성도 계산/저장 방식 결정(저장 vs 런타임 계산)
+  - [ ] (택1) 엔드포인트 설계
+    - [ ] `GET /api/me` 확장으로 체크리스트/완성도 포함 또는
+    - [ ] `GET /api/onboarding`, `PATCH /api/onboarding` 신설
+  - [ ] api-client: 온보딩 조회/저장 함수 추가
+- [ ] Frontend (UI)
+  - [ ] 역할별 첫 방문 가이드(퍼널) UI
+  - [ ] 프로필 완성도 UI(배너/체크리스트)
+- [ ] 완료 기준(AC): 신규 유저가 다음 행동(인증/프로필/첫 리드)에 도달하는 길이 명확해짐
+
+### 5-5. 약관/동의(버전 관리 + 이력 저장 + 철회)
+- [ ] 공통(정책/문서)
+  - [x] (MVP) 이용약관/개인정보처리방침은 정적 페이지(HTML/MD)로 제공하고, 푸터에 링크만 노출
+  - [x] (MVP) 필수 동의 저장 최소화: `profiles`에 “동의 시각 + 문서 버전(예: `YYYY-MM-DD`)”만 저장
+  - [x] (MVP) 마케팅 수신동의는 선택으로 두고, 실제 마케팅 발송 시작할 때 `opt_in_at`/`opt_out_at`만 관리
+  - [ ] 문서 버전 규칙 확정: `YYYY-MM-DD` (문서 변경 시 버전 bump)
+- [ ] Backend (API/DB)
+  - [ ] DB(필수 동의 최소): `profiles.terms_version`, `profiles.terms_agreed_at`, `profiles.privacy_version`, `profiles.privacy_agreed_at`
+  - [ ] DB(선택 동의): `profiles.marketing_opt_in_at`, `profiles.marketing_opt_out_at`
+  - [ ] DTO/Mapper: `ProfileViewSchema`, `MeResponse`에 동의 상태 포함
+  - [ ] 엔드포인트(수정): `POST /api/profile`에서 필수 동의(버전/시각) 저장
+  - [ ] 엔드포인트(추가/택1): 마케팅 수신 동의 토글/철회
+    - [ ] `PATCH /api/profile`로 처리 또는
+    - [ ] `PATCH /api/consents/marketing` 신설
+  - [ ] api-client: 동의 조회/변경 함수 추가
+  - [ ] (P2+ 필요 시) 동의 이력 고도화(append-only + 철회 이력)
+    - [ ] 약관 모델 설계: 이용약관/개인정보/광고성 수신(필수/선택, 버전, 시행일)
+    - [ ] DB: `terms_versions`, `user_consents`(append-only, 철회 시 `revoked_at` 기록)
+- [ ] Frontend (UI)
+  - [ ] 정적 문서 페이지 작성: 이용약관/개인정보처리방침
+  - [ ] 푸터 링크 추가: 이용약관/개인정보처리방침
+  - [ ] 가입/최초 로그인 동의 UI: 필수(이용약관/개인정보) 체크박스 + 선택(마케팅 수신 동의)
+  - [ ] 가입/최초 로그인 시 약관 동의 플로우(필수 미동의 시 사용 제한)
+  - [ ] 마이페이지: 약관 링크 + (마케팅 시작 후) 수신 동의 토글/철회
+  - [ ] (P2+ 필요 시) 마이페이지: 동의 이력 노출 + 광고성 수신 철회 이력
+- [ ] 완료 기준(AC): 약관은 푸터 링크로 접근 가능, 필수 동의는 버전+시각이 저장됨(마케팅은 선택/철회 가능)
+
+### 5-6. SEO 기본(카테고리/업체 메타 + OG 템플릿)
+- [x] Backend (API/DB)
+  - [x] 없음(API/DB 작업 없음)
+- [ ] Frontend (UI/SEO)
+  - [ ] 카테고리/업체 페이지 `generateMetadata` 정리(title/description/canonical/OG)
+  - [ ] OG 템플릿: 기본 OG 이미지 + (선택) 동적 OG 이미지 라우트
+  - [ ] sitemap/robots: 최소 `sitemap.xml`, `robots.txt` 제공
+- [ ] 완료 기준(AC): 공유/검색 결과에서 기본 메타/OG가 정상 노출
+
+### 5-7. 리뷰 고도화(정렬 + 노출 정책 + 운영 대응)
+- [ ] 공통(정책/운영)
+  - [ ] 노출 정책 문서화: 정렬/블라인드/스팸 대응 기준(운영 정책) + UI 링크 문구 확정
+- [ ] Backend (API/DB)
+  - [ ] 엔드포인트(수정): `GET /api/vendors/:id/reviews`에 `sort=recent|rating_high|rating_low` 지원
+  - [ ] DB(선택): 리뷰 신고 저장용 `review_reports` 테이블 + RLS
+  - [ ] 엔드포인트(추가): `POST /api/reviews/:id/report` (신고 접수)
+  - [ ] 엔드포인트(추가, admin): `POST /api/admin/reviews/:id/hide`, `POST /api/admin/reviews/:id/unhide`
+  - [ ] 운영 이력: 신고/블라인드/복구는 `audit_logs`에 기록(사유 포함)
+  - [ ] api-client: 리뷰 정렬/신고/블라인드 관련 함수 추가
+- [ ] Frontend (UI)
+  - [ ] 리뷰 정렬 UI
+  - [ ] 노출 정책 안내: 리뷰 작성/노출 기준, 블라인드/스팸 대응 정책 페이지(링크 노출)
+  - [ ] 리뷰 신고 UI
+- [ ] 완료 기준(AC): 리뷰 정렬이 가능하고, 운영 정책이 UI에 명확히 안내됨
+
+### 5-8. 운영 최소(Rate limit / 스팸 방지 / 오류 로그)
+- [ ] 공통(정책/외부 설정)
+  - [x] 정책: P1에서는 “유저 기준 제한(일/시간) + 쿨다운”으로 시작
+    - 참고: IP 기반/짧은 윈도우(초당/분당) + 서버리스 인스턴스 공통 적용은 공유 저장소 필요 → Redis(Upstash/Vercel KV)로 P2+ 또는 어뷰징 심해지면 도입
+  - [ ] (선택) Sentry 프로젝트 생성 + DSN 발급(서버/클라)
+  - [ ] (필요 시) 캡차 공급자 선정(예: Cloudflare Turnstile) + site/secret 키 발급
+- [ ] Backend (API/DB/Infra)
+  - [ ] 유저 기준 Rate limit(기본): 주요 엔드포인트에 일/시간 단위 제한 + 쿨다운
+    - [ ] 적용 대상: `POST /api/leads`, `POST /api/reviews`, `POST /api/files/signed-upload`, `POST /api/doctor/verification`, `POST /api/vendor/verification`
+  - [ ] 리드 스팸 방지(서버): doctor별 일/주 단위 발송 제한 + 동일 업체 반복 문의 쿨다운 + 차단 로그
+  - [ ] 차단/제한 로그: 차단 발생 시 `audit_logs` 또는 별도 `abuse_logs`에 기록
+  - [ ] 오류 로그 수집(서버): API 에러/리퀘스트 로그를 Sentry 등으로 수집(최소 설정)
+  - [ ] (P2+ 또는 필요 시) IP 기반 짧은 윈도우 + 서버리스 공통 레이트리밋: Upstash/Vercel KV(=Redis)로 적용
+- [ ] Frontend
+  - [ ] 캡차(조건부/스텝업): 매 요청마다 노출하지 않고 “어뷰징 징후”일 때만 노출(기본 off)
+    - [ ] 예) 로그인 연속 실패 N회 이후(로그인 폼 단계)
+    - [ ] 예) 비번 재설정 요청 과다(이메일/시간 기준, `/auth/reset-password`)
+    - [ ] 예) 리드 생성 과다/차단 발생 시(리드 생성 폼 단계)
+  - [ ] 오류 로그 수집(클라): React 에러/리퀘스트 로그를 Sentry 등으로 수집(최소 설정)
+- [ ] 완료 기준(AC): 리드 남발/비정상 트래픽을 1차 방어하고, 장애 원인 추적이 가능
 
 ## 6) P2 — 알림/메시징/고객지원/운영 고도화
 - [ ] 통합 메시징: 카카오 알림톡/이메일(SMTP) 발송 + 실패 재시도 + 로그
@@ -239,3 +374,30 @@ todo.md 기준으로 MVP→P1→P4까지 뼈대를 먼저 만들고, 실제로 �
   - admin: admin@medihub.local
   - doctor: doctor1@medihub.local
   - vendor: vendor01@medihub.local
+
+
+
+  ----
+
+  개발 중에는 supabase의 Confirm email을 OFF로 두고, 실서비스에서는 Resend로 통일한다.
+
+
+
+  이메일 확인을 켜두려면 SMTP 설정이 필요해요. Supabase가 확인 이메일을 보내야 하니까요.
+
+  방법 1: Supabase 기본 이메일 (제한적)
+  - 하루 4통까지만 가능 (테스트용)
+  - 별도 설정 없이 Confirm email ON만 하면 됨
+
+  방법 2: 커스텀 SMTP 설정 (실서비스용)
+
+  Supabase 대시보드 → Project Settings → Authentication → SMTP Settings:
+
+  (권장) Resend SMTP로 설정:
+  - SMTP Host/Port/User/Password: Resend에서 제공하는 값 사용
+  - Sender Email: `RESEND_FROM_EMAIL`와 동일하게 맞추기
+
+  추천 SMTP 서비스:
+  - Resend - 무료 3,000통/월, 설정 쉬움 (Vercel 배포와 궁합 좋음)
+  - SendGrid - 무료 100통/일
+  - Gmail - 무료지만 일일 제한 있음
