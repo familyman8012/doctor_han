@@ -4,13 +4,25 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import type { HomeCategoryGridSection } from "@/lib/schema/home";
 
-const categoryIcons: Record<string, string> = {
+const categoryIconsBySlug: Record<string, string> = {
+    "external-decoction": "🏥",
+    "medical-devices": "🩺",
+    interior: "🏠",
+    signage: "🪧",
+    emr: "💻",
+    marketing: "📣",
+    "tax-labor": "📊",
+    website: "🌐",
+};
+
+const categoryIconsByName: Record<string, string> = {
     원외탕전: "🏥",
     의료기기: "🩺",
     인테리어: "🏠",
     간판: "🪧",
     전자차트: "💻",
     마케팅: "📣",
+    "세무/노무": "📊",
     "세무·노무": "📊",
     홈페이지: "🌐",
     컨설팅: "💼",
@@ -41,7 +53,11 @@ export function CategoryScroller({ categories }: CategoryScrollerProps) {
                         className="flex-shrink-0 flex flex-col items-center gap-2 p-3 min-w-[72px]"
                     >
                         <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#f0faf9] to-[#e0f5f3] flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
-                            <span className="text-2xl">{categoryIcons[category.name] || "📦"}</span>
+                            <span className="text-2xl">
+                                {categoryIconsBySlug[category.slug] ??
+                                    categoryIconsByName[category.name] ??
+                                    "📦"}
+                            </span>
                         </div>
                         <span className="text-xs font-medium text-gray-700 text-center whitespace-nowrap">
                             {category.name}

@@ -260,3 +260,8 @@ DESIGN.md 문서를 확인해서 진행.
 widgets 폴더의 경로는, /Users/yun-eunseog/workspace/doctor_han/app/src/components/widgets 임.
 
 ```
+에러 정책은
+
+/Users/yun-eunseog/workspace/doctor_han/app/doc/error.md 임.
+
+```

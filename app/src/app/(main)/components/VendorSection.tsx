@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, Star, Heart, Image as ImageIcon } from "lucide-react";
+import { ChevronRight, Star, Image as ImageIcon } from "lucide-react";
 import type { HomeVendorCarouselSection } from "@/lib/schema/home";
 
 interface VendorSectionProps {
@@ -160,10 +160,9 @@ function VendorCardGrid({ vendor }: { vendor: VendorItem }) {
 }
 
 function formatPrice(priceMin: number | null, priceMax: number | null): string {
-    if (priceMin == null && priceMax == null) return "가격 협의";
-    if (priceMin != null && priceMax != null) {
-        return `${(priceMin / 10000).toFixed(0)}~${(priceMax / 10000).toFixed(0)}만원`;
-    }
-    if (priceMin != null) return `${(priceMin / 10000).toFixed(0)}만원~`;
-    return `~${(priceMax! / 10000).toFixed(0)}만원`;
+    if (priceMin === null && priceMax === null) return "가격 문의";
+    if (priceMin === null) return `~${priceMax?.toLocaleString()}원`;
+    if (priceMax === null) return `${priceMin.toLocaleString()}원~`;
+    if (priceMin === priceMax) return `${priceMin.toLocaleString()}원`;
+    return `${priceMin.toLocaleString()}~${priceMax.toLocaleString()}원`;
 }
