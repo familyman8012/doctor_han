@@ -160,7 +160,7 @@ export default function VendorVerificationPage() {
 
     // 프로필 없음
     if (!profile) {
-        router.replace("/signup");
+        router.replace("/onboarding");
         return null;
     }
 

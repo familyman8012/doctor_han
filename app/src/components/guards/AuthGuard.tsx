@@ -56,7 +56,11 @@ export function AuthGuard({
 
         // 프로필 없음(온보딩 필요)
         if (onboardingRequired || !profile) {
-            router.replace("/signup");
+            const returnUrl =
+                typeof window !== "undefined"
+                    ? `${window.location.pathname}${window.location.search}`
+                    : "";
+            router.replace(`/onboarding${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ""}`);
             return;
         }
 

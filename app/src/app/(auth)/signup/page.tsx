@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Building2, Stethoscope } from "lucide-react";
 import api from "@/api-client/client";
+import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
 import type { ProfileResponse } from "@/lib/schema/profile";
@@ -15,6 +16,21 @@ import { getSupabaseBrowserClient } from "@/server/supabase/browser";
 import { cn } from "@/components/utils";
 
 type UserRole = "doctor" | "vendor";
+
+function getSignupErrorMessage(rawError: string): string {
+    if (rawError === "no_code") return "소셜 가입에 실패했습니다. 다시 시도해주세요.";
+    if (rawError === "auth_failed") return "인증에 실패했습니다. 다시 시도해주세요.";
+
+    const lower = rawError.toLowerCase();
+    const looksLikeEmailConflict =
+        lower.includes("already registered") || lower.includes("already exists") || lower.includes("already in use");
+
+    if (looksLikeEmailConflict) {
+        return "이미 가입된 이메일이 있습니다. 로그인 후 ‘계정 설정’에서 소셜 계정을 연결해주세요.";
+    }
+
+    return rawError;
+}
 
 interface SignupFormData {
     email: string;
@@ -28,6 +44,8 @@ function SignupForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const roleParam = searchParams.get("role");
+    const rawError = searchParams.get("error");
+    const errorMessage = rawError ? getSignupErrorMessage(rawError) : null;
     const queryClient = useQueryClient();
     const [role, setRole] = useState<UserRole>(
         roleParam === "vendor" ? "vendor" : "doctor"
@@ -92,9 +110,9 @@ function SignupForm() {
 
             // 역할에 따라 다음 단계로 이동
             if (role === "doctor") {
-            router.push("/verification/doctor");
+                router.push("/verification/doctor");
             } else {
-            router.push("/verification/vendor");
+                router.push("/verification/vendor");
             }
 
         } finally {
@@ -108,6 +126,25 @@ function SignupForm() {
                 <div className="text-center mb-8">
                     <h1 className="text-2xl font-bold text-[#0a3b41]">회원가입</h1>
                     <p className="text-gray-500 mt-2">메디허브에 가입하고 시작하세요</p>
+                </div>
+
+                {errorMessage && (
+                    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        {errorMessage}
+                    </div>
+                )}
+
+                {/* 소셜 회원가입 */}
+                <SocialLoginButtons mode="signup" />
+
+                {/* 구분선 */}
+                <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-200" />
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                        <span className="px-3 bg-white text-gray-500">또는 이메일로 가입</span>
+                    </div>
                 </div>
 
                 {/* 역할 선택 */}

@@ -195,27 +195,37 @@
     - 도입 조건: 계정 복구/분실 문의가 운영 병목 / 휴대폰 로그인·2FA 필요 / 스팸·어뷰징 억제에 강한 신원확인이 필요할 때
 - [x] Backend (API/DB)
   - [x] 엔드포인트: 없음(비밀번호 재설정은 Supabase Auth(`supabase.auth.*`)로 처리)
-- [] Frontend (UI)
-  - [ ] `/auth/reset-password`(요청) 페이지
-  - [ ] `/auth/update-password`(변경) 페이지 + redirect 처리
-  - [ ] 보안 UX: 가입 여부를 노출하지 않는 동일 문구/응답 + (필요 시) 스텝업 캡차
-  - [ ] 이메일 분실: “계정 복구 문의” 링크(카카오채널/채널톡) 노출
-- [ ] 완료 기준(AC): 비로그인 사용자가 안전하게 비번 재설정을 수행 가능
+- [x] Frontend (UI)
+  - [x] `/auth/reset-password`(요청) 페이지
+  - [x] `/auth/update-password`(변경) 페이지 + redirect 처리
+  - [x] 보안 UX: 가입 여부를 노출하지 않는 동일 문구/응답 + (필요 시) 스텝업 캡차
+  - [x] 이메일 분실: "계정 복구 문의" 링크(카카오채널/채널톡) 노출
+- [x] 완료 기준(AC): 비로그인 사용자가 안전하게 비번 재설정을 수행 가능
 
 ### 5-2. 소셜 로그인(카카오/구글)
 - [ ] 공통(Supabase/Kakao/Google)
-  - [ ] Supabase Auth Provider 설정: Kakao/Google OAuth(redirect URL, scopes, local/production 도메인)
-  - [ ] Kakao: 비즈 앱 전환 + 이메일 수집(동의항목) 설정(비즈 앱 전환 전에는 이메일 미수집 가능)
-  - [ ] Google: OAuth 동의 화면/credentials 설정 + redirect URI(로컬/운영)
-  - [ ] 키/시크릿 정리: Kakao REST API 키, Google Client ID/Secret, Redirect URI(로컬/운영) 문서화 + 운영 키 보관
+  - [x] Supabase Auth Provider 설정: Kakao/Google OAuth(redirect URL, scopes, local/production 도메인)
+  - [ ] Supabase Auth: Manual linking(계정 연결) 허용(로컬/운영)
+    - [x] 로컬: `app/supabase/config.toml`에서 `enable_manual_linking=true`
+    - [ ] 운영: Supabase Dashboard(Auth 설정)에서 manual linking 활성화
+  - [x] Kakao: 비즈 앱 전환 + 이메일 수집(동의항목) 설정(비즈 앱 전환 전에는 이메일 미수집 가능)
+  - [x] Google: OAuth 동의 화면/credentials 설정 + redirect URI(로컬/운영)
+  - [x] 키/시크릿 정리: Kakao REST API 키, Google Client ID/Secret, Redirect URI(로컬/운영) 문서화 + .env.local 보관
   - [ ] 계정 연결 정책 확정: 동일 이메일 기존 계정과의 연동/중복 처리(가이드 문구 포함)
+    - [ ] 정책(권장): 자동 병합 없음 → 기존 계정 로그인 후 “소셜 계정 연결”로만 연결 허용
+    - [ ] P1 범위: 연결(add)만 제공, 해제(unlink)는 P2+로 이관(락아웃 방지/보안 정책 필요)
 - [x] Backend (API/DB)
   - [x] 기존 엔드포인트: `GET /api/me` (`onboardingRequired` 분기), `POST /api/profile` (소셜 첫 로그인 후 프로필 생성)
-- [ ] Frontend (UI)
-  - [ ] 로그인/가입 화면에 소셜 버튼 추가(카카오/구글)
-  - [ ] OAuth 콜백 라우트: `/auth/callback/kakao`, `/auth/callback/google` (code 교환 → 세션 저장 → 리다이렉트)
-  - [ ] 최초 로그인 온보딩: `GET /api/me`에서 `onboardingRequired=true`면 역할 선택 → `POST /api/profile`
-- [ ] 완료 기준(AC): 소셜 로그인 후 역할 기반 가드/세션이 기존 이메일 로그인과 동일하게 동작
+  - [x] 추가 API/DB 작업 없음: 계정 연결은 Supabase Auth(`linkIdentity`) + `/auth/callback`에서 세션 교환으로 처리
+- [x] Frontend (UI)
+  - [x] 로그인/가입 화면에 소셜 버튼 추가(카카오/구글)
+  - [x] OAuth 콜백 라우트: `/auth/callback` (통합 콜백, code 교환 → 세션 저장 → 리다이렉트)
+    - [x] 로그인과 "계정 연결"을 같은 콜백에서 처리(redirectTo/returnUrl/next 파라미터로 복귀 위치 제어)
+  - [x] 계정 설정(마이페이지 등)에 "소셜 계정 연결" UI 추가(연결 상태 표시 + Kakao/Google 연결 버튼)
+    - [x] 연결 플로우: 로그인된 상태에서 `supabase.auth.linkIdentity({ provider })` 호출 → 콜백 복귀 후 완료 처리
+    - [x] 동일 이메일 충돌 UX: 로그인/가입 화면에서 오류 안내 + "기존 계정 로그인 → 계정 설정에서 연결" 가이드 제공
+  - [x] 최초 로그인 온보딩: `GET /api/me`에서 `onboardingRequired=true`면 역할 선택 → `POST /api/profile`
+- [ ] 완료 기준(AC): 소셜 로그인/연결 후 역할 기반 가드/세션이 기존 이메일 로그인과 동일하게 동작
 
 ### 5-3. 알림(이메일 1st) — 승인/반려 알림 + 설정
 - [ ] 공통(Resend/Vercel)

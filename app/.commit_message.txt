@@ -1,1 +1,1 @@
-🔐 비밀번호 재설정 기능 추가 (reset-password, update-password 페이지)
+✨ 소셜 로그인(카카오/구글) 프론트엔드 구현
