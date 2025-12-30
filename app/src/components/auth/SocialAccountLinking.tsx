@@ -31,6 +31,25 @@ export function SocialAccountLinking({ returnUrl }: SocialAccountLinkingProps) {
     const [linkingProvider, setLinkingProvider] = useState<SocialProviderId | null>(null);
 
     useEffect(() => {
+        const resetLinking = () => setLinkingProvider(null);
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "visible") resetLinking();
+        };
+
+        window.addEventListener("pageshow", resetLinking);
+        window.addEventListener("pagehide", resetLinking);
+        window.addEventListener("focus", resetLinking);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            window.removeEventListener("pageshow", resetLinking);
+            window.removeEventListener("pagehide", resetLinking);
+            window.removeEventListener("focus", resetLinking);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+    }, []);
+
+    useEffect(() => {
         const linked = searchParams.get("linked");
         const linkError = searchParams.get("linkError");
 

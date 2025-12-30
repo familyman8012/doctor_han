@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/components/utils";
 import { SOCIAL_PROVIDERS, type SocialProviderId } from "@/lib/constants/oauth";
@@ -13,6 +13,25 @@ interface SocialLoginButtonsProps {
 
 export function SocialLoginButtons({ mode, returnUrl = "/" }: SocialLoginButtonsProps) {
     const [loadingProvider, setLoadingProvider] = useState<SocialProviderId | null>(null);
+
+    useEffect(() => {
+        const resetLoading = () => setLoadingProvider(null);
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "visible") resetLoading();
+        };
+
+        window.addEventListener("pageshow", resetLoading);
+        window.addEventListener("pagehide", resetLoading);
+        window.addEventListener("focus", resetLoading);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            window.removeEventListener("pageshow", resetLoading);
+            window.removeEventListener("pagehide", resetLoading);
+            window.removeEventListener("focus", resetLoading);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+    }, []);
 
     const loadingLabel = (() => {
         switch (mode) {
