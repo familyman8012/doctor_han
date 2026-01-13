@@ -3,6 +3,8 @@
 이 계획서는 “코드 작성 전” 단계 산출물이다.  
 구현 단계에서는 이 파일만 보고도 한 번에 끝낼 수 있도록 컨텍스트를 충분히 포함한다.
 
+> NOTE: 신규 기능 계획은 `.agents/plans/templates/feature-plan.md` 템플릿 사용을 권장한다.
+
 ## Feature Description
 
 ## User Story
@@ -71,4 +73,3 @@ So that <value>
 ## STEP-BY-STEP TASKS
 
 1) ...
-

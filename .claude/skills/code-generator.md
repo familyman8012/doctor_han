@@ -15,7 +15,7 @@
 
 ### API Route (GET/POST)
 ```typescript
-// src/app/api/[resource]/route.ts
+// app/src/app/api/[resource]/route.ts
 import type { NextRequest } from "next/server";
 import { withApi } from "@/server/api/with-api";
 import { created, ok } from "@/server/api/response";
@@ -68,7 +68,7 @@ export const POST = withApi(
 
 ### API Route (GET/PATCH/DELETE by ID)
 ```typescript
-// src/app/api/[resource]/[id]/route.ts
+// app/src/app/api/[resource]/[id]/route.ts
 import type { NextRequest } from "next/server";
 import { zUuid } from "@/lib/schema/common";
 import { withApi } from "@/server/api/with-api";
@@ -130,7 +130,7 @@ export const DELETE = withApi(
 
 ### Zod Schema
 ```typescript
-// src/lib/schema/${resource}.ts
+// app/src/lib/schema/${resource}.ts
 import { z } from 'zod';
 
 export const ${resource}CreateSchema = z.object({
@@ -147,7 +147,7 @@ export type ${Resource}Update = z.infer<typeof ${resource}UpdateSchema>;
 
 ### API Client
 ```typescript
-// src/api-client/${resource}.ts
+// app/src/api-client/${resource}.ts
 import type { ${Resource}Create, ${Resource}Update } from '@/lib/schema/${resource}';
 import api from '@/api-client/client';
 
@@ -180,7 +180,7 @@ export const ${resource}Api = {
 
 ### Page Component
 ```typescript
-// src/app/(page)/${resource}/page.tsx
+// app/src/app/(page)/${resource}/page.tsx
 import { ${Resource}List } from './component/${Resource}List';
 import { ${Resource}Filter } from './component/${Resource}Filter';
 
@@ -197,7 +197,7 @@ export default function ${Resource}Page() {
 
 ### List Component
 ```typescript
-// src/app/(page)/${resource}/component/${Resource}List.tsx
+// app/src/app/(page)/${resource}/component/${Resource}List.tsx
 'use client';
 
 import { useQuery } from '@tanstack/react-query';

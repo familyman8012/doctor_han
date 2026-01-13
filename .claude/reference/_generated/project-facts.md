@@ -30,9 +30,10 @@
 | `dev` | `next dev` |
 | `lint` | `eslint` |
 | `start` | `next start` |
-| `test` | `echo 'No test framework configured yet'` |
+| `test` | `vitest run --passWithNoTests` |
 | `test:e2e` | `echo 'No e2e test configured yet'` |
-| `test:integration` | `echo 'No integration test configured yet'` |
+| `test:integration` | `pnpm test && pnpm test:e2e` |
+| `test:watch` | `vitest --passWithNoTests` |
 | `type-check` | `tsc --noEmit` |
 
 ## Key Conventions (Repo)
@@ -44,7 +45,8 @@
 ## Generated References
 
 - API routes: `.claude/reference/_generated/api-routes-index.md`
-- Domain PRDs: `.claude/reference/_generated/domain-prds-index.md`
+- Domain specs: `.claude/reference/_generated/domain-specs-index.md`
+- Domain PRDs (legacy): `.claude/reference/_generated/domain-prds-index.md`
+- Migrations index: `.claude/reference/_generated/migrations-index.md`
 - TODO open items: `.claude/reference/_generated/todo-open-items.md`
 - test.csv feature map: `.claude/reference/_generated/test-csv-feature-map.md`
-

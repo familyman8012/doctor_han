@@ -258,6 +258,8 @@ status TEXT CHECK (status IN ('pending', 'approved', 'rejected'))
 2. SQL 작성
 3. `cd app && pnpm db:reset` (로컬)
 4. `cd app && pnpm db:gen -- --local`
+
+> NOTE: 커밋된(HEAD) 마이그레이션 파일은 수정하지 않습니다. 변경이 필요하면 새 마이그레이션을 추가합니다.
 5. 코드에서 타입 사용
 
 ### 스키마 변경

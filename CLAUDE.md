@@ -80,7 +80,7 @@ pnpm db:gen -- --local            # 타입 생성 (로컬)
 pnpm build                        # 프로덕션 빌드
 pnpm lint                         # ESLint
 pnpm type-check                   # TypeScript 검사
-pnpm test                         # 테스트 (현재는 placeholder)
+pnpm test                         # Vitest (테스트 없으면 통과)
 ```
 
 ## Reference Documentation
@@ -95,7 +95,7 @@ pnpm test                         # 테스트 (현재는 placeholder)
 | `.claude/reference/frontend-patterns.md` | React Query, 폼, 컴포넌트 패턴 |
 | `.claude/reference/coding-conventions.md` | 코딩 스타일, 네이밍, 파일 구조 |
 | `app/doc/todo.md` | 현재 개발 진행 상황 및 우선순위 |
-| `app/doc/domains/*/prd.md` | 도메인별 상세 요구사항 |
+| `app/doc/domains/**/{prd,tsd,ui}.md` | 도메인/기능별 스펙 |
 
 ## Code Conventions
 
@@ -185,14 +185,19 @@ src/app/(page)/vendors/
 
 ## Testing Strategy
 
-> **참고**: 테스트 프레임워크는 아직 설정되지 않았습니다. 추후 Vitest + Playwright 도입 예정입니다.
+테스트는 ncos와 동일하게 **리스크 기반으로 “필요한 곳에만”** 작성합니다(권한/정합성/비즈니스 로직 중심).
 
-### 테스트 명령 (placeholder)
+- Unit/Integration: Vitest 사용
+- 테스트 파일이 없어도 `--passWithNoTests`로 통과하도록 유지(개발 흐름 방해 최소화)
+- E2E: 현재는 placeholder. 필요 시 Playwright를 도입합니다.
+
+### 테스트 명령
 ```bash
 cd app
-pnpm test                # 단위 테스트 (미설정)
-pnpm test:integration    # 통합 테스트 (미설정)
-pnpm test:e2e           # E2E 테스트 (미설정)
+pnpm test
+pnpm test:watch
+pnpm test:integration
+pnpm test:e2e           # (placeholder)
 ```
 
 ## User Roles & Auth

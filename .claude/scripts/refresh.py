@@ -164,8 +164,27 @@ def generate_api_routes_index(*, repo_root: Path, apply: bool) -> WriteResult:
         segments = list(rel.parts[:-1])  # drop route.ts
         display_segments: list[str] = []
         for segment in segments:
-            m = re.fullmatch(r"\[(.+)\]", segment)
-            display_segments.append(f":{m.group(1)}" if m else segment)
+            # Next.js route group: (group) 는 URL 세그먼트에 포함되지 않음
+            if segment.startswith("(") and segment.endswith(")"):
+                continue
+
+            m = re.fullmatch(r"\[\[\.{3}(.+)\]\]", segment)  # [[...slug]]
+            if m:
+                display_segments.append(f":{m.group(1)}*?")
+                continue
+
+            m = re.fullmatch(r"\[\.{3}(.+)\]", segment)  # [...slug]
+            if m:
+                display_segments.append(f":{m.group(1)}*")
+                continue
+
+            m = re.fullmatch(r"\[(.+)\]", segment)  # [id]
+            if m:
+                display_segments.append(f":{m.group(1)}")
+                continue
+
+            display_segments.append(segment)
+
         route_path = "/api" + ("" if not display_segments else "/" + "/".join(display_segments))
         rows.append((route_path, str(route_file.relative_to(repo_root))))
 
@@ -179,7 +198,7 @@ def generate_api_routes_index(*, repo_root: Path, apply: bool) -> WriteResult:
     lines.append("")
     lines.append("| Route | Handler |")
     lines.append("| --- | --- |")
-    for route_path, handler in rows:
+    for route_path, handler in sorted(rows, key=lambda x: x[0]):
         lines.append(f"| `{route_path}` | `{handler}` |")
     lines.append("")
 
@@ -192,7 +211,7 @@ def generate_api_routes_index(*, repo_root: Path, apply: bool) -> WriteResult:
 
 def generate_domain_prds_index(*, repo_root: Path, apply: bool) -> WriteResult:
     domains_root = repo_root / "app" / "doc" / "domains"
-    prds = sorted(domains_root.rglob("prd.md")) if domains_root.exists() else []
+    prds = sorted(domains_root.glob("*/prd.md")) if domains_root.exists() else []
 
     lines: list[str] = []
     lines.append(GENERATED_NOTICE)
@@ -212,6 +231,130 @@ def generate_domain_prds_index(*, repo_root: Path, apply: bool) -> WriteResult:
         content="\n".join(lines),
         apply=apply,
     )
+
+
+def _domain_feature_key(*, domains_root: Path, spec_dir: Path) -> str:
+    rel = spec_dir.relative_to(domains_root)
+    return str(rel).replace("\\", "/")
+
+
+def generate_domain_specs_index(*, repo_root: Path, apply: bool) -> WriteResult:
+    domains_root = repo_root / "app" / "doc" / "domains"
+    out_path = repo_root / ".claude" / "reference" / "_generated" / "domain-specs-index.md"
+
+    if not domains_root.exists():
+        return write_text_if_changed(
+            path=out_path,
+            content="\n".join(
+                [
+                    GENERATED_NOTICE,
+                    "",
+                    "# Domain Specs Index",
+                    "",
+                    f"- Source missing: `{domains_root.relative_to(repo_root)}`",
+                    "- Refresh: `python3 .claude/scripts/refresh.py --apply`",
+                    "",
+                ],
+            ),
+            apply=apply,
+        )
+
+    spec_dirs: set[Path] = set()
+    for name in ("prd.md", "tsd.md", "ui.md"):
+        for spec in domains_root.rglob(name):
+            spec_dirs.add(spec.parent)
+
+    def fmt(p: Path) -> str:
+        return f"`{p.relative_to(repo_root)}`" if p.exists() else "—"
+
+    rows: list[tuple[str, str, str, str]] = []
+    for spec_dir in sorted(spec_dirs):
+        key = _domain_feature_key(domains_root=domains_root, spec_dir=spec_dir)
+        rows.append(
+            (
+                key,
+                fmt(spec_dir / "prd.md"),
+                fmt(spec_dir / "tsd.md"),
+                fmt(spec_dir / "ui.md"),
+            ),
+        )
+
+    lines: list[str] = []
+    lines.append(GENERATED_NOTICE)
+    lines.append("")
+    lines.append("# Domain Specs Index")
+    lines.append("")
+    lines.append(f"- Source: `{domains_root.relative_to(repo_root)}`")
+    lines.append("- Refresh: `python3 .claude/scripts/refresh.py --apply`")
+    lines.append("")
+    lines.append("| Domain/Feature | PRD | TSD | UI |")
+    lines.append("| --- | --- | --- | --- |")
+    for key, prd, tsd, ui in sorted(rows, key=lambda x: x[0]):
+        lines.append(f"| `{key}` | {prd} | {tsd} | {ui} |")
+    lines.append("")
+
+    return write_text_if_changed(path=out_path, content="\n".join(lines), apply=apply)
+
+
+def generate_migrations_index(*, repo_root: Path, apply: bool) -> WriteResult:
+    migrations_root = repo_root / "app" / "supabase" / "migrations"
+    out_path = repo_root / ".claude" / "reference" / "_generated" / "migrations-index.md"
+
+    if not migrations_root.exists():
+        return write_text_if_changed(
+            path=out_path,
+            content="\n".join(
+                [
+                    GENERATED_NOTICE,
+                    "",
+                    "# Migrations Index",
+                    "",
+                    f"- Source missing: `{migrations_root.relative_to(repo_root)}`",
+                    "- Refresh: `python3 .claude/scripts/refresh.py --apply`",
+                    "",
+                ],
+            ),
+            apply=apply,
+        )
+
+    migrations = sorted(migrations_root.glob("*.sql"))
+
+    rows: list[tuple[str, str, str, int, int]] = []
+    for m in migrations:
+        name = m.name
+        match = re.fullmatch(r"(\d{14})_(.+)\.sql", name)
+        ts = match.group(1) if match else ""
+        slug = match.group(2) if match else name
+
+        text = m.read_text(encoding="utf-8", errors="ignore")
+        policy_count = len(re.findall(r"\bCREATE\s+POLICY\b", text, flags=re.IGNORECASE))
+        rls_enable_count = len(re.findall(r"\bENABLE\s+ROW\s+LEVEL\s+SECURITY\b", text, flags=re.IGNORECASE))
+
+        rows.append((ts, slug, str(m.relative_to(repo_root)), policy_count, rls_enable_count))
+
+    lines: list[str] = []
+    lines.append(GENERATED_NOTICE)
+    lines.append("")
+    lines.append("# Migrations Index")
+    lines.append("")
+    lines.append(f"- Source: `{migrations_root.relative_to(repo_root)}`")
+    lines.append("- Refresh: `python3 .claude/scripts/refresh.py --apply`")
+    lines.append("")
+    lines.append("## Summary")
+    lines.append("")
+    lines.append(f"- Migrations: **{len(rows)}**")
+    if rows:
+        latest = max(rows, key=lambda x: x[0] or "")[2]
+        lines.append(f"- Latest: `{latest}`")
+    lines.append("")
+    lines.append("| Timestamp | Name | File | Policies | RLS Enables |")
+    lines.append("| --- | --- | --- | --- | --- |")
+    for ts, slug, path, policy_count, rls_enable_count in sorted(rows, key=lambda x: x[0] or x[2]):
+        ts_display = ts or "—"
+        lines.append(f"| `{ts_display}` | `{slug}` | `{path}` | {policy_count} | {rls_enable_count} |")
+    lines.append("")
+
+    return write_text_if_changed(path=out_path, content="\n".join(lines), apply=apply)
 
 
 def _find_test_csv_header(rows: list[list[str]]) -> dict[str, int]:
@@ -409,6 +552,8 @@ def main(argv: list[str]) -> int:
     results.append(generate_project_facts(repo_root=repo_root, apply=args.apply))
     results.append(generate_api_routes_index(repo_root=repo_root, apply=args.apply))
     results.append(generate_domain_prds_index(repo_root=repo_root, apply=args.apply))
+    results.append(generate_domain_specs_index(repo_root=repo_root, apply=args.apply))
+    results.append(generate_migrations_index(repo_root=repo_root, apply=args.apply))
     results.append(generate_test_csv_feature_map(repo_root=repo_root, apply=args.apply))
     results.append(generate_todo_open_items(repo_root=repo_root, apply=args.apply))
 
@@ -443,4 +588,3 @@ def main(argv: list[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))
-

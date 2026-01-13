@@ -21,14 +21,20 @@
 | 개발 현황 | `app/doc/todo.md` | 진행률, 우선순위 |
 | 비즈니스 문서 | `app/doc/business.md` | 사업 개요 |
 
-### 도메인 PRD
-| 도메인 | 경로 |
-|--------|------|
-| 인증 | `app/doc/domains/auth/prd.md` |
-| 업체 | `app/doc/domains/vendor/prd.md` |
-| 리드 | `app/doc/domains/lead/prd.md` |
-| 리뷰 | `app/doc/domains/review/prd.md` |
-| 관리자 | `app/doc/domains/admin-mvp/prd.md` |
+### 도메인/기능 스펙(권장)
+
+- PRD/TSD/UI: `app/doc/domains/<domain>/<feature>/{prd,tsd,ui}.md`
+- 레거시 도메인 PRD(존재 가능): `app/doc/domains/<domain>/prd.md`
+
+### Generated Indices (권장)
+| 문서 | 경로 | 용도 |
+|------|------|------|
+| 프로젝트 팩트 | `.claude/reference/_generated/project-facts.md` | 버전/스크립트/기본 사실 |
+| API 인덱스 | `.claude/reference/_generated/api-routes-index.md` | API 라우트 목록 |
+| 스펙 인덱스 | `.claude/reference/_generated/domain-specs-index.md` | PRD/TSD/UI 위치 |
+| 마이그레이션 인덱스 | `.claude/reference/_generated/migrations-index.md` | DB 변경 이력 |
+| TODO 요약 | `.claude/reference/_generated/todo-open-items.md` | 미완료 항목 |
+| test.csv 맵 | `.claude/reference/_generated/test-csv-feature-map.md` | 기능 목록 |
 
 ### 참조 문서
 | 문서 | 경로 |
@@ -43,7 +49,7 @@
 ### 특정 문서 읽기
 ```
 "PRD 읽어줘" → .claude/PRD.md 읽기
-"auth 도메인 문서 확인" → app/doc/domains/auth/prd.md 읽기
+"vendor/favorites PRD 확인" → app/doc/domains/vendor/favorites/prd.md 읽기
 "todo 확인" → app/doc/todo.md 읽기
 ```
 
@@ -59,7 +65,7 @@
 ### 문서 간 연결
 ```
 "vendor 기능 전체 파악하고 싶어"
-→ PRD.md의 vendor 섹션 + app/doc/domains/vendor/prd.md 함께 분석
+→ `.claude/reference/_generated/domain-specs-index.md`에서 스펙 목록 확인 → 관련 PRD/TSD 묶어서 분석
 ```
 
 ## 출력 형식
