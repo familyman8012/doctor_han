@@ -6,7 +6,7 @@ description: 코드 리뷰
 
 ## 목적
 
-코드 변경사항을 검토하고 품질을 평가합니다. 패턴 준수, 보안, 성능 등을 확인합니다.
+코드 변경사항을 검토하고 품질을 평가합니다. 특히 **정책 위반(Server Action/DB direct/RQ hook/onError)**, 보안, 데이터 정합성을 우선 확인합니다.
 
 ## 사용법
 
@@ -14,41 +14,54 @@ description: 코드 리뷰
 /code-review
 ```
 
-또는 특정 파일만:
-
-```
-/code-review [file-path]
-```
-
 ## 리뷰 체크리스트
 
-### 1. 로직/정합성
+### 1) 정책(Policy) 위반 — 즉시 수정
 
-- [ ] Zod 입력 검증이 있는가?
-- [ ] 실패 케이스(400/401/403/409/500)가 스펙(TSD)과 일치하는가?
-- [ ] React Query queryKey/invalidation이 일관적인가?
+- [ ] Server Action/Form Action 사용
+- [ ] 브라우저에서 Supabase(DB) 직접 호출(예외: Auth/Storage) 여부
+- [ ] React Query 커스텀 훅 래핑 여부
+- [ ] 개별 `onError` 추가 여부(중앙 에러 핸들러 정책 위반)
 
-### 2. 보안
+### 2) API 품질
 
-- [ ] 브라우저에서 DB 직접 호출 금지(BFF 패턴) 위반이 없는가?
-- [ ] `SUPABASE_SERVICE_ROLE_KEY`가 클라이언트로 노출되지 않는가?
-- [ ] Storage는 Signed URL 발급 후 업/다운로드만 하는가?
-- [ ] RLS 정책 전제가 코드/스펙과 일치하는가?
+- [ ] Query/Body가 Zod로 파싱/검증되는가?
+- [ ] `withApi`로 예외가 표준화되는가?
+- [ ] guards(`withUser/withAuth/withRole/...`)로 권한을 서버에서 강제하는가?
+- [ ] `ok/created/fail` 응답 포맷을 따르는가?
 
-### 3. 성능/운영
+### 3) DB/보안
 
-- [ ] 불필요한 N+1 쿼리가 없는가?
-- [ ] 대량 리스트 조회에 pagination이 있는가?
-- [ ] 관리자 기능은 최소 권한/감사 로그 요구가 반영되는가?
+- [ ] RLS/Policy 관점에서 접근이 안전한가?
+- [ ] service_role 사용 범위가 최소화되어 있는가?
+- [ ] 민감 데이터가 응답에 노출되지 않는가?
 
-## 실행
+### 4) 로직/정합성
+
+- [ ] 누락된 에러 처리/예외 케이스
+- [ ] 경쟁 조건/중복 생성(예: unique 위반) 대응
+- [ ] 목록 페이징/정렬이 올바른가?
+
+### 5) 프론트엔드
+
+- [ ] 불필요한 리렌더링/상태 폭발
+- [ ] queryKey 설계가 안정적인가?
+- [ ] invalidate 전략이 과하지/부족하지 않은가?
+
+## 프로세스(권장)
 
 ```bash
-git diff --name-only
-git diff
+git diff --name-only HEAD~1
+git diff HEAD~1
 ```
 
-## 산출물(권장)
+## 참조 문서
 
-- 리뷰 결과는 `.agents/code-reviews/`에 저장합니다(긴 작업에서 컨텍스트 드리프트 방지).
+- `.claude/reference/coding-conventions.md`
+- `.claude/reference/nextjs-patterns.md`
+- `.claude/reference/supabase-patterns.md`
+- `.claude/reference/frontend-patterns.md`
+- `.claude/reference/api-patterns.md`
+- `.claude/reference/service-patterns.md`
+- `.claude/reference/zod-patterns.md`
 

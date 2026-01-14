@@ -5,13 +5,8 @@
 - Source: `app/supabase/migrations`
 - Refresh: `python3 .claude/scripts/refresh.py --apply`
 
-## Summary
-
-- Migrations: **3**
-- Latest: `app/supabase/migrations/20251221160000_review_full_features.sql`
-
-| Timestamp | Name | File | Policies | RLS Enables |
-| --- | --- | --- | --- | --- |
-| `20251218190000` | `p0_schema` | `app/supabase/migrations/20251218190000_p0_schema.sql` | 54 | 16 |
-| `20251221123000` | `add_profiles_avatar_url` | `app/supabase/migrations/20251221123000_add_profiles_avatar_url.sql` | 0 | 0 |
-| `20251221160000` | `review_full_features` | `app/supabase/migrations/20251221160000_review_full_features.sql` | 2 | 0 |
+| Migration | File |
+| --- | --- |
+| `20251218190000_p0_schema.sql` | `app/supabase/migrations/20251218190000_p0_schema.sql` |
+| `20251221123000_add_profiles_avatar_url.sql` | `app/supabase/migrations/20251221123000_add_profiles_avatar_url.sql` |
+| `20251221160000_review_full_features.sql` | `app/supabase/migrations/20251221160000_review_full_features.sql` |

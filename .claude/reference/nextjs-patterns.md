@@ -1,349 +1,120 @@
-# Next.js Patterns - Medihub
+# Next.js 패턴 (App Router)
 
-## App Router 구조
+이 문서는 Medihub에서 사용하는 Next.js(App Router) 구현 패턴을 정리합니다.
 
-### 디렉토리 구조
-```
-src/app/
-├── (page)/                 # 라우트 그룹 (URL에 미포함)
-│   ├── layout.tsx          # 공통 레이아웃
-│   ├── vendors/
-│   │   ├── page.tsx        # /vendors
-│   │   └── [id]/
-│   │       └── page.tsx    # /vendors/:id
-│   └── dashboard/
-│       └── page.tsx        # /dashboard
-├── api/                    # API Routes (BFF)
-│   ├── vendors/
-│   │   ├── route.ts        # GET, POST /api/vendors
-│   │   └── [id]/
-│   │       └── route.ts    # GET, PATCH, DELETE /api/vendors/:id
-│   └── auth/
-│       └── route.ts
-└── layout.tsx              # 루트 레이아웃
-```
+## 0) 핵심 원칙
 
-### 라우트 그룹
-```typescript
-// (page) - URL에 영향 없이 레이아웃 공유
-// (auth) - 인증 관련 페이지 그룹
-// (admin) - 관리자 페이지 그룹
-```
+1. **Server Action 금지**: Server Action/Form Action으로 데이터 변경하지 않습니다.
+2. **BFF API Routes**: 데이터 통신은 `app/src/app/api/**/route.ts`에서만 처리합니다.
+3. **Fail-fast**: 입력 검증(Zod)과 권한 가드로 초기에 실패시키고, `withApi`로 표준 에러 응답을 보장합니다.
 
-## API Routes (BFF Pattern)
+## 1) 폴더/라우팅 구조
 
-### 표준 응답/에러 유틸
-```typescript
-// src/server/api/response.ts
-import { ok, created } from '@/server/api/response';
+### UI 페이지
 
-// 성공 응답: { code: "0000", data: T, message?: string }
-return ok({ items: vendors });         // 200
-return created({ vendor: newVendor }); // 201
+- `app/src/app/(page)/**/page.tsx`: 화면 단위 페이지
+- 페이지 내부 구성은 “페이지별 폴더 + component/utils/constants”를 기본으로 합니다.
 
-// src/server/api/errors.ts
-import { badRequest, notFound, unauthorized, forbidden } from '@/server/api/errors';
+### BFF API Routes
 
-throw badRequest("잘못된 요청입니다.");     // 400, code: "4000"
-throw notFound("리소스를 찾을 수 없습니다."); // 404, code: "4040"
-throw unauthorized("인증이 필요합니다.");   // 401, code: "8999"
-throw forbidden("권한이 없습니다.");        // 403, code: "8991"
+- `app/src/app/api/**/route.ts`: API 엔드포인트(서버에서만 실행)
+- 동적 라우트는 폴더로 표현: `.../[id]/route.ts`
 
-// src/server/api/with-api.ts
-// ApiError, ZodError를 자동으로 캐치하여 표준 에러 응답으로 변환
-export const GET = withApi(async (request) => {
-  // 비즈니스 로직
-  // throw로 에러 발생 시 자동 처리됨
-  return ok(data);
-});
-```
+예시(실제 파일):
 
-### 기본 패턴
-```typescript
-// src/app/api/vendors/route.ts
-import { createSupabaseServerClient } from '@/server/supabase/server';
-import { ok, created } from '@/server/api/response';
-import { withApi } from '@/server/api/with-api';
-import { badRequest, unauthorized } from '@/server/api/errors';
-import { NextRequest } from 'next/server';
-import { VendorUpsertBodySchema } from '@/lib/schema/vendor';
+- `app/src/app/api/vendors/route.ts`
+- `app/src/app/api/vendors/[id]/route.ts`
+- `app/src/app/api/vendors/me/route.ts`
 
-export const GET = withApi(async (request: NextRequest) => {
-  const supabase = await createSupabaseServerClient();
-  const { searchParams } = new URL(request.url);
+## 2) 표준 API Route 패턴
 
-  const categoryId = searchParams.get('categoryId');
-  const page = parseInt(searchParams.get('page') || '1');
-  const pageSize = parseInt(searchParams.get('pageSize') || '20');
+### (A) 표준 유틸
 
-  let query = supabase
-    .from('vendors')
-    .select('*, vendor_categories(categories(*))', { count: 'exact' })
-    .eq('status', 'active')
-    .range((page - 1) * pageSize, page * pageSize - 1);
+- `app/src/server/api/with-api.ts`: 예외 표준화(`ApiError`, `ZodError` 처리)
+- `app/src/server/api/response.ts`: `ok/created/fail` 응답 포맷
+- `app/src/server/api/errors.ts`: 도메인 에러 생성기(`badRequest`, `notFound`, ...)
+- `app/src/server/auth/guards.ts`: 인증/인가 가드(`withUser`, `withAuth`, `withRole`, ...)
 
-  if (categoryId) {
-    query = query.eq('vendor_categories.category_id', categoryId);
-  }
+### (B) 입력 검증(필수)
 
-  const { data, error, count } = await query;
+- Query/Body 모두 `app/src/lib/schema/*.ts`의 Zod 스키마로 파싱합니다.
+- “파싱하지 않은 값”을 비즈니스 로직에 흘려보내지 않습니다.
 
-  if (error) throw badRequest(error.message);
+실제 패턴(요약):
 
-  return ok({
-    items: data,
-    page,
-    pageSize,
-    total: count ?? 0,
-  });
-});
+```ts
+import { VendorListQuerySchema } from "@/lib/schema/vendor";
+import { ok } from "@/server/api/response";
+import { withApi } from "@/server/api/with-api";
+import { createSupabaseServerClient } from "@/server/supabase/server";
+import type { NextRequest } from "next/server";
 
-export const POST = withApi(async (request: NextRequest) => {
-  const supabase = await createSupabaseServerClient();
-
-  // 인증 확인
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) throw unauthorized();
-
-  // 입력 검증 (withApi가 ZodError 자동 처리)
-  const body = await request.json();
-  const validated = VendorUpsertBodySchema.parse(body);
-
-  // 데이터 저장
-  const { data, error } = await supabase
-    .from('vendors')
-    .insert({ ...validated, owner_user_id: user.id })
-    .select()
-    .single();
-
-  if (error) throw badRequest(error.message);
-
-  return created({ vendor: data });
-});
-```
-
-### 동적 라우트 패턴
-```typescript
-// src/app/api/vendors/[id]/route.ts
-import { NextRequest } from 'next/server';
-import { createSupabaseServerClient } from '@/server/supabase/server';
-import { ok } from '@/server/api/response';
-import { withApi } from '@/server/api/with-api';
-import { notFound, badRequest } from '@/server/api/errors';
-
-type Params = { params: Promise<{ id: string }> };
-
-export const GET = withApi(async (request: NextRequest, { params }: Params) => {
-  const { id } = await params;
-  const supabase = await createSupabaseServerClient();
-
-  const { data, error } = await supabase
-    .from('vendors')
-    .select('*, vendor_categories(categories(*)), reviews(*)')
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    if (error.code === 'PGRST116') throw notFound();
-    throw badRequest(error.message);
-  }
-
-  return ok({ vendor: data });
-});
-
-export const PATCH = withApi(async (request: NextRequest, { params }: Params) => {
-  const { id } = await params;
-  const supabase = await createSupabaseServerClient();
-  const body = await request.json();
-
-  const { data, error } = await supabase
-    .from('vendors')
-    .update(body)
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) throw badRequest(error.message);
-
-  return ok({ vendor: data });
-});
-
-export const DELETE = withApi(async (request: NextRequest, { params }: Params) => {
-  const { id } = await params;
-  const supabase = await createSupabaseServerClient();
-
-  const { error } = await supabase
-    .from('vendors')
-    .delete()
-    .eq('id', id);
-
-  if (error) throw badRequest(error.message);
-
-  return ok({ deleted: true });
-});
-```
-
-## 페이지 컴포넌트
-
-### 서버 컴포넌트 (기본)
-```typescript
-// src/app/(page)/vendors/page.tsx
-import { VendorList } from './component/VendorList';
-import { VendorFilter } from './component/VendorFilter';
-
-export default function VendorsPage() {
-  return (
-    <main className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">업체 목록</h1>
-      <VendorFilter />
-      <VendorList />
-    </main>
-  );
-}
-```
-
-### 클라이언트 컴포넌트
-```typescript
-// src/app/(page)/vendors/component/VendorList.tsx
-'use client';
-
-import { useQuery } from '@tanstack/react-query';
-import api from '@/api-client/client';
-import type { VendorListItem } from '@/lib/schema/vendor';
-import { VendorCard } from './VendorCard';
-
-export function VendorList() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['vendors', { page: 1, pageSize: 20 }],
-    queryFn: async () => {
-      const response = await api.get<{ data: { items: VendorListItem[] } }>('/api/vendors', {
-        params: { page: 1, pageSize: 20 },
-      });
-      return response.data.data.items;
-    },
+export const GET = withApi(async (req: NextRequest) => {
+  const { searchParams } = new URL(req.url);
+  const query = VendorListQuerySchema.parse({
+    q: searchParams.get("q") ?? undefined,
+    page: searchParams.get("page") ?? undefined,
+    pageSize: searchParams.get("pageSize") ?? undefined,
   });
 
-  if (isLoading) return <div>로딩 중...</div>;
-  if (error) return <div>에러 발생</div>;
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {data?.map((vendor) => (
-        <VendorCard key={vendor.id} vendor={vendor} />
-      ))}
-    </div>
-  );
-}
+  const supabase = await createSupabaseServerClient();
+  // ...
+  return ok({ /* ... */ });
+});
 ```
 
-## 미들웨어
+### (C) 인증/인가(필수)
 
-### 인증 미들웨어
-```typescript
-// src/middleware.ts
-import { createServerClient } from '@supabase/ssr';
-import { NextResponse, type NextRequest } from 'next/server';
+- 인증이 필요한 엔드포인트는 `withUser/withAuth/withRole/withApprovedDoctor/withApprovedVendor`를 사용합니다.
+- “프론트에서 숨김”은 보안이 아닙니다. 서버에서 반드시 막습니다.
 
-export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: { headers: request.headers },
-  });
+실제 패턴(요약):
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => request.cookies.getAll(),
-        setAll: (cookiesToSet) => {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
-          });
-        },
-      },
-    }
-  );
+```ts
+import { withApi } from "@/server/api/with-api";
+import { withRole } from "@/server/auth/guards";
 
-  const { data: { user } } = await supabase.auth.getUser();
-
-  // 보호된 라우트 체크
-  const protectedRoutes = ['/dashboard', '/profile', '/admin'];
-  const isProtected = protectedRoutes.some(route =>
-    request.nextUrl.pathname.startsWith(route)
-  );
-
-  if (isProtected && !user) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  return response;
-}
-
-export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
-};
+export const POST = withApi(
+  withRole(["vendor"], async (ctx) => {
+    // ctx.user, ctx.profile, ctx.supabase 사용 가능
+    return /* ok/created */;
+  }),
+);
 ```
 
-## 에러 처리
+### (D) 에러 처리(필수)
 
-### 에러 바운더리
-```typescript
-// src/app/error.tsx
-'use client';
+- 라우트 핸들러에서 `try/catch`로 개별 처리하지 않습니다(중복/드리프트 유발).
+- 대신 `withApi` 내부에서 공통 처리합니다.
+  - `ApiError` → `fail({status, code, message, details})`
+  - `ZodError` → 400 + 입력 검증 실패
+  - 그 외 → 500 + 안전한 메시지
 
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <h2 className="text-xl font-bold mb-4">문제가 발생했습니다</h2>
-      <button
-        onClick={reset}
-        className="px-4 py-2 bg-blue-500 text-white rounded"
-      >
-        다시 시도
-      </button>
-    </div>
-  );
-}
+## 3) Server/Client 구분
+
+- `app/src/server/**`는 서버 전용이어야 합니다(`server-only` 사용).
+- 브라우저에서 DB 접근을 막기 위해, Supabase DB 쿼리는 서버에서만 수행합니다.
+  - 예외: Auth/Storage(서명 URL 업/다운로드 등)는 제품 정책에 따라 제한적으로 허용
+
+## 4) 파라미터 타입/검증
+
+- App Router의 route context params는 `Promise`로 전달됩니다.
+- `guards.ts`는 `ctx.params`를 이미 resolve한 형태로 제공합니다.
+- 동적 파라미터는 Zod로 검증합니다.
+
+예시(요약):
+
+```ts
+import { zUuid } from "@/lib/schema/common";
+import { withApi } from "@/server/api/with-api";
+import { withRole } from "@/server/auth/guards";
+
+export const DELETE = withApi(
+  withRole<{ id: string }>(["vendor"], async (ctx) => {
+    const id = zUuid.parse(ctx.params.id);
+    // ...
+    return ok({ id });
+  }),
+);
 ```
 
-### Not Found
-```typescript
-// src/app/not-found.tsx
-export default function NotFound() {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <h2 className="text-2xl font-bold mb-4">페이지를 찾을 수 없습니다</h2>
-      <a href="/" className="text-blue-500 hover:underline">
-        홈으로 돌아가기
-      </a>
-    </div>
-  );
-}
-```
-
-## 메타데이터
-
-```typescript
-// src/app/(page)/vendors/page.tsx
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: '업체 목록 - Medihub',
-  description: '의료 관련 업체를 검색하고 비교하세요',
-};
-```
-
-## 환경 변수
-
-```env
-# .env.local
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key  # 서버 전용
-```

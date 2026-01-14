@@ -7,87 +7,67 @@ description: 기능 구현 전체 워크플로우
 ## 목적
 
 기능 구현의 전체 흐름을 자동으로 진행합니다.  
-**각 단계의 실제 로직은 해당 커맨드/에이전트 파일을 따릅니다.** (로직 중복 금지)
+**각 단계의 실제 로직은 해당 커맨드/에이전트 파일을 따릅니다(로직 중복 금지).**
 
 ## 사용법
 
 ```
-/workflow [domain/feature]
+/workflow <domain/feature>
 ```
-
-예시:
-- `/workflow vendor/favorites`
-- `/workflow lead/messages`
 
 ## 실행 순서
 
-### Step 1: PRD/TSD 확인 (DoR, fail-fast)
+### Step 1: PRD/TSD 확인
 
-```
-app/doc/domains/$ARGUMENTS/prd.md
-app/doc/domains/$ARGUMENTS/tsd.md
-```
+- PRD: `app/doc/domains/**/prd.md`
+- TSD: `app/doc/domains/**/tsd.md` (선택)
 
-- 존재하면 → Step 2로 진행
-- **없으면** → `@spec-writer` 호출하여 PRD/TSD 작성
-  - 사용자에게 요구사항 확인 요청
-  - PRD/TSD 완성 후 사용자 검토/승인 대기 ← **유일한 승인 포인트(권장)**
+없으면 `@spec-writer` 호출로 문서부터 준비합니다(DoR 통과가 우선).
 
 ### Step 2: 컨텍스트 로드
 
-→ `/prime $ARGUMENTS` 실행  
-→ `@explorer` 호출하여 관련 코드 탐색
+→ `/prime <domain/feature>`  
+→ `@explorer`로 유사 구현/패턴 탐색
 
 ### Step 3: 계획 수립
 
-→ `/plan-feature $ARGUMENTS` 실행  
-→ `@planner` 호출하여 구현 계획 생성
+→ `/plan-feature <domain/feature>`  
+→ `@planner`로 `.agents/plans/<domain>__<feature>.md` 생성
 
-### Step 3.5: 리스크 기반 승인 판단
+### Step 3.5: 리스크 기반 승인 판단(권장)
 
-계획 생성 후, 변경 범위에 따라 승인 여부 결정:
+**자동 진행(승인 생략)**:
 
-**자동 진행 (승인 생략)**:
 - UI-only 변경
-- 단일 파일 수정
-- 기존 패턴 그대로 적용
-- DB/RLS/API/권한 변경 없음
+- 단일 파일/단순 리팩터(동일 패턴 유지)
+- DB/API/권한 정책 변경 없음
 
-**승인 필수 (1분 스캔용 요약 제시)**:
-- ⚠️ Supabase 마이그레이션/스키마 변경 (`app/supabase/migrations/**`)
-- ⚠️ RLS/Policy 변경
+**승인 권장(요약 후 확인)**:
+
+- ⚠️ DB 마이그레이션/정책(RLS) 변경
 - ⚠️ API 엔드포인트 추가/변경
-- ⚠️ Auth/Role guard 변경
-- ⚠️ Storage 권한/버킷 정책 변경
-- ⚠️ 크로스도메인 영향
-- ⚠️ 데이터 손실 가능성
+- ⚠️ 인증/인가(guards) 변경
+- ⚠️ 서비스 롤(service_role) 사용 범위 변경
+- ⚠️ 데이터 손실/대규모 락 가능성
 
 ### Step 4: 실행
 
-→ `/execute [plan-file]` 실행 (메인 에이전트)
+→ `/execute <plan-file>`
 
 ### Step 5: 검증
 
-→ `/validate` 실행
+→ `/validate`
 
 ### Step 6: 코드 리뷰
 
-→ `/code-review` 실행  
-→ `@reviewer` 호출
+→ `/code-review`  
+→ `@reviewer`
 
-### Step 7: 커밋
+## 참조
 
-→ `/commit` 실행
-
-## 에이전트 매핑
-
-| 단계 | 커맨드 | 에이전트 | 역할 |
-|-----|--------|---------|------|
-| 1 | - | @spec-writer | PRD/TSD 작성 (필요시) |
-| 2 | /prime | @explorer | 코드베이스 탐색 |
-| 3 | /plan-feature | @planner | 구현 계획 수립 |
-| 4 | /execute | 메인 | 계획 실행 |
-| 5 | /validate | 메인 | 검증 |
-| 6 | /code-review | @reviewer | 코드 리뷰 |
-| 7 | /commit | 메인 | 커밋 |
+- `.claude/commands/core_piv_loop/prime.md`
+- `.claude/commands/core_piv_loop/plan-feature.md`
+- `.claude/commands/core_piv_loop/execute.md`
+- `.claude/commands/validation/validate.md`
+- `.claude/commands/validation/code-review.md`
 

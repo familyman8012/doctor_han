@@ -2,13 +2,11 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import re
-import sys
-from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -76,9 +74,22 @@ def make_pnpm_scripts_table(scripts: dict[str, str]) -> str:
     return "\n".join(lines)
 
 
+def _safe_version(value: object | None) -> str:
+    if value is None:
+        return "(missing)"
+    return str(value)
+
+
+def _count_glob(root: Path, pattern: str) -> int:
+    if not root.exists():
+        return 0
+    return sum(1 for _ in root.rglob(pattern))
+
+
 def generate_project_facts(*, repo_root: Path, apply: bool) -> WriteResult:
     package_json = repo_root / "app" / "package.json"
     template_path = repo_root / ".claude" / "templates" / "project-facts.md.tmpl"
+    out_path = repo_root / ".claude" / "reference" / "_generated" / "project-facts.md"
 
     if not package_json.exists():
         content = "\n".join(
@@ -91,16 +102,18 @@ def generate_project_facts(*, repo_root: Path, apply: bool) -> WriteResult:
                 "",
             ],
         )
-        return write_text_if_changed(
-            path=repo_root / ".claude" / "reference" / "_generated" / "project-facts.md",
-            content=content,
-            apply=apply,
-        )
+        return write_text_if_changed(path=out_path, content=content, apply=apply)
 
     pkg = load_json(package_json)
-    deps = pkg.get("dependencies", {}) or {}
-    dev_deps = pkg.get("devDependencies", {}) or {}
-    scripts = pkg.get("scripts", {}) or {}
+    deps: dict[str, str] = pkg.get("dependencies", {}) or {}
+    dev_deps: dict[str, str] = pkg.get("devDependencies", {}) or {}
+    scripts: dict[str, str] = pkg.get("scripts", {}) or {}
+
+    api_routes_count = _count_glob(repo_root / "app" / "src" / "app" / "api", "route.ts")
+    prd_count = _count_glob(repo_root / "app" / "doc" / "domains", "prd.md")
+    tsd_count = _count_glob(repo_root / "app" / "doc" / "domains", "tsd.md")
+    ui_count = _count_glob(repo_root / "app" / "doc" / "domains", "ui.md")
+    migrations_count = _count_glob(repo_root / "app" / "supabase" / "migrations", "*.sql")
 
     template = (
         read_text(template_path)
@@ -111,16 +124,31 @@ def generate_project_facts(*, repo_root: Path, apply: bool) -> WriteResult:
                 "",
                 "# Project Facts (Generated)",
                 "",
-                "## App Root",
+                "## 핵심 경로",
                 "",
-                "- App lives in `app/`",
-                "- Run scripts from app: `cd app && pnpm ...`",
+                "- 코드: `app/src/`",
+                "- API Routes(BFF): `app/src/app/api/**/route.ts`",
+                "- 도메인 스펙: `app/doc/domains/**/{prd,tsd,ui}.md`",
+                "- DB 마이그레이션: `app/supabase/migrations/*.sql`",
                 "",
-                "## Versions (from app/package.json)",
+                "## 버전 (from app/package.json)",
                 "",
                 "- next: {{NEXT_VERSION}}",
                 "- react: {{REACT_VERSION}}",
                 "- typescript: {{TYPESCRIPT_VERSION}}",
+                "- @supabase/supabase-js: {{SUPABASE_JS_VERSION}}",
+                "- supabase(cli): {{SUPABASE_CLI_VERSION}}",
+                "- @tanstack/react-query: {{TANSTACK_QUERY_VERSION}}",
+                "- zod: {{ZOD_VERSION}}",
+                "- eslint: {{ESLINT_VERSION}}",
+                "",
+                "## 카운트 (레포 스캔 기반)",
+                "",
+                "- API routes: {{API_ROUTES_COUNT}}",
+                "- PRD: {{PRD_COUNT}}",
+                "- TSD: {{TSD_COUNT}}",
+                "- UI specs: {{UI_COUNT}}",
+                "- migrations: {{MIGRATIONS_COUNT}}",
                 "",
                 "## pnpm scripts (app/package.json)",
                 "",
@@ -128,10 +156,14 @@ def generate_project_facts(*, repo_root: Path, apply: bool) -> WriteResult:
                 "",
                 "## Generated References",
                 "",
-                "- API routes: `.claude/reference/_generated/api-routes-index.md`",
-                "- Domain PRDs: `.claude/reference/_generated/domain-prds-index.md`",
-                "- TODO open items: `.claude/reference/_generated/todo-open-items.md`",
-                "- test.csv feature map: `.claude/reference/_generated/test-csv-feature-map.md`",
+                "- API routes index: `.claude/reference/_generated/api-routes-index.md`",
+                "- Domain specs index: `.claude/reference/_generated/domain-specs-index.md`",
+                "- Migrations index: `.claude/reference/_generated/migrations-index.md`",
+                "",
+                "## Refresh",
+                "",
+                "- Preview: `python3 .claude/scripts/refresh.py`",
+                "- Apply: `python3 .claude/scripts/refresh.py --apply`",
                 "",
             ],
         )
@@ -140,28 +172,37 @@ def generate_project_facts(*, repo_root: Path, apply: bool) -> WriteResult:
     content = render_template(
         template,
         {
-            "NEXT_VERSION": str(deps.get("next", "(missing)")),
-            "REACT_VERSION": str(deps.get("react", "(missing)")),
-            "TYPESCRIPT_VERSION": str(dev_deps.get("typescript", deps.get("typescript", "(missing)"))),
+            "NEXT_VERSION": _safe_version(deps.get("next")),
+            "REACT_VERSION": _safe_version(deps.get("react")),
+            "TYPESCRIPT_VERSION": _safe_version(dev_deps.get("typescript", deps.get("typescript"))),
+            "SUPABASE_JS_VERSION": _safe_version(deps.get("@supabase/supabase-js")),
+            "SUPABASE_CLI_VERSION": _safe_version(dev_deps.get("supabase", deps.get("supabase"))),
+            "TANSTACK_QUERY_VERSION": _safe_version(deps.get("@tanstack/react-query")),
+            "ZOD_VERSION": _safe_version(deps.get("zod", dev_deps.get("zod"))),
+            "ESLINT_VERSION": _safe_version(dev_deps.get("eslint", deps.get("eslint"))),
+            "API_ROUTES_COUNT": str(api_routes_count),
+            "PRD_COUNT": str(prd_count),
+            "TSD_COUNT": str(tsd_count),
+            "UI_COUNT": str(ui_count),
+            "MIGRATIONS_COUNT": str(migrations_count),
             "PNPM_SCRIPTS_TABLE": make_pnpm_scripts_table({k: str(v) for k, v in scripts.items()}),
         },
     )
 
-    return write_text_if_changed(
-        path=repo_root / ".claude" / "reference" / "_generated" / "project-facts.md",
-        content=content,
-        apply=apply,
-    )
+    return write_text_if_changed(path=out_path, content=content, apply=apply)
 
 
 def generate_api_routes_index(*, repo_root: Path, apply: bool) -> WriteResult:
     api_root = repo_root / "app" / "src" / "app" / "api"
+    out_path = repo_root / ".claude" / "reference" / "_generated" / "api-routes-index.md"
+
     routes = sorted(api_root.rglob("route.ts")) if api_root.exists() else []
 
     rows: list[tuple[str, str]] = []
     for route_file in routes:
         rel = route_file.relative_to(api_root)
         segments = list(rel.parts[:-1])  # drop route.ts
+
         display_segments: list[str] = []
         for segment in segments:
             # Next.js route group: (group) 는 URL 세그먼트에 포함되지 않음
@@ -202,35 +243,7 @@ def generate_api_routes_index(*, repo_root: Path, apply: bool) -> WriteResult:
         lines.append(f"| `{route_path}` | `{handler}` |")
     lines.append("")
 
-    return write_text_if_changed(
-        path=repo_root / ".claude" / "reference" / "_generated" / "api-routes-index.md",
-        content="\n".join(lines),
-        apply=apply,
-    )
-
-
-def generate_domain_prds_index(*, repo_root: Path, apply: bool) -> WriteResult:
-    domains_root = repo_root / "app" / "doc" / "domains"
-    prds = sorted(domains_root.glob("*/prd.md")) if domains_root.exists() else []
-
-    lines: list[str] = []
-    lines.append(GENERATED_NOTICE)
-    lines.append("")
-    lines.append("# Domain PRDs Index")
-    lines.append("")
-    lines.append(f"- Source: `{domains_root.relative_to(repo_root)}`")
-    lines.append("- Refresh: `python3 .claude/scripts/refresh.py --apply`")
-    lines.append("")
-    for prd in prds:
-        domain = prd.parent.name
-        lines.append(f"- `{domain}`: `{prd.relative_to(repo_root)}`")
-    lines.append("")
-
-    return write_text_if_changed(
-        path=repo_root / ".claude" / "reference" / "_generated" / "domain-prds-index.md",
-        content="\n".join(lines),
-        apply=apply,
-    )
+    return write_text_if_changed(path=out_path, content="\n".join(lines), apply=apply)
 
 
 def _domain_feature_key(*, domains_root: Path, spec_dir: Path) -> str:
@@ -259,25 +272,16 @@ def generate_domain_specs_index(*, repo_root: Path, apply: bool) -> WriteResult:
             apply=apply,
         )
 
-    spec_dirs: set[Path] = set()
-    for name in ("prd.md", "tsd.md", "ui.md"):
-        for spec in domains_root.rglob(name):
-            spec_dirs.add(spec.parent)
+    by_feature: dict[str, dict[str, str]] = {}
 
-    def fmt(p: Path) -> str:
-        return f"`{p.relative_to(repo_root)}`" if p.exists() else "—"
+    for filename, key in [("prd.md", "prd"), ("tsd.md", "tsd"), ("ui.md", "ui")]:
+        for spec in domains_root.rglob(filename):
+            feature_key = _domain_feature_key(domains_root=domains_root, spec_dir=spec.parent)
+            by_feature.setdefault(feature_key, {})
+            by_feature[feature_key][key] = str(spec.relative_to(repo_root))
 
-    rows: list[tuple[str, str, str, str]] = []
-    for spec_dir in sorted(spec_dirs):
-        key = _domain_feature_key(domains_root=domains_root, spec_dir=spec_dir)
-        rows.append(
-            (
-                key,
-                fmt(spec_dir / "prd.md"),
-                fmt(spec_dir / "tsd.md"),
-                fmt(spec_dir / "ui.md"),
-            ),
-        )
+    def cell(path: str | None) -> str:
+        return f"`{path}`" if path else "-"
 
     lines: list[str] = []
     lines.append(GENERATED_NOTICE)
@@ -289,10 +293,22 @@ def generate_domain_specs_index(*, repo_root: Path, apply: bool) -> WriteResult:
     lines.append("")
     lines.append("| Domain/Feature | PRD | TSD | UI |")
     lines.append("| --- | --- | --- | --- |")
-    for key, prd, tsd, ui in sorted(rows, key=lambda x: x[0]):
-        lines.append(f"| `{key}` | {prd} | {tsd} | {ui} |")
-    lines.append("")
 
+    for feature_key in sorted(by_feature.keys()):
+        specs = by_feature[feature_key]
+        lines.append(
+            "| "
+            + f"`{feature_key}`"
+            + " | "
+            + cell(specs.get("prd"))
+            + " | "
+            + cell(specs.get("tsd"))
+            + " | "
+            + cell(specs.get("ui"))
+            + " |"
+        )
+
+    lines.append("")
     return write_text_if_changed(path=out_path, content="\n".join(lines), apply=apply)
 
 
@@ -300,37 +316,7 @@ def generate_migrations_index(*, repo_root: Path, apply: bool) -> WriteResult:
     migrations_root = repo_root / "app" / "supabase" / "migrations"
     out_path = repo_root / ".claude" / "reference" / "_generated" / "migrations-index.md"
 
-    if not migrations_root.exists():
-        return write_text_if_changed(
-            path=out_path,
-            content="\n".join(
-                [
-                    GENERATED_NOTICE,
-                    "",
-                    "# Migrations Index",
-                    "",
-                    f"- Source missing: `{migrations_root.relative_to(repo_root)}`",
-                    "- Refresh: `python3 .claude/scripts/refresh.py --apply`",
-                    "",
-                ],
-            ),
-            apply=apply,
-        )
-
-    migrations = sorted(migrations_root.glob("*.sql"))
-
-    rows: list[tuple[str, str, str, int, int]] = []
-    for m in migrations:
-        name = m.name
-        match = re.fullmatch(r"(\d{14})_(.+)\.sql", name)
-        ts = match.group(1) if match else ""
-        slug = match.group(2) if match else name
-
-        text = m.read_text(encoding="utf-8", errors="ignore")
-        policy_count = len(re.findall(r"\bCREATE\s+POLICY\b", text, flags=re.IGNORECASE))
-        rls_enable_count = len(re.findall(r"\bENABLE\s+ROW\s+LEVEL\s+SECURITY\b", text, flags=re.IGNORECASE))
-
-        rows.append((ts, slug, str(m.relative_to(repo_root)), policy_count, rls_enable_count))
+    migrations = sorted(migrations_root.glob("*.sql")) if migrations_root.exists() else []
 
     lines: list[str] = []
     lines.append(GENERATED_NOTICE)
@@ -340,251 +326,59 @@ def generate_migrations_index(*, repo_root: Path, apply: bool) -> WriteResult:
     lines.append(f"- Source: `{migrations_root.relative_to(repo_root)}`")
     lines.append("- Refresh: `python3 .claude/scripts/refresh.py --apply`")
     lines.append("")
-    lines.append("## Summary")
-    lines.append("")
-    lines.append(f"- Migrations: **{len(rows)}**")
-    if rows:
-        latest = max(rows, key=lambda x: x[0] or "")[2]
-        lines.append(f"- Latest: `{latest}`")
-    lines.append("")
-    lines.append("| Timestamp | Name | File | Policies | RLS Enables |")
-    lines.append("| --- | --- | --- | --- | --- |")
-    for ts, slug, path, policy_count, rls_enable_count in sorted(rows, key=lambda x: x[0] or x[2]):
-        ts_display = ts or "—"
-        lines.append(f"| `{ts_display}` | `{slug}` | `{path}` | {policy_count} | {rls_enable_count} |")
+    lines.append("| Migration | File |")
+    lines.append("| --- | --- |")
+    for migration in migrations:
+        rel = migration.relative_to(repo_root)
+        lines.append(f"| `{migration.name}` | `{rel}` |")
     lines.append("")
 
     return write_text_if_changed(path=out_path, content="\n".join(lines), apply=apply)
 
 
-def _find_test_csv_header(rows: list[list[str]]) -> dict[str, int]:
-    for row in rows:
-        if "분류" in row and "기능명" in row:
-            return {cell: idx for idx, cell in enumerate(row) if cell}
-    raise ValueError("Could not find header row containing '분류' and '기능명'")
-
-
-def generate_test_csv_feature_map(*, repo_root: Path, apply: bool) -> WriteResult:
-    csv_path = repo_root / "app" / "doc" / "test.csv"
-    out_path = repo_root / ".claude" / "reference" / "_generated" / "test-csv-feature-map.md"
-
-    if not csv_path.exists():
-        return write_text_if_changed(
-            path=out_path,
-            content="\n".join(
-                [
-                    GENERATED_NOTICE,
-                    "",
-                    "# test.csv Feature Map",
-                    "",
-                    f"- Source missing: `{csv_path.relative_to(repo_root)}`",
-                    "- Refresh: `python3 .claude/scripts/refresh.py --apply`",
-                    "",
-                ],
-            ),
-            apply=apply,
-        )
-
-    with csv_path.open(newline="", encoding="utf-8") as f:
-        rows = list(csv.reader(f))
-
-    header = _find_test_csv_header(rows)
-    idx_minor = header.get("분류")
-    idx_name = header.get("기능명")
-    idx_req = header.get("요구사항")
-    idx_detail = header.get("상세 요구사항")
-    idx_later = header.get("후순위")
-
-    def cell(row: list[str], idx: int | None) -> str:
-        if idx is None:
-            return ""
-        return row[idx].strip() if idx < len(row) else ""
-
-    header_row_index = None
-    for i, row in enumerate(rows):
-        if "분류" in row and "기능명" in row:
-            header_row_index = i
-            break
-    if header_row_index is None:
-        raise ValueError("Could not find header row index")
-
-    last_minor = ""
-    by_minor: dict[str, list[tuple[str, str, str]]] = defaultdict(list)
-    for row in rows[header_row_index + 1 :]:
-        if not any(c.strip() for c in row):
-            continue
-        minor = cell(row, idx_minor)
-        if minor:
-            last_minor = minor
-        else:
-            minor = last_minor
-
-        name = cell(row, idx_name)
-        if not name:
-            continue
-
-        req = cell(row, idx_req)
-        detail = cell(row, idx_detail)
-        later = cell(row, idx_later)
-
-        desc_parts = [p for p in [req, detail] if p]
-        desc = " — ".join(desc_parts) if desc_parts else ""
-        by_minor[minor or "(미분류)"].append((name, desc, later))
-
-    lines: list[str] = []
-    lines.append(GENERATED_NOTICE)
-    lines.append("")
-    lines.append("# test.csv Feature Map (Grouped)")
-    lines.append("")
-    lines.append(f"- Source: `{csv_path.relative_to(repo_root)}`")
-    lines.append("- Refresh: `python3 .claude/scripts/refresh.py --apply`")
-    lines.append("")
-    lines.append("## Summary")
-    lines.append("")
-    total = sum(len(v) for v in by_minor.values())
-    lines.append(f"- Categories: **{len(by_minor)}**")
-    lines.append(f"- Features: **{total}**")
-    lines.append("")
-    lines.append("## Details")
-    lines.append("")
-    for minor in sorted(by_minor.keys()):
-        items = by_minor[minor]
-        lines.append(f"### {minor} ({len(items)})")
-        lines.append("")
-        for name, desc, later in items:
-            suffix = f" (후순위: {later})" if later else ""
-            lines.append(f"- {name}{(': ' + desc) if desc else ''}{suffix}")
-        lines.append("")
-
-    return write_text_if_changed(
-        path=out_path,
-        content="\n".join(lines),
-        apply=apply,
-    )
-
-
-def generate_todo_open_items(*, repo_root: Path, apply: bool) -> WriteResult:
-    todo_path = repo_root / "app" / "doc" / "todo.md"
-    out_path = repo_root / ".claude" / "reference" / "_generated" / "todo-open-items.md"
-
-    if not todo_path.exists():
-        return write_text_if_changed(
-            path=out_path,
-            content="\n".join(
-                [
-                    GENERATED_NOTICE,
-                    "",
-                    "# TODO Open Items",
-                    "",
-                    f"- Source missing: `{todo_path.relative_to(repo_root)}`",
-                    "- Refresh: `python3 .claude/scripts/refresh.py --apply`",
-                    "",
-                ],
-            ),
-            apply=apply,
-        )
-
-    lines = todo_path.read_text(encoding="utf-8").splitlines()
-    open_items: dict[str, list[tuple[int, str]]] = defaultdict(list)
-
-    current_section = "Uncategorized"
-    for i, line in enumerate(lines, start=1):
-        if line.startswith("## "):
-            current_section = line[3:].strip()
-            continue
-        if line.startswith("### "):
-            current_section = line[4:].strip()
-            continue
-
-        if line.startswith("- [ ] "):
-            open_items[current_section].append((i, line.replace("- [ ] ", "", 1).strip()))
-
-    out: list[str] = []
-    out.append(GENERATED_NOTICE)
-    out.append("")
-    out.append("# TODO Open Items (from app/doc/todo.md)")
-    out.append("")
-    out.append(f"- Source: `{todo_path.relative_to(repo_root)}`")
-    out.append("- Refresh: `python3 .claude/scripts/refresh.py --apply`")
-    out.append("")
-    total = sum(len(v) for v in open_items.values())
-    out.append("## Summary")
-    out.append("")
-    out.append(f"- Sections: **{len(open_items)}**")
-    out.append(f"- Open items: **{total}**")
-    out.append("")
-    out.append("## Details")
-    out.append("")
-    for section in sorted(open_items.keys()):
-        items = open_items[section]
-        out.append(f"### {section} ({len(items)})")
-        out.append("")
-        for line_no, text in items:
-            out.append(f"- L{line_no}: {text}")
-        out.append("")
-
-    return write_text_if_changed(
-        path=out_path,
-        content="\n".join(out),
-        apply=apply,
-    )
-
-
-def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(description="Refresh generated Claude docs for this repo.")
-    parser.add_argument(
-        "--repo-root",
-        type=Path,
-        default=None,
-        help="Repo root path (default: auto-detect by walking up to .git).",
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="(Medihub) 생성 문서(팩트/인덱스)를 레포 상태 기준으로 동기화합니다.",
     )
     parser.add_argument(
         "--apply",
         action="store_true",
-        help="Actually write files. Without this flag, the script only reports what would change.",
+        help="실제로 파일을 갱신합니다. 기본은 프리뷰(변경 없음)입니다.",
     )
-    args = parser.parse_args(argv)
+    args = parser.parse_args()
 
-    script_dir = Path(__file__).resolve().parent
-    repo_root = find_repo_root(args.repo_root or script_dir)
-
+    # 이 스크립트는 "git root"가 아니라, `.claude/`가 존재하는 프로젝트 루트(web/)를 기준으로 동작해야 합니다.
+    # (monorepo에서 git root와 패키지 루트가 다를 수 있음)
+    script_path = Path(__file__).resolve()
+    repo_root: Optional[Path] = None
+    for candidate in [script_path.parent, *script_path.parent.parents]:
+        if (candidate / ".claude").is_dir():
+            repo_root = candidate
+            break
+    if repo_root is None:
+        raise SystemExit(f"Could not find project root containing `.claude/` from: {script_path}")
     results: list[WriteResult] = []
+
     results.append(generate_project_facts(repo_root=repo_root, apply=args.apply))
     results.append(generate_api_routes_index(repo_root=repo_root, apply=args.apply))
-    results.append(generate_domain_prds_index(repo_root=repo_root, apply=args.apply))
     results.append(generate_domain_specs_index(repo_root=repo_root, apply=args.apply))
     results.append(generate_migrations_index(repo_root=repo_root, apply=args.apply))
-    results.append(generate_test_csv_feature_map(repo_root=repo_root, apply=args.apply))
-    results.append(generate_todo_open_items(repo_root=repo_root, apply=args.apply))
 
-    created = [r for r in results if r.status == "created"]
-    updated = [r for r in results if r.status == "updated"]
-    unchanged = [r for r in results if r.status == "unchanged"]
+    changed = [r for r in results if r.status in {"created", "updated"}]
     skipped = [r for r in results if r.status == "skipped"]
 
-    def rel(p: Path) -> str:
-        try:
-            return str(p.relative_to(repo_root))
-        except ValueError:
-            return str(p)
+    print("refresh.py 결과")
+    for r in results:
+        rel = r.path.relative_to(repo_root)
+        print(f"- {r.status}: {rel}")
 
-    print("medihub claude refresh")
-    print(f"- repo: {repo_root}")
-    print(f"- apply: {args.apply}")
-    print("")
-    print(f"created: {len(created)} | updated: {len(updated)} | unchanged: {len(unchanged)} | skipped: {len(skipped)}")
-    if not args.apply and (created or updated):
+    if not args.apply and (changed or skipped):
         print("")
-        print("Run again with --apply to write changes.")
-    if created or updated or skipped:
-        print("")
-        for r in results:
-            if r.status == "unchanged":
-                continue
-            print(f"{r.status:8} {rel(r.path)}")
+        print("프리뷰 모드입니다. 실제 갱신은 다음을 실행하세요:")
+        print("  python3 .claude/scripts/refresh.py --apply")
 
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1:]))
+    raise SystemExit(main())

@@ -7,10 +7,10 @@
 
 | Domain/Feature | PRD | TSD | UI |
 | --- | --- | --- | --- |
-| `admin-mvp` | `app/doc/domains/admin-mvp/prd.md` | — | — |
-| `auth` | `app/doc/domains/auth/prd.md` | — | — |
-| `category-search` | `app/doc/domains/category-search/prd.md` | — | — |
-| `lead` | `app/doc/domains/lead/prd.md` | — | — |
-| `profile-verification` | `app/doc/domains/profile-verification/prd.md` | — | — |
-| `review` | `app/doc/domains/review/prd.md` | — | — |
-| `vendor` | `app/doc/domains/vendor/prd.md` | — | — |
+| `admin-mvp` | `app/doc/domains/admin-mvp/prd.md` | - | - |
+| `auth` | `app/doc/domains/auth/prd.md` | - | - |
+| `category-search` | `app/doc/domains/category-search/prd.md` | - | - |
+| `lead` | `app/doc/domains/lead/prd.md` | - | - |
+| `profile-verification` | `app/doc/domains/profile-verification/prd.md` | - | - |
+| `review` | `app/doc/domains/review/prd.md` | - | - |
+| `vendor` | `app/doc/domains/vendor/prd.md` | - | - |

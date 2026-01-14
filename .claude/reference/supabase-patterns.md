@@ -1,465 +1,104 @@
-# Supabase Patterns - Medihub
+# Supabase 패턴 (DB/RLS/Types)
 
-## 클라이언트 설정
+이 문서는 Medihub의 Supabase 사용 규칙(마이그레이션, 타입 생성, 클라이언트 분리, RLS)을 정리합니다.
 
-### 서버 클라이언트 (API Routes용)
-```typescript
-// src/server/supabase/server.ts
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+## 0) 핵심 원칙
 
-export async function createSupabaseServerClient() {
-  const cookieStore = await cookies();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+1. **DB 쿼리는 서버에서만**: 브라우저에서 Supabase(DB) 직접 호출 금지(예외: Auth/Storage).
+2. **SQL 마이그레이션이 단일 출처**: 스키마 변경은 `app/supabase/migrations/*.sql`로만 수행합니다.
+3. **권한은 RLS가 최종 방어선**: API 가드(서버) + RLS/Policy(DB) 이중 방어.
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Missing SUPABASE env");
-  }
+## 1) 마이그레이션 (SQL)
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll();
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
-        } catch {
-          // Server Component에서는 set이 불가능할 수 있다
-        }
-      },
-    },
-  });
-}
+- 위치: `app/supabase/migrations/*.sql`
+- 생성: `cd app && pnpm db:new -- "<name>"`
+- 적용: `cd app && pnpm db:migrate`
+- 로컬 초기화: `cd app && pnpm db:reset`
+
+### 불변 규칙
+
+- **이미 적용된(커밋된) 마이그레이션 파일은 수정하지 않습니다.**
+  - 필요하면 “새 마이그레이션”으로 정정합니다(히스토리 보존).
+
+## 2) 타입 생성 (database.types.ts)
+
+- 생성 스크립트: `cd app && pnpm db:gen`
+- 출력 파일: `app/src/lib/database.types.ts`
+- 로컬 DB 기반 생성: `cd app && pnpm db:gen -- --local` (사전 조건: `pnpm db:start`)
+
+### 주의사항
+
+- `database.types.ts`는 **자동 생성 파일**이며 수동 편집 금지입니다.
+- 마이그레이션 후 타입을 반드시 재생성합니다.
+
+## 3) Supabase 클라이언트 분리
+
+### Server Client (쿠키 세션)
+
+- 파일: `app/src/server/supabase/server.ts`
+- 사용처: `app/src/app/api/**/route.ts`, `app/src/server/**`
+
+```ts
+import { createSupabaseServerClient } from "@/server/supabase/server";
+const supabase = await createSupabaseServerClient();
 ```
 
-### 브라우저 클라이언트 (Auth/Storage용)
-```typescript
-// src/server/supabase/browser.ts
-import { createBrowserClient } from '@supabase/ssr';
+### Browser Client (Auth/Storage 제한)
 
-let cachedClient: ReturnType<typeof createBrowserClient> | null = null;
+- 파일: `app/src/server/supabase/browser.ts`
+- 사용처: 로그인/로그아웃, 파일 업로드(서명 URL), 세션 확인 등
 
-export function getSupabaseBrowserClient() {
-  if (cachedClient) return cachedClient;
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Missing SUPABASE env");
-  }
-
-  cachedClient = createBrowserClient(supabaseUrl, supabaseAnonKey);
-  return cachedClient;
-}
-```
-
-### Admin 클라이언트 (Service Role용)
-```typescript
-// src/server/supabase/admin.ts
-import { createClient } from '@supabase/supabase-js';
-
-export function createSupabaseAdminClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error("Missing SUPABASE env for admin");
-  }
-
-  // service_role 키 사용 - RLS 우회
-  return createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  });
-}
-```
-
-## 데이터베이스 쿼리
-
-### 기본 CRUD
-```typescript
-// SELECT
-const { data, error } = await supabase
-  .from('vendors')
-  .select('*')
-  .eq('status', 'active');
-
-// SELECT with relations (vendor_categories 조인 테이블 사용)
-const { data, error } = await supabase
-  .from('vendors')
-  .select(`
-    *,
-    vendor_categories (
-      categories (id, name)
-    ),
-    reviews (id, rating, content)
-  `)
-  .eq('id', vendorId)
-  .single();
-
-// INSERT
-const { data, error } = await supabase
-  .from('vendors')
-  .insert({
-    name: 'New Company',
-    owner_user_id: userId
-  })
-  .select()
-  .single();
-
-// UPDATE
-const { data, error } = await supabase
-  .from('vendors')
-  .update({ name: 'Updated Name' })
-  .eq('id', vendorId)
-  .select()
-  .single();
-
-// DELETE
-const { error } = await supabase
-  .from('vendors')
-  .delete()
-  .eq('id', vendorId);
-```
-
-### 필터링
-```typescript
-// 기본 필터
-.eq('column', value)       // column = value
-.neq('column', value)      // column != value
-.gt('column', value)       // column > value
-.gte('column', value)      // column >= value
-.lt('column', value)       // column < value
-.lte('column', value)      // column <= value
-.like('column', '%value%') // LIKE (대소문자 구분)
-.ilike('column', '%value%')// ILIKE (대소문자 무시)
-.is('column', null)        // column IS NULL
-.in('column', [1, 2, 3])   // column IN (1, 2, 3)
-
-// 복합 필터
-const { data } = await supabase
-  .from('vendors')
-  .select('*')
-  // 공개 노출은 RLS (public.is_vendor_public)로 기본 제어됨
-  // 필요 시 추가 필터를 붙인다:
-  .eq('status', 'active')
-  .gte('rating_avg', 4)
-  .order('created_at', { ascending: false })
-  .range(0, 19);  // 페이지네이션 (0-19 = 20개)
-```
-
-### 검색
-```typescript
-// Full-text search
-const { data } = await supabase
-  .from('vendors')
-  .select('*')
-  .textSearch('search_column', 'search query', {
-    type: 'websearch',
-    config: 'korean'
-  });
-
-// OR 조건 검색
-const { data } = await supabase
-  .from('vendors')
-  .select('*')
-  .or(`name.ilike.%${query}%,description.ilike.%${query}%`);
-```
-
-### 페이지네이션
-```typescript
-const page = 1;
-const limit = 20;
-
-const { data, error, count } = await supabase
-  .from('vendors')
-  .select('*', { count: 'exact' })
-  .range((page - 1) * limit, page * limit - 1);
-
-const totalPages = Math.ceil((count || 0) / limit);
-```
-
-## 인증 (Auth)
-
-### 회원가입
-```typescript
-// 브라우저에서 직접 호출 가능
-const { data, error } = await supabase.auth.signUp({
-  email: 'user@example.com',
-  password: 'password123',
-  options: {
-    data: {
-      full_name: '홍길동',
-      role: 'doctor'
-    }
-  }
-});
-```
-
-### 로그인
-```typescript
-// 이메일/비밀번호 로그인
-const { data, error } = await supabase.auth.signInWithPassword({
-  email: 'user@example.com',
-  password: 'password123'
-});
-
-// OAuth 로그인
-const { data, error } = await supabase.auth.signInWithOAuth({
-  provider: 'kakao',
-  options: {
-    redirectTo: `${window.location.origin}/auth/callback`
-  }
-});
-```
-
-### 로그아웃
-```typescript
-const { error } = await supabase.auth.signOut();
-```
-
-### 현재 사용자
-```typescript
-// 서버 사이드
-const { data: { user }, error } = await supabase.auth.getUser();
-
-// 클라이언트 사이드 (세션 리스너)
-const { data: { subscription } } = supabase.auth.onAuthStateChange(
-  (event, session) => {
-    console.log(event, session);
-  }
-);
-```
-
-## Storage
-
-### 파일 업로드
-```typescript
-// ✅ 원칙: 서버가 Signed Upload URL 발급 → 클라이언트는 Signed URL로만 업로드
-// 1) 서버에 signed-upload 요청
-import api from "@/api-client/client";
-import type { FileSignedUploadResponse } from "@/lib/schema/file";
+```ts
 import { getSupabaseBrowserClient } from "@/server/supabase/browser";
-
-const signedRes = await api.post<FileSignedUploadResponse>("/api/files/signed-upload", {
-  purpose: "portfolio",
-  fileName: file.name,
-  mimeType: file.type,
-  sizeBytes: file.size,
-});
-
-const { bucket, path, token } = signedRes.data.data.upload;
-const fileId = signedRes.data.data.file.id;
-
-// 2) Supabase Storage signed URL로 업로드 (uploadToSignedUrl)
 const supabase = getSupabaseBrowserClient();
-const { error: uploadError } = await supabase.storage
-  .from(bucket)
-  .uploadToSignedUrl(path, token, file, { cacheControl: "3600" });
-
-if (uploadError) throw uploadError;
-
-// 이후 도메인 API에 fileId를 전달해 연관시킨다.
 ```
 
-### 파일 다운로드/URL
-```typescript
-// ✅ 원칙: 서버에서 권한 확인 후 Signed Download URL 발급
-// 1) signed URL JSON 응답
-const downloadRes = await api.get<{ data: { signedUrl: string; expiresIn: number } }>(
-  `/api/files/signed-download?fileId=${fileId}`
-);
-window.location.href = downloadRes.data.data.signedUrl;
+### Admin Client (service_role)
 
-// 2) 또는 redirect 엔드포인트 사용 (브라우저에서 바로 열기)
-window.open(`/api/files/open?fileId=${fileId}`, "_blank");
+- 파일: `app/src/server/supabase/admin.ts`
+- 목적: RLS를 우회해야 하는 서버 전용 작업(관리자/배치 등)
+- **절대 브라우저로 번들되지 않도록** `server-only`를 유지합니다.
+
+```ts
+import { createSupabaseAdminClient } from "@/server/supabase/admin";
+const supabase = createSupabaseAdminClient();
 ```
 
-### 파일 삭제
-스토리지 삭제/정리는 서버에서 정책적으로 처리한다. (클라이언트에서 `remove()` 직접 호출 금지)
+## 4) 쿼리 패턴 (Repository 중심)
 
-## RLS (Row Level Security)
+Medihub는 “도메인별 server 모듈”로 쿼리를 모읍니다.
 
-### 헬퍼 함수
-```sql
--- 관리자 확인 함수
-CREATE OR REPLACE FUNCTION public.is_admin()
-RETURNS BOOLEAN AS $$
-BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM profiles
-    WHERE id = auth.uid() AND role = 'admin'
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+- 예: `app/src/server/vendor/repository.ts`
+- 예: `app/src/server/vendor/mapper.ts`
 
--- 업체 소유자 확인 함수
-CREATE OR REPLACE FUNCTION public.is_vendor_owner(vendor_id uuid)
-RETURNS BOOLEAN AS $$
-BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM vendors v
-    WHERE v.id = vendor_id AND v.owner_user_id = auth.uid()
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+### 기본 규칙
 
--- 업체 공개 여부 확인 함수
-CREATE OR REPLACE FUNCTION public.is_vendor_public(vendor_id uuid)
-RETURNS BOOLEAN AS $$
-BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM vendors v
-    JOIN vendor_verifications vv ON vv.user_id = v.owner_user_id
-    WHERE v.id = vendor_id
-      AND v.status = 'active'
-      AND vv.status = 'approved'
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+- API Route에서 복잡한 쿼리를 직접 만들기보다, 재사용 가능하면 `repository.ts`로 이동합니다.
+- DB row → API DTO 변환은 `mapper.ts`에서 수행합니다.
+
+### 에러 처리
+
+- Supabase 에러는 그대로 흘리지 말고, `ApiError`로 변환해 메시지/코드를 통제합니다.
+
+예시(요약):
+
+```ts
+const { data, error } = await supabase.from("vendors").select("*").eq("id", id).maybeSingle();
+if (error) {
+  throw internalServerError("업체를 조회할 수 없습니다.", { message: error.message, code: error.code });
+}
 ```
 
-### 기본 정책
-```sql
--- 테이블에 RLS 활성화
-ALTER TABLE vendors ENABLE ROW LEVEL SECURITY;
+## 5) RLS/Policy 가이드(요약)
 
--- 공개된 업체 조회 (is_vendor_public 함수 사용)
-CREATE POLICY "vendors_select_public" ON vendors
-  FOR SELECT USING (public.is_vendor_public(id));
+정책은 마이그레이션 SQL에서 선언합니다.
 
--- 소유자 본인 조회
-CREATE POLICY "vendors_select_owner" ON vendors
-  FOR SELECT USING (owner_user_id = auth.uid());
+- “누가 어떤 row에 접근 가능한가?”를 DB에서 강제합니다.
+- API 가드는 UX/성능/명확한 에러 메시지를 위해 존재하지만, 보안은 RLS가 최종 책임집니다.
 
--- 소유자 생성 (vendor role만)
-CREATE POLICY "vendors_insert_owner" ON vendors
-  FOR INSERT WITH CHECK (
-    owner_user_id = auth.uid()
-    AND public.current_profile_role() = 'vendor'
-  );
+권장 체크리스트:
 
--- 본인 데이터만 UPDATE
-CREATE POLICY "vendors_update_own" ON vendors
-  FOR UPDATE USING (owner_user_id = auth.uid());
+- 테이블별 `enable row level security`
+- role별 `select/insert/update/delete` 정책 정의
+- `service_role` 사용 범위 최소화(필요한 API에만)
 
--- 관리자 전체 작업 (is_admin 함수 사용)
-CREATE POLICY "vendors_admin_all" ON vendors
-  FOR ALL USING (public.is_admin())
-  WITH CHECK (public.is_admin());
-```
-
-### 조인 테이블 정책
-```sql
--- vendor_categories 테이블 정책 예시
-CREATE POLICY "vendor_categories_select_public" ON vendor_categories
-  FOR SELECT USING (public.is_vendor_public(vendor_id));
-
-CREATE POLICY "vendor_categories_owner_all" ON vendor_categories
-  FOR ALL
-  USING (public.is_vendor_owner(vendor_id) OR public.is_admin())
-  WITH CHECK (public.is_vendor_owner(vendor_id) OR public.is_admin());
-```
-
-## 마이그레이션
-
-### 생성
-```bash
-cd app
-pnpm db:new -- "create_vendors_table"
-```
-
-### 마이그레이션 파일 예시
-```sql
--- supabase/migrations/20240101000000_create_vendors_table.sql
-
--- vendor_status enum 생성
-CREATE TYPE public.vendor_status AS ENUM ('draft', 'active', 'inactive', 'banned');
-
--- 테이블 생성
-CREATE TABLE vendors (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  owner_user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  summary TEXT,
-  description TEXT,
-  region_primary TEXT,
-  region_secondary TEXT,
-  price_min INTEGER,
-  price_max INTEGER,
-  status public.vendor_status NOT NULL DEFAULT 'draft',
-  rating_avg NUMERIC(2,1),
-  review_count INTEGER NOT NULL DEFAULT 0,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (owner_user_id)
-);
-
--- 카테고리 연결 테이블
-CREATE TABLE vendor_categories (
-  vendor_id UUID NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
-  category_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (vendor_id, category_id)
-);
-
--- 인덱스
-CREATE INDEX idx_vendors_status ON vendors(status);
-CREATE INDEX idx_vendors_owner ON vendors(owner_user_id);
-CREATE INDEX idx_vendor_categories_category ON vendor_categories(category_id);
-
--- RLS 활성화
-ALTER TABLE vendors ENABLE ROW LEVEL SECURITY;
-ALTER TABLE vendor_categories ENABLE ROW LEVEL SECURITY;
-
--- 정책
-CREATE POLICY "vendors_select_public" ON vendors
-  FOR SELECT USING (public.is_vendor_public(id));
-
-CREATE POLICY "vendors_select_owner" ON vendors
-  FOR SELECT USING (owner_user_id = auth.uid());
-
-CREATE POLICY "vendors_update_own" ON vendors
-  FOR UPDATE USING (owner_user_id = auth.uid());
-
-CREATE POLICY "vendors_admin_all" ON vendors
-  FOR ALL USING (public.is_admin())
-  WITH CHECK (public.is_admin());
-
--- 트리거: updated_at 자동 갱신
-CREATE TRIGGER vendors_set_updated_at
-  BEFORE UPDATE ON vendors
-  FOR EACH ROW
-  EXECUTE FUNCTION public.set_updated_at();
-```
-
-### 적용
-```bash
-cd app
-pnpm db:reset    # 로컬 DB 초기화 (개발용)
-pnpm db:migrate  # 마이그레이션 적용
-pnpm db:gen -- --local  # 타입 생성
-```
-
-## 타입 생성
-
-```bash
-cd app
-pnpm db:gen -- --local
-```
-
-생성된 타입 사용:
-```typescript
-import { Database } from '@/lib/database.types';
-
-type Vendor = Database['public']['Tables']['vendors']['Row'];
-type VendorInsert = Database['public']['Tables']['vendors']['Insert'];
-type VendorUpdate = Database['public']['Tables']['vendors']['Update'];
-```

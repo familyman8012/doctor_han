@@ -1,42 +1,36 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx create-next-app:*)",
-      "Bash(npx create-next-app@latest:*)",
-      "Bash(pnpm add:*)",
-      "Bash(pnpm remove:*)",
-      "Bash(xargs sed:*)",
-      "Bash(cat:*)",
-      "Bash(git init:*)",
-      "Bash(git branch:*)",
-      "Bash(git remote add:*)",
+      "Bash(brew upgrade:*)",
+      "Bash(claude --version)",
+      "Bash(brew update:*)",
+      "Bash(brew info:*)",
+      "Bash(npm view:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(git checkout:*)",
-      "Bash(git merge:*)",
-      "mcp__atlassian__getAccessibleAtlassianResources",
-      "mcp__atlassian__getVisibleJiraProjects",
-      "mcp__atlassian__searchJiraIssuesUsingJql",
-      "mcp__atlassian__getJiraProjectIssueTypesMetadata",
-      "mcp__atlassian__getTransitionsForJiraIssue",
-      "mcp__atlassian__createJiraIssue",
-      "mcp__atlassian__transitionJiraIssue",
-      "Bash(claude mcp add:*)",
-      "mcp__notion__notion-search",
-      "mcp__notion__notion-fetch",
-      "mcp__notion__notion-update-page",
-      "mcp__notion__notion-create-database",
-      "mcp__notion__notion-create-pages",
-      "mcp__notion__notion-move-pages",
-      "mcp__notion__notion-update-database",
-      "Bash(xargs ls:*)",
+      "Bash(xargs:*)",
+      "Bash(tree:*)",
+      "Bash(chmod:*)",
+      "WebSearch",
+      "Bash(echo:*)",
+      "Bash(python3 .claude/scripts/refresh.py:*)",
       "Bash(pnpm lint:*)",
       "Bash(pnpm type-check:*)",
       "Bash(pnpm test:*)",
       "Bash(pnpm build:*)",
       "Bash(pnpm db:*)",
-      "WebFetch(domain:www.anthropic.com)"
+      "Bash(cd app && pnpm lint:*)",
+      "Bash(cd app && pnpm type-check:*)",
+      "Bash(cd app && pnpm test:*)",
+      "Bash(cd app && pnpm build:*)",
+      "Bash(cd app && pnpm db:*)",
+      "Bash(wc:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(rg:*)"
     ]
   },
   "hooks": {
@@ -62,8 +56,5 @@
         ]
       }
     ]
-  },
-  "enabledMcpjsonServers": [
-    "supabase"
-  ]
+  }
 }

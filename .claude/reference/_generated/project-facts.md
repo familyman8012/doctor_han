@@ -2,16 +2,33 @@
 
 # Project Facts (Generated)
 
-## App Root
+> 이 문서는 레포 상태를 스캔하여 생성됩니다. 수정하려면 템플릿/생성기를 고치고 `/refresh`로 재생성합니다.
 
-- App lives in `app/`
-- Run scripts from app: `cd app && pnpm ...`
+## 핵심 경로
 
-## Versions (from app/package.json)
+- 코드: `app/src/`
+- API Routes(BFF): `app/src/app/api/**/route.ts`
+- 도메인 스펙: `app/doc/domains/**/{prd,tsd,ui}.md`
+- DB 마이그레이션: `app/supabase/migrations/*.sql`
+
+## 버전 (from app/package.json)
 
 - next: 16.0.10
 - react: 19.2.1
 - typescript: ^5
+- @supabase/supabase-js: ^2.88.0
+- supabase(cli): ^2.67.2
+- @tanstack/react-query: ^5.90.12
+- zod: ^4.2.1
+- eslint: ^9
+
+## 카운트 (레포 스캔 기반)
+
+- API routes: 29
+- PRD: 7
+- TSD: 0
+- UI specs: 0
+- migrations: 3
 
 ## pnpm scripts (app/package.json)
 
@@ -36,17 +53,14 @@
 | `test:watch` | `vitest --passWithNoTests` |
 | `type-check` | `tsc --noEmit` |
 
-## Key Conventions (Repo)
-
-- API Routes: `app/src/app/api/**/route.ts` + `withApi` + `ok|created|fail`
-- DB types: `app/src/lib/database.types.ts` is **auto-generated** by `cd app && pnpm db:gen -- --local`
-- Client DB access: **금지** (`use client`에서 `supabase.from(...)` 직접 호출 X)
-
 ## Generated References
 
-- API routes: `.claude/reference/_generated/api-routes-index.md`
-- Domain specs: `.claude/reference/_generated/domain-specs-index.md`
-- Domain PRDs (legacy): `.claude/reference/_generated/domain-prds-index.md`
+- API routes index: `.claude/reference/_generated/api-routes-index.md`
+- Domain specs index: `.claude/reference/_generated/domain-specs-index.md`
 - Migrations index: `.claude/reference/_generated/migrations-index.md`
-- TODO open items: `.claude/reference/_generated/todo-open-items.md`
-- test.csv feature map: `.claude/reference/_generated/test-csv-feature-map.md`
+
+## Refresh
+
+- Preview: `python3 .claude/scripts/refresh.py`
+- Apply: `python3 .claude/scripts/refresh.py --apply`
+
