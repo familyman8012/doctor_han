@@ -389,6 +389,97 @@ export type Database = {
           },
         ]
       }
+      notification_deliveries: {
+        Row: {
+          body_preview: string | null
+          channel: Database["public"]["Enums"]["notification_channel"]
+          error_message: string | null
+          failed_at: string | null
+          id: string
+          provider: string
+          provider_response: Json | null
+          recipient: string
+          sent_at: string
+          subject: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          body_preview?: string | null
+          channel: Database["public"]["Enums"]["notification_channel"]
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          provider: string
+          provider_response?: Json | null
+          recipient: string
+          sent_at?: string
+          subject?: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          body_preview?: string | null
+          channel?: Database["public"]["Enums"]["notification_channel"]
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          provider?: string
+          provider_response?: Json | null
+          recipient?: string
+          sent_at?: string
+          subject?: string | null
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_settings: {
+        Row: {
+          created_at: string
+          email_enabled: boolean
+          lead_enabled: boolean
+          marketing_enabled: boolean
+          updated_at: string
+          user_id: string
+          verification_result_enabled: boolean
+        }
+        Insert: {
+          created_at?: string
+          email_enabled?: boolean
+          lead_enabled?: boolean
+          marketing_enabled?: boolean
+          updated_at?: string
+          user_id: string
+          verification_result_enabled?: boolean
+        }
+        Update: {
+          created_at?: string
+          email_enabled?: boolean
+          lead_enabled?: boolean
+          marketing_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+          verification_result_enabled?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -814,6 +905,13 @@ export type Database = {
         | "hold"
         | "canceled"
         | "closed"
+      notification_channel: "email" | "kakao" | "sms" | "in_app"
+      notification_type:
+        | "verification_approved"
+        | "verification_rejected"
+        | "lead_received"
+        | "lead_responded"
+        | "review_received"
       profile_role: "doctor" | "vendor" | "admin"
       profile_status: "active" | "inactive" | "banned"
       review_status: "published" | "hidden"
@@ -963,6 +1061,14 @@ export const Constants = {
         "hold",
         "canceled",
         "closed",
+      ],
+      notification_channel: ["email", "kakao", "sms", "in_app"],
+      notification_type: [
+        "verification_approved",
+        "verification_rejected",
+        "lead_received",
+        "lead_responded",
+        "review_received",
       ],
       profile_role: ["doctor", "vendor", "admin"],
       profile_status: ["active", "inactive", "banned"],

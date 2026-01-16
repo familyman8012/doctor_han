@@ -30,9 +30,18 @@
       "Bash(wc:*)",
       "Bash(ls:*)",
       "Bash(find:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(grep:*)",
+      "Bash(pnpm db:reset:*)",
+      "Bash(pnpm db:gen:*)",
+      "Bash(pnpm add:*)",
+      "Bash(cat:*)"
     ]
   },
+  "enabledMcpjsonServers": [
+    "supabase",
+    "notion"
+  ],
   "hooks": {
     "PreToolUse": [
       {

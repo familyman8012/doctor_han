@@ -232,19 +232,19 @@
   - [x] 정책: 알림 채널 1순위는 이메일(카카오/문자/인앱은 P2+)
   - [x] 이메일 발송 인프라: Resend (Vercel 배포 기준)
   - [ ] Resend: 도메인 인증(DKIM/SPF) + 발신자 고정(`RESEND_FROM_EMAIL`)
-  - [ ] 환경변수: `RESEND_API_KEY`, `RESEND_FROM_EMAIL` (Vercel/운영 환경 설정)
-- [ ] Backend (API/DB)
-  - [ ] 원칙: 이메일 발송은 서버(API)에서만 수행(클라에서 Resend 직접 호출 금지)
-  - [ ] 이메일 발송 유틸/서비스: Resend API 호출 모듈 + 템플릿(한의사/업체 승인/반려)
-  - [ ] DB: 사용자 알림 설정 최소 스키마
-    - [ ] `notification_settings`(user_id, email on/off, 알림 종류 on/off)
-    - [ ] (선택) `notification_deliveries`(type, channel, provider_response, sent_at, failed_at)
-  - [ ] 엔드포인트: `GET /api/notification-settings`, `PATCH /api/notification-settings`
-  - [ ] 엔드포인트(수정): `POST /api/admin/verifications/:id/approve`, `POST /api/admin/verifications/:id/reject`에서 이메일 발송 + 실패 로깅
-  - [ ] api-client: `src/api-client/notification-settings` 추가/연결
-- [ ] Frontend (UI)
-  - [ ] 알림 설정 UI: 마이페이지에서 알림 종류 on/off(최소: 인증 결과, 리드 관련, 마케팅)
-- [ ] 완료 기준(AC): 승인/반려 시 이메일이 발송되고, 설정에 따라 발송 여부가 제어됨
+  - [x] 환경변수: `RESEND_API_KEY`, `RESEND_FROM_EMAIL` (Vercel/운영 환경 설정)
+- [x] Backend (API/DB)
+  - [x] 원칙: 이메일 발송은 서버(API)에서만 수행(클라에서 Resend 직접 호출 금지)
+  - [x] 이메일 발송 유틸/서비스: Resend API 호출 모듈 + 템플릿(한의사/업체 승인/반려)
+  - [x] DB: 사용자 알림 설정 최소 스키마
+    - [x] `notification_settings`(user_id, email on/off, 알림 종류 on/off)
+    - [x] (선택) `notification_deliveries`(type, channel, provider_response, sent_at, failed_at)
+  - [x] 엔드포인트: `GET /api/notification-settings`, `PATCH /api/notification-settings`
+  - [x] 엔드포인트(수정): `POST /api/admin/verifications/:id/approve`, `POST /api/admin/verifications/:id/reject`에서 이메일 발송 + 실패 로깅
+  - [x] api-client: 컴포넌트에서 직접 api.get/api.patch 호출로 처리
+- [x] Frontend (UI)
+  - [x] 알림 설정 UI: 마이페이지에서 알림 종류 on/off(최소: 인증 결과, 리드 관련, 마케팅)
+- [ ] 완료 기준(AC): 승인/반려 시 이메일이 발송되고, 설정에 따라 발송 여부가 제어됨 (Resend 도메인 인증 후 테스트 필요)
 
 ### 5-4. 온보딩(역할별) + 프로필 완성도
 - [ ] 공통(정책/설계)
