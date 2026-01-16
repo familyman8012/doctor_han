@@ -3,25 +3,26 @@
 import { useRouter } from "next/navigation";
 import { X, CheckCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
-import { useProfile } from "@/stores/auth";
+import { useProfile, useProfileCompletion } from "@/stores/auth";
 
 interface OnboardingStep {
+    key: string;
     label: string;
     href: string;
     required: boolean;
 }
 
 const DOCTOR_STEPS: OnboardingStep[] = [
-    { label: "프로필 작성", href: "/mypage", required: true },
-    { label: "면허 인증 제출", href: "/verification/doctor", required: true },
-    { label: "첫 문의 생성", href: "/vendors", required: false },
+    { key: "profile_created", label: "프로필 작성", href: "/mypage", required: true },
+    { key: "verification_submitted", label: "면허 인증 제출", href: "/verification/doctor", required: true },
+    { key: "first_lead_created", label: "첫 문의 생성", href: "/vendors", required: false },
 ];
 
 const VENDOR_STEPS: OnboardingStep[] = [
-    { label: "프로필 작성", href: "/partner", required: true },
-    { label: "업체 정보 등록", href: "/partner", required: true },
-    { label: "사업자 인증 제출", href: "/verification/vendor", required: true },
-    { label: "포트폴리오 추가", href: "/partner/portfolios", required: false },
+    { key: "profile_created", label: "프로필 작성", href: "/partner", required: true },
+    { key: "vendor_info_added", label: "업체 정보 등록", href: "/partner", required: false },
+    { key: "verification_submitted", label: "사업자 인증 제출", href: "/verification/vendor", required: true },
+    { key: "portfolio_added", label: "포트폴리오 추가", href: "/partner/portfolios", required: false },
 ];
 
 interface OnboardingModalProps {
@@ -32,16 +33,21 @@ interface OnboardingModalProps {
 export function OnboardingModal({ onClose, onSkip }: OnboardingModalProps) {
     const router = useRouter();
     const profile = useProfile();
+    const completion = useProfileCompletion();
     const role = profile?.role;
 
     const steps = role === "vendor" ? VENDOR_STEPS : DOCTOR_STEPS;
     const requiredSteps = steps.filter(s => s.required);
-    const firstStep = requiredSteps[0];
+    const firstIncompleteRequiredStep =
+        requiredSteps.find((step) => {
+            const item = completion?.checklist.find((check) => check.key === step.key);
+            return !item?.completed;
+        }) ?? requiredSteps[0];
 
     const handleStart = () => {
         onClose();
-        if (firstStep) {
-            router.push(firstStep.href);
+        if (firstIncompleteRequiredStep) {
+            router.push(firstIncompleteRequiredStep.href);
         }
     };
 

@@ -110,16 +110,20 @@ export const GET = withApi(async (_req: NextRequest) => {
     let profileCompletion: ProfileCompletion | null = null;
     let onboarding: OnboardingState | null = null;
 
-    if (profileRow) {
+    if (profileRow && (profileRow.role === "doctor" || profileRow.role === "vendor")) {
         const ctx = { supabase, userId: user.id, profile: profileRow };
 
-        if (profileRow.role === "doctor") {
-            profileCompletion = await calculateDoctorCompletion(ctx);
-        } else if (profileRow.role === "vendor") {
-            profileCompletion = await calculateVendorCompletion(ctx);
-        }
+        try {
+            profileCompletion = profileRow.role === "doctor"
+                ? await calculateDoctorCompletion(ctx)
+                : await calculateVendorCompletion(ctx);
 
-        onboarding = await fetchOnboardingState(supabase, user.id, profileCompletion, profileRow.role);
+            onboarding = await fetchOnboardingState(supabase, user.id, profileCompletion, profileRow.role);
+        } catch (error) {
+            console.warn("[GET /api/me] failed to compute onboarding/profile completion", { error });
+            profileCompletion = null;
+            onboarding = null;
+        }
     }
 
     // 약관 동의 정보

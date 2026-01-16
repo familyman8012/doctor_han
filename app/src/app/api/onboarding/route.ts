@@ -27,7 +27,7 @@ export const PATCH = withApi(async (req: NextRequest) => {
     if (action === "skip") {
         await upsertOnboardingStep(supabase, user.id, { skipped_at: now });
     } else if (action === "complete") {
-        await upsertOnboardingStep(supabase, user.id, { completed_at: now });
+        await upsertOnboardingStep(supabase, user.id, { completed_at: now, skipped_at: null });
     }
 
     return ok({ success: true });

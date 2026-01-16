@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { Building2, MapPin, Tag, CheckCircle, Clock, XCircle, AlertCircle } from "lucide-react";
+import { Building2, MapPin, Tag, CheckCircle, Clock, XCircle, AlertCircle, User, Mail, Phone } from "lucide-react";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
-import { useAuthStore, useProfileCompletion } from "@/stores/auth";
+import { useAuthStore, useProfile, useProfileCompletion } from "@/stores/auth";
 import { toast } from "sonner";
 import { ProfileCompletionBanner } from "@/components/widgets/ProfileCompletionBanner";
 import type { VendorDetail } from "@/lib/schema/vendor";
@@ -32,8 +32,15 @@ interface VendorFormData {
     priceMax: string;
 }
 
+interface AccountFormData {
+    displayName: string;
+    phone: string;
+}
+
 export default function PartnerProfilePage() {
     const queryClient = useQueryClient();
+    const profile = useProfile();
+    const user = useAuthStore((state) => state.user);
     const vendorVerification = useAuthStore((state) => state.vendorVerification);
     const setAuth = useAuthStore((state) => state.setAuth);
     const profileCompletion = useProfileCompletion();
@@ -54,6 +61,18 @@ export default function PartnerProfilePage() {
         queryFn: async () => {
             const res = await api.get<{ data: { items: Category[] } }>("/api/categories");
             return res.data.data.items;
+        },
+    });
+
+    const {
+        register: registerAccount,
+        handleSubmit: handleSubmitAccount,
+        reset: resetAccount,
+        formState: { errors: accountErrors, isDirty: isAccountDirty },
+    } = useForm<AccountFormData>({
+        defaultValues: {
+            displayName: profile?.displayName ?? "",
+            phone: profile?.phone ?? "",
         },
     });
 
@@ -85,6 +104,14 @@ export default function PartnerProfilePage() {
         }
     }, [vendorData, reset]);
 
+    // 계정 정보 초기값 설정
+    useEffect(() => {
+        resetAccount({
+            displayName: profile?.displayName ?? "",
+            phone: profile?.phone ?? "",
+        });
+    }, [profile?.displayName, profile?.phone, resetAccount]);
+
     // 업체 프로필 생성/수정
     const saveMutation = useMutation({
         mutationFn: async (data: VendorFormData) => {
@@ -112,6 +139,27 @@ export default function PartnerProfilePage() {
             setAuth(data);
             queryClient.invalidateQueries({ queryKey: ["vendor", "me"] });
             queryClient.setQueryData(["auth", "me"], data);
+        },
+    });
+
+    // 계정 정보 수정
+    const updateAccountMutation = useMutation({
+        mutationFn: async (data: AccountFormData) => {
+            await api.patch("/api/profile", {
+                displayName: data.displayName,
+                phone: data.phone || undefined,
+            });
+        },
+        onSuccess: async () => {
+            toast.success("계정 정보가 수정되었습니다");
+            const res = await api.get<{ data: MeData }>("/api/me");
+            const data = res.data.data;
+            setAuth(data);
+            queryClient.setQueryData(["auth", "me"], data);
+            resetAccount({
+                displayName: data.profile?.displayName ?? "",
+                phone: data.profile?.phone ?? "",
+            });
         },
     });
 
@@ -149,6 +197,76 @@ export default function PartnerProfilePage() {
 
             {/* 프로필 완성도 배너 */}
             {profileCompletion && <ProfileCompletionBanner completion={profileCompletion} />}
+
+            {/* 계정 정보 */}
+            <form
+                onSubmit={handleSubmitAccount((data) => updateAccountMutation.mutate(data))}
+                className="bg-white rounded-xl border border-gray-200 p-6 space-y-5"
+            >
+                <h2 className="text-lg font-semibold text-[#0a3b41] flex items-center gap-2">
+                    <User className="w-5 h-5 text-[#62e3d5]" />
+                    내 계정 정보
+                </h2>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            닉네임 <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Input
+                                {...registerAccount("displayName", { required: "닉네임을 입력해주세요" })}
+                                placeholder="닉네임"
+                                className="pl-10"
+                            />
+                        </div>
+                        {accountErrors.displayName && (
+                            <p className="text-sm text-red-500 mt-1">{accountErrors.displayName.message}</p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            연락처
+                        </label>
+                        <div className="relative">
+                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Input
+                                {...registerAccount("phone")}
+                                placeholder="010-0000-0000"
+                                className="pl-10"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        이메일
+                    </label>
+                    <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input
+                            value={user?.email ?? ""}
+                            disabled
+                            className="pl-10 bg-gray-50"
+                        />
+                    </div>
+                </div>
+
+                <div className="flex justify-end">
+                    <Button
+                        type="submit"
+                        variant="primary"
+                        size="lg"
+                        disabled={updateAccountMutation.isPending || !isAccountDirty}
+                        isLoading={updateAccountMutation.isPending}
+                    >
+                        저장하기
+                    </Button>
+                </div>
+            </form>
 
             {/* 인증 상태 배너 */}
             {verification && (
