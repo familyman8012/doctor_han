@@ -35,12 +35,18 @@
       "Bash(pnpm db:reset:*)",
       "Bash(pnpm db:gen:*)",
       "Bash(pnpm add:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "WebFetch(domain:replicate.com)",
+      "WebFetch(domain:mcp.replicate.com)"
     ]
   },
   "enabledMcpjsonServers": [
     "supabase",
-    "notion"
+    "notion",
+    "replicate"
+  ],
+  "disabledMcpjsonServers": [
+    "replicate"
   ],
   "hooks": {
     "PreToolUse": [
@@ -65,5 +71,6 @@
         ]
       }
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true
 }

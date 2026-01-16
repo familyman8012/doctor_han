@@ -8,8 +8,9 @@ import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
-import { useAuthStore } from "@/stores/auth";
+import { useAuthStore, useProfileCompletion } from "@/stores/auth";
 import { toast } from "sonner";
+import { ProfileCompletionBanner } from "@/components/widgets/ProfileCompletionBanner";
 import type { VendorDetail } from "@/lib/schema/vendor";
 import type { MeData } from "@/lib/schema/profile";
 
@@ -35,6 +36,7 @@ export default function PartnerProfilePage() {
     const queryClient = useQueryClient();
     const vendorVerification = useAuthStore((state) => state.vendorVerification);
     const setAuth = useAuthStore((state) => state.setAuth);
+    const profileCompletion = useProfileCompletion();
     const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
 
     // 내 업체 정보 조회
@@ -107,13 +109,7 @@ export default function PartnerProfilePage() {
             // me 데이터 새로고침
             const res = await api.get<{ data: MeData }>("/api/me");
             const data = res.data.data;
-            setAuth({
-                user: data.user,
-                profile: data.profile,
-                doctorVerification: data.doctorVerification,
-                vendorVerification: data.vendorVerification,
-                onboardingRequired: data.onboardingRequired,
-            });
+            setAuth(data);
             queryClient.invalidateQueries({ queryKey: ["vendor", "me"] });
             queryClient.setQueryData(["auth", "me"], data);
         },
@@ -150,6 +146,9 @@ export default function PartnerProfilePage() {
                 <h1 className="text-2xl font-bold text-[#0a3b41]">업체 프로필</h1>
                 <p className="text-gray-500 mt-1">업체 정보를 관리하고 고객에게 노출되는 정보를 수정할 수 있습니다</p>
             </div>
+
+            {/* 프로필 완성도 배너 */}
+            {profileCompletion && <ProfileCompletionBanner completion={profileCompletion} />}
 
             {/* 인증 상태 배너 */}
             {verification && (

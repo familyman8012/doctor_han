@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X, Camera, Trash2 } from "lucide-react";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
@@ -29,6 +29,7 @@ interface UploadedFile {
 }
 
 export function PortfolioCreateModal({ onClose, onSuccess }: PortfolioCreateModalProps) {
+    const queryClient = useQueryClient();
     const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -56,6 +57,7 @@ export function PortfolioCreateModal({ onClose, onSuccess }: PortfolioCreateModa
         },
         onSuccess: () => {
             toast.success("포트폴리오가 등록되었습니다");
+            queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
             onSuccess();
         },
     });

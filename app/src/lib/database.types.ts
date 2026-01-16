@@ -619,6 +619,38 @@ export type Database = {
           },
         ]
       }
+      user_onboarding_steps: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          skipped_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          skipped_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          skipped_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_onboarding_steps_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_categories: {
         Row: {
           category_id: string

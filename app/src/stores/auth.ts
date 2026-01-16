@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { OnboardingState, ProfileCompletion } from "@/lib/schema/profile";
 
 export type UserRole = "guest" | "doctor" | "vendor" | "admin";
 export type ProfileStatus = "active" | "inactive" | "banned";
@@ -33,6 +34,8 @@ interface AuthState {
     doctorVerification: VerificationSummary | null;
     vendorVerification: VerificationSummary | null;
     onboardingRequired: boolean;
+    onboarding: OnboardingState | null;
+    profileCompletion: ProfileCompletion | null;
     isLoading: boolean;
     isInitialized: boolean;
     setAuth: (data: {
@@ -41,6 +44,8 @@ interface AuthState {
         doctorVerification: VerificationSummary | null;
         vendorVerification: VerificationSummary | null;
         onboardingRequired: boolean;
+        onboarding: OnboardingState | null;
+        profileCompletion: ProfileCompletion | null;
     }) => void;
     setLoading: (loading: boolean) => void;
     setInitialized: (initialized: boolean) => void;
@@ -53,6 +58,8 @@ const initialState = {
     doctorVerification: null,
     vendorVerification: null,
     onboardingRequired: false,
+    onboarding: null,
+    profileCompletion: null,
     isLoading: true,
     isInitialized: false,
 };
@@ -66,6 +73,8 @@ export const useAuthStore = create<AuthState>((set) => ({
             doctorVerification: data.doctorVerification,
             vendorVerification: data.vendorVerification,
             onboardingRequired: data.onboardingRequired,
+            onboarding: data.onboarding,
+            profileCompletion: data.profileCompletion,
             isLoading: false,
             isInitialized: true,
         }),
@@ -90,3 +99,7 @@ export const useIsApproved = () => {
     if (profile.role === "vendor") return vendorVerification?.status === "approved";
     return false;
 };
+
+// 온보딩 & 프로필 완성도 셀렉터
+export const useOnboarding = () => useAuthStore((state) => state.onboarding);
+export const useProfileCompletion = () => useAuthStore((state) => state.profileCompletion);

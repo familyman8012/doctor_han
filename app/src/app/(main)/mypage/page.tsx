@@ -8,8 +8,9 @@ import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
-import { useAuthStore, useProfile } from "@/stores/auth";
+import { useAuthStore, useProfile, useProfileCompletion } from "@/stores/auth";
 import { toast } from "sonner";
+import { ProfileCompletionBanner } from "@/components/widgets/ProfileCompletionBanner";
 import { getSupabaseBrowserClient } from "@/server/supabase/browser";
 import type { FileSignedUploadResponse } from "@/lib/schema/file";
 import type { MeData } from "@/lib/schema/profile";
@@ -25,6 +26,7 @@ export default function MyProfilePage() {
     const user = useAuthStore((state) => state.user);
     const doctorVerification = useAuthStore((state) => state.doctorVerification);
     const setAuth = useAuthStore((state) => state.setAuth);
+    const profileCompletion = useProfileCompletion();
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -46,13 +48,7 @@ export default function MyProfilePage() {
             // me 데이터 새로고침
             const res = await api.get<{ data: MeData }>("/api/me");
             const data = res.data.data;
-            setAuth({
-                user: data.user,
-                profile: data.profile,
-                doctorVerification: data.doctorVerification,
-                vendorVerification: data.vendorVerification,
-                onboardingRequired: data.onboardingRequired,
-            });
+            setAuth(data);
             queryClient.setQueryData(["auth", "me"], data);
         },
     });
@@ -121,6 +117,9 @@ export default function MyProfilePage() {
                 <h1 className="text-2xl font-bold text-[#0a3b41]">프로필 관리</h1>
                 <p className="text-gray-500 mt-1">내 정보를 확인하고 수정할 수 있습니다</p>
             </div>
+
+            {/* 프로필 완성도 배너 */}
+            {profileCompletion && <ProfileCompletionBanner completion={profileCompletion} />}
 
             {/* 인증 상태 배너 */}
             {verification && (

@@ -1,8 +1,9 @@
 import type { Tables } from "@/lib/database.types";
-import type { DoctorVerificationSummary, VendorVerificationSummary } from "@/lib/schema/profile";
+import type { DoctorVerificationSummary, VendorVerificationSummary, OnboardingState, ProfileCompletion } from "@/lib/schema/profile";
 import { internalServerError } from "@/server/api/errors";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
+import { calculateDoctorCompletion, calculateVendorCompletion, fetchOnboardingState } from "@/server/onboarding/completion";
 import { mapProfileRow } from "@/server/profile/mapper";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import type { NextRequest } from "next/server";
@@ -44,6 +45,8 @@ export const GET = withApi(async (_req: NextRequest) => {
             doctorVerification: null,
             vendorVerification: null,
             onboardingRequired: false,
+            onboarding: null,
+            profileCompletion: null,
         });
     }
 
@@ -101,6 +104,22 @@ export const GET = withApi(async (_req: NextRequest) => {
         }
     }
 
+    // 프로필 완성도 계산 (프로필 있는 경우에만)
+    let profileCompletion: ProfileCompletion | null = null;
+    let onboarding: OnboardingState | null = null;
+
+    if (profileRow) {
+        const ctx = { supabase, userId: user.id, profile: profileRow };
+
+        if (profileRow.role === "doctor") {
+            profileCompletion = await calculateDoctorCompletion(ctx);
+        } else if (profileRow.role === "vendor") {
+            profileCompletion = await calculateVendorCompletion(ctx);
+        }
+
+        onboarding = await fetchOnboardingState(supabase, user.id, profileCompletion, profileRow.role);
+    }
+
     return ok({
         user: {
             id: user.id,
@@ -111,5 +130,7 @@ export const GET = withApi(async (_req: NextRequest) => {
         doctorVerification,
         vendorVerification,
         onboardingRequired: Boolean(user && !profileRow),
+        onboarding,
+        profileCompletion,
     });
 });

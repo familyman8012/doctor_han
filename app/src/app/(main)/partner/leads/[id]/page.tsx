@@ -67,6 +67,7 @@ export default function PartnerLeadDetailPage() {
             toast.success("상태가 변경되었습니다");
             queryClient.invalidateQueries({ queryKey: ["lead", leadId] });
             queryClient.invalidateQueries({ queryKey: ["leads"] });
+            queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
             setShowStatusModal(false);
         },
     });

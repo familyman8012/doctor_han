@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Upload as UploadIcon, X, FileText, Send } from "lucide-react";
@@ -55,6 +55,7 @@ const PREFERRED_TIMES = [
 
 export function InquiryForm({ vendor }: InquiryFormProps) {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
     const [isUploadingFile, setIsUploadingFile] = useState(false);
 
@@ -90,6 +91,7 @@ export function InquiryForm({ vendor }: InquiryFormProps) {
         mutationFn: (payload: LeadCreateBody) => leadsApi.create(payload),
         onSuccess: () => {
             toast.success("문의가 접수되었습니다. 업체에서 곧 연락드릴 예정입니다.");
+            queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
             router.push("/mypage/leads");
         },
     });

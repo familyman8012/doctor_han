@@ -2,6 +2,42 @@ import { API_SUCCESS_CODE } from "@/lib/api/types";
 import { z } from "zod";
 import { zNonEmptyString, zUuid } from "./common";
 
+// === 온보딩 & 프로필 완성도 스키마 ===
+
+export const ChecklistItemStatusSchema = z.enum([
+    "completed",       // 완료됨
+    "pending",         // 미완료 (사용자 행동 필요)
+    "waiting",         // 대기중 (admin 승인 등, 사용자 행동 불가)
+    "not_applicable",  // 해당 없음 (조건 미충족으로 분모에서 제외)
+]);
+export type ChecklistItemStatus = z.infer<typeof ChecklistItemStatusSchema>;
+
+export const OnboardingStateSchema = z.object({
+    requiredStepsCompleted: z.boolean(),  // 필수 스텝 완료 여부 (런타임 계산)
+    skippedAt: z.string().nullable(),     // "나중에 하기" 시점
+    completedAt: z.string().nullable(),   // 온보딩 완료 시점
+});
+export type OnboardingState = z.infer<typeof OnboardingStateSchema>;
+
+export const ProfileCompletionItemSchema = z.object({
+    key: z.string(),
+    label: z.string(),
+    completed: z.boolean(),
+    points: z.number(),
+    maxPoints: z.number(),
+    status: ChecklistItemStatusSchema,
+    href: z.string().optional(),  // pending 상태일 때만
+});
+export type ProfileCompletionItem = z.infer<typeof ProfileCompletionItemSchema>;
+
+export const ProfileCompletionSchema = z.object({
+    score: z.number().min(0).max(100),  // 조건부 분모 기준
+    totalPoints: z.number(),            // 획득 점수
+    maxPoints: z.number(),              // 분모 (waiting/not_applicable 제외)
+    checklist: z.array(ProfileCompletionItemSchema),
+});
+export type ProfileCompletion = z.infer<typeof ProfileCompletionSchema>;
+
 export const ProfileRoleSchema = z.enum(["doctor", "vendor", "admin"]);
 export type ProfileRole = z.infer<typeof ProfileRoleSchema>;
 
@@ -73,6 +109,8 @@ export const MeDataSchema = z.object({
     doctorVerification: DoctorVerificationSummarySchema.nullable(),
     vendorVerification: VendorVerificationSummarySchema.nullable(),
     onboardingRequired: z.boolean(),
+    onboarding: OnboardingStateSchema.nullable(),
+    profileCompletion: ProfileCompletionSchema.nullable(),
 });
 
 export type MeData = z.infer<typeof MeDataSchema>;
