@@ -22,8 +22,26 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
             {/* 심플 푸터 */}
             <footer className="bg-white border-t border-gray-100 py-6">
-                <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
-                    © 2024 메디허브. All rights reserved.
+                <div className="max-w-7xl mx-auto px-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <span className="text-sm text-gray-500">
+                            &copy; {new Date().getFullYear()} 메디허브
+                        </span>
+                        <div className="flex gap-6 text-sm">
+                            <Link
+                                href="/legal/terms"
+                                className="text-gray-500 hover:text-[#0a3b41] transition-colors"
+                            >
+                                이용약관
+                            </Link>
+                            <Link
+                                href="/legal/privacy"
+                                className="text-gray-500 hover:text-[#0a3b41] transition-colors"
+                            >
+                                개인정보처리방침
+                            </Link>
+                        </div>
+                    </div>
                 </div>
             </footer>
         </div>

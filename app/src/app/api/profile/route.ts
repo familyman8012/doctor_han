@@ -1,4 +1,5 @@
 import type { TablesUpdate } from "@/lib/database.types";
+import { CURRENT_TERMS_VERSION } from "@/lib/constants/terms";
 import { ProfileCreateBodySchema, ProfilePatchBodySchema } from "@/lib/schema/profile";
 import { badRequest, conflict, internalServerError, notFound } from "@/server/api/errors";
 import { created, ok } from "@/server/api/response";
@@ -37,6 +38,8 @@ export const POST = withApi(
                 display_name: body.displayName,
                 phone: body.phone ?? ctx.user.phone ?? null,
                 email: ctx.user.email ?? null,
+                terms_agreed_version: CURRENT_TERMS_VERSION,
+                terms_agreed_at: new Date().toISOString(),
             })
             .select("*")
             .single();
@@ -50,6 +53,16 @@ export const POST = withApi(
                 message: insertError.message,
                 code: insertError.code,
             });
+        }
+
+        // 마케팅 동의 시 notification_settings 생성
+        if (body.marketingAgreed) {
+            await ctx.supabase
+                .from("notification_settings")
+                .upsert({
+                    user_id: ctx.user.id,
+                    marketing_enabled: true,
+                });
         }
 
         return created({ profile: mapProfileRow(profileRow) });

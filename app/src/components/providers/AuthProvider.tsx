@@ -16,6 +16,7 @@ const GUEST_AUTH: MeData = {
     onboardingRequired: false,
     onboarding: null,
     profileCompletion: null,
+    termsConsent: null,
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {

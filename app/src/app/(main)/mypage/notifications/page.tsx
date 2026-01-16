@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Mail, Shield, Megaphone, MessageSquare } from "lucide-react";
+import { Mail, Shield, Megaphone, MessageSquare, ChevronRight, FileText, ShieldCheck } from "lucide-react";
 import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { toast } from "sonner";
@@ -151,6 +152,37 @@ export default function NotificationSettingsPage() {
 			<p className="text-xs text-gray-400">
 				* 이메일 알림 전체를 끄면 하위 알림도 수신하지 않습니다.
 			</p>
+
+			{/* 약관 및 정책 */}
+			<div className="mt-8">
+				<h2 className="text-lg font-semibold text-[#0a3b41] mb-4">약관 및 정책</h2>
+				<div className="bg-white rounded-xl border border-gray-200">
+					<Link
+						href="/legal/terms"
+						className="flex items-center justify-between px-4 py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors"
+					>
+						<div className="flex items-center gap-3">
+							<div className="w-10 h-10 rounded-lg bg-[#62e3d5]/10 flex items-center justify-center shrink-0">
+								<FileText className="w-5 h-5 text-[#62e3d5]" />
+							</div>
+							<span className="font-medium text-[#0a3b41]">이용약관</span>
+						</div>
+						<ChevronRight className="w-5 h-5 text-gray-400" />
+					</Link>
+					<Link
+						href="/legal/privacy"
+						className="flex items-center justify-between px-4 py-4 hover:bg-gray-50 transition-colors"
+					>
+						<div className="flex items-center gap-3">
+							<div className="w-10 h-10 rounded-lg bg-[#62e3d5]/10 flex items-center justify-center shrink-0">
+								<ShieldCheck className="w-5 h-5 text-[#62e3d5]" />
+							</div>
+							<span className="font-medium text-[#0a3b41]">개인정보처리방침</span>
+						</div>
+						<ChevronRight className="w-5 h-5 text-gray-400" />
+					</Link>
+				</div>
+			</div>
 		</div>
 	);
 }

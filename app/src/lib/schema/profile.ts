@@ -62,6 +62,8 @@ export const ProfileCreateBodySchema = z.object({
     role: z.enum(["doctor", "vendor"]),
     displayName: zNonEmptyString,
     phone: z.string().trim().min(1).optional(),
+    termsAgreed: z.literal(true),
+    marketingAgreed: z.boolean().optional(),
 }).strict();
 
 export type ProfileCreateBody = z.infer<typeof ProfileCreateBodySchema>;
@@ -103,6 +105,14 @@ export const MeUserSchema = z.object({
 
 export type MeUser = z.infer<typeof MeUserSchema>;
 
+export const TermsConsentSchema = z.object({
+    currentVersion: z.string(),
+    agreedVersion: z.string().nullable(),
+    agreedAt: z.string().nullable(),
+});
+
+export type TermsConsent = z.infer<typeof TermsConsentSchema>;
+
 export const MeDataSchema = z.object({
     user: MeUserSchema.nullable(),
     profile: ProfileViewSchema.nullable(),
@@ -111,6 +121,7 @@ export const MeDataSchema = z.object({
     onboardingRequired: z.boolean(),
     onboarding: OnboardingStateSchema.nullable(),
     profileCompletion: ProfileCompletionSchema.nullable(),
+    termsConsent: TermsConsentSchema.nullable(),
 });
 
 export type MeData = z.infer<typeof MeDataSchema>;

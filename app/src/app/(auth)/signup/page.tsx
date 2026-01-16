@@ -6,11 +6,12 @@ import { Suspense, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Building2, Stethoscope } from "lucide-react";
+import { Building2, Stethoscope, ExternalLink } from "lucide-react";
 import api from "@/api-client/client";
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
+import { TERMS_URLS } from "@/lib/constants/terms";
 import type { ProfileResponse } from "@/lib/schema/profile";
 import { getSupabaseBrowserClient } from "@/server/supabase/browser";
 import { cn } from "@/components/utils";
@@ -38,6 +39,8 @@ interface SignupFormData {
     passwordConfirm: string;
     name: string;
     nickname: string;
+    termsAgreed: boolean;
+    marketingAgreed: boolean;
 }
 
 function SignupForm() {
@@ -60,9 +63,10 @@ function SignupForm() {
     } = useForm<SignupFormData>();
 
     const password = watch("password");
+    const termsAgreed = watch("termsAgreed");
 
     const profileMutation = useMutation({
-        mutationFn: async (payload: { role: UserRole; displayName: string }) => {
+        mutationFn: async (payload: { role: UserRole; displayName: string; termsAgreed: true; marketingAgreed?: boolean }) => {
             const response = await api.post<ProfileResponse>("/api/profile", payload);
             return response.data.data.profile;
         },
@@ -101,6 +105,8 @@ function SignupForm() {
                 await profileMutation.mutateAsync({
                     role,
                     displayName: data.nickname.trim(),
+                    termsAgreed: true,
+                    marketingAgreed: data.marketingAgreed || false,
                 });
             } catch {
                 return;
@@ -240,13 +246,60 @@ function SignupForm() {
                         })}
                     />
 
+                    {/* 약관 동의 */}
+                    <div className="space-y-3 pt-2">
+                        <label className="flex items-start gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#62e3d5] focus:ring-[#62e3d5]"
+                                {...register("termsAgreed", { required: true })}
+                            />
+                            <span className="text-sm text-gray-700">
+                                <span className="text-red-500">(필수)</span>{" "}
+                                <a
+                                    href={TERMS_URLS.terms}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[#0a3b41] underline hover:text-[#62e3d5] inline-flex items-center gap-0.5"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    이용약관
+                                    <ExternalLink className="h-3 w-3" />
+                                </a>{" "}
+                                및{" "}
+                                <a
+                                    href={TERMS_URLS.privacy}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[#0a3b41] underline hover:text-[#62e3d5] inline-flex items-center gap-0.5"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    개인정보처리방침
+                                    <ExternalLink className="h-3 w-3" />
+                                </a>
+                                에 동의합니다
+                            </span>
+                        </label>
+
+                        <label className="flex items-start gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#62e3d5] focus:ring-[#62e3d5]"
+                                {...register("marketingAgreed")}
+                            />
+                            <span className="text-sm text-gray-700">
+                                <span className="text-gray-400">(선택)</span> 마케팅 정보 수신에 동의합니다
+                            </span>
+                        </label>
+                    </div>
+
                     <Button
                         type="submit"
                         variant="primary"
                         size="lg"
                         className="w-full"
                         isLoading={isLoading}
-                        disabled={isLoading}
+                        disabled={isLoading || !termsAgreed}
                     >
                         가입하기
                     </Button>

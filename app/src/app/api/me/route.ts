@@ -1,5 +1,6 @@
 import type { Tables } from "@/lib/database.types";
-import type { DoctorVerificationSummary, VendorVerificationSummary, OnboardingState, ProfileCompletion } from "@/lib/schema/profile";
+import { CURRENT_TERMS_VERSION } from "@/lib/constants/terms";
+import type { DoctorVerificationSummary, VendorVerificationSummary, OnboardingState, ProfileCompletion, TermsConsent } from "@/lib/schema/profile";
 import { internalServerError } from "@/server/api/errors";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
@@ -47,6 +48,7 @@ export const GET = withApi(async (_req: NextRequest) => {
             onboardingRequired: false,
             onboarding: null,
             profileCompletion: null,
+            termsConsent: null,
         });
     }
 
@@ -120,6 +122,15 @@ export const GET = withApi(async (_req: NextRequest) => {
         onboarding = await fetchOnboardingState(supabase, user.id, profileCompletion, profileRow.role);
     }
 
+    // 약관 동의 정보
+    const termsConsent: TermsConsent | null = profileRow
+        ? {
+            currentVersion: CURRENT_TERMS_VERSION,
+            agreedVersion: profileRow.terms_agreed_version,
+            agreedAt: profileRow.terms_agreed_at,
+        }
+        : null;
+
     return ok({
         user: {
             id: user.id,
@@ -132,5 +143,6 @@ export const GET = withApi(async (_req: NextRequest) => {
         onboardingRequired: Boolean(user && !profileRow),
         onboarding,
         profileCompletion,
+        termsConsent,
     });
 });
