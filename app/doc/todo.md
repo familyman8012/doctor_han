@@ -264,31 +264,30 @@
 - [ ] 완료 기준(AC): 신규 유저가 다음 행동(인증/프로필/첫 리드)에 도달하는 길이 명확해짐
 
 ### 5-5. 약관/동의(버전 관리 + 이력 저장 + 철회)
-- [ ] 공통(정책/문서)
+- [x] 공통(정책/문서)
   - [x] (MVP) 이용약관/개인정보처리방침은 정적 페이지(HTML/MD)로 제공하고, 푸터에 링크만 노출
-  - [x] (MVP) 필수 동의 저장 최소화: `profiles`에 “동의 시각 + 문서 버전(예: `YYYY-MM-DD`)”만 저장
+  - [x] (MVP) 필수 동의 저장 최소화: `profiles`에 "동의 시각 + 문서 버전(예: `YYYY-MM-DD`)"만 저장
   - [x] (MVP) 마케팅 수신동의는 선택으로 두고, 실제 마케팅 발송 시작할 때 `opt_in_at`/`opt_out_at`만 관리
-  - [ ] 문서 버전 규칙 확정: `YYYY-MM-DD` (문서 변경 시 버전 bump)
-- [ ] Backend (API/DB)
-  - [ ] DB(필수 동의 최소): `profiles.terms_version`, `profiles.terms_agreed_at`, `profiles.privacy_version`, `profiles.privacy_agreed_at`
-  - [ ] DB(선택 동의): `profiles.marketing_opt_in_at`, `profiles.marketing_opt_out_at`
-  - [ ] DTO/Mapper: `ProfileViewSchema`, `MeResponse`에 동의 상태 포함
-  - [ ] 엔드포인트(수정): `POST /api/profile`에서 필수 동의(버전/시각) 저장
-  - [ ] 엔드포인트(추가/택1): 마케팅 수신 동의 토글/철회
-    - [ ] `PATCH /api/profile`로 처리 또는
-    - [ ] `PATCH /api/consents/marketing` 신설
-  - [ ] api-client: 동의 조회/변경 함수 추가
+  - [x] 문서 버전 규칙 확정: `YYYY-MM-DD` (문서 변경 시 버전 bump) → `CURRENT_TERMS_VERSION = "2026-01-18"`
+- [x] Backend (API/DB)
+  - [x] DB(필수 동의 최소): `profiles.terms_agreed_version`, `profiles.terms_agreed_at` (통합 버전으로 관리)
+  - [x] DB(선택 동의): `notification_settings.marketing_enabled` 활용
+  - [x] DTO/Mapper: `MeDataSchema`에 `termsConsent` 포함
+  - [x] 엔드포인트(수정): `POST /api/profile`에서 필수 동의(버전/시각) 저장
+  - [x] 엔드포인트(추가/택1): 마케팅 수신 동의 토글/철회
+    - [x] 기존 `PATCH /api/notification-settings`로 처리
+  - [x] api-client: 기존 notification-settings API 활용
   - [ ] (P2+ 필요 시) 동의 이력 고도화(append-only + 철회 이력)
     - [ ] 약관 모델 설계: 이용약관/개인정보/광고성 수신(필수/선택, 버전, 시행일)
     - [ ] DB: `terms_versions`, `user_consents`(append-only, 철회 시 `revoked_at` 기록)
-- [ ] Frontend (UI)
-  - [ ] 정적 문서 페이지 작성: 이용약관/개인정보처리방침
-  - [ ] 푸터 링크 추가: 이용약관/개인정보처리방침
-  - [ ] 가입/최초 로그인 동의 UI: 필수(이용약관/개인정보) 체크박스 + 선택(마케팅 수신 동의)
-  - [ ] 가입/최초 로그인 시 약관 동의 플로우(필수 미동의 시 사용 제한)
-  - [ ] 마이페이지: 약관 링크 + (마케팅 시작 후) 수신 동의 토글/철회
+- [x] Frontend (UI)
+  - [x] 정적 문서 페이지 작성: 이용약관(`/legal/terms`)/개인정보처리방침(`/legal/privacy`)
+  - [x] 푸터 링크 추가: 이용약관/개인정보처리방침 (MainLayout, AuthLayout)
+  - [x] 가입/최초 로그인 동의 UI: 필수(이용약관/개인정보) 체크박스 + 선택(마케팅 수신 동의)
+  - [x] 가입/최초 로그인 시 약관 동의 플로우(필수 미동의 시 가입 버튼 비활성화)
+  - [x] 마이페이지: 약관 링크 (알림 설정 페이지 하단에 추가)
   - [ ] (P2+ 필요 시) 마이페이지: 동의 이력 노출 + 광고성 수신 철회 이력
-- [ ] 완료 기준(AC): 약관은 푸터 링크로 접근 가능, 필수 동의는 버전+시각이 저장됨(마케팅은 선택/철회 가능)
+- [x] 완료 기준(AC): 약관은 푸터 링크로 접근 가능, 필수 동의는 버전+시각이 저장됨(마케팅은 선택/철회 가능)
 
 ### 5-6. SEO 기본(카테고리/업체 메타 + OG 템플릿)
 - [x] Backend (API/DB)
