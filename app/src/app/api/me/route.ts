@@ -1,6 +1,6 @@
 import type { Tables } from "@/lib/database.types";
-import { CURRENT_TERMS_VERSION } from "@/lib/constants/terms";
-import type { DoctorVerificationSummary, VendorVerificationSummary, OnboardingState, ProfileCompletion, TermsConsent } from "@/lib/schema/profile";
+import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION } from "@/lib/constants/terms";
+import type { DoctorVerificationSummary, VendorVerificationSummary, OnboardingState, ProfileCompletion, RequiredConsents } from "@/lib/schema/profile";
 import { internalServerError } from "@/server/api/errors";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
@@ -48,7 +48,7 @@ export const GET = withApi(async (_req: NextRequest) => {
             onboardingRequired: false,
             onboarding: null,
             profileCompletion: null,
-            termsConsent: null,
+            requiredConsents: null,
         });
     }
 
@@ -126,12 +126,19 @@ export const GET = withApi(async (_req: NextRequest) => {
         }
     }
 
-    // 약관 동의 정보
-    const termsConsent: TermsConsent | null = profileRow
+    // 약관/정책 동의 정보
+    const requiredConsents: RequiredConsents | null = profileRow
         ? {
-            currentVersion: CURRENT_TERMS_VERSION,
-            agreedVersion: profileRow.terms_agreed_version,
-            agreedAt: profileRow.terms_agreed_at,
+            terms: {
+                currentVersion: CURRENT_TERMS_VERSION,
+                agreedVersion: profileRow.terms_agreed_version,
+                agreedAt: profileRow.terms_agreed_at,
+            },
+            privacy: {
+                currentVersion: CURRENT_PRIVACY_VERSION,
+                agreedVersion: profileRow.privacy_agreed_version,
+                agreedAt: profileRow.privacy_agreed_at,
+            },
         }
         : null;
 
@@ -147,6 +154,6 @@ export const GET = withApi(async (_req: NextRequest) => {
         onboardingRequired: Boolean(user && !profileRow),
         onboarding,
         profileCompletion,
-        termsConsent,
+        requiredConsents,
     });
 });

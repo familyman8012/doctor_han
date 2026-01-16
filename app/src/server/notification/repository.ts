@@ -39,6 +39,7 @@ export async function upsertNotificationSettings(
 		.maybeSingle();
 
 	// 기존값과 merge (기존값 → 업데이트값 → 기본값 순으로 적용)
+	const previousMarketingEnabled = existing?.marketing_enabled ?? false;
 	const merged = {
 		user_id: userId,
 		email_enabled: updates?.email_enabled ?? existing?.email_enabled ?? true,
@@ -58,6 +59,26 @@ export async function upsertNotificationSettings(
 			message: error.message,
 			code: error.code,
 		});
+	}
+
+	// 마케팅 수신 동의 변경 시각 기록(최근)
+	if (updates?.marketing_enabled !== undefined && previousMarketingEnabled !== merged.marketing_enabled) {
+		const now = new Date().toISOString();
+		const profileUpdate = merged.marketing_enabled
+			? { marketing_opt_in_at: now }
+			: { marketing_opt_out_at: now };
+
+		const { error: profileError } = await supabase
+			.from("profiles")
+			.update(profileUpdate)
+			.eq("id", userId);
+
+		if (profileError) {
+			throw internalServerError("마케팅 동의 이력을 저장할 수 없습니다.", {
+				message: profileError.message,
+				code: profileError.code,
+			});
+		}
 	}
 
 	return data;

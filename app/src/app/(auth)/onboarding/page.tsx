@@ -5,12 +5,13 @@ import { Suspense, useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Building2, Stethoscope } from "lucide-react";
+import { Building2, Stethoscope, ExternalLink } from "lucide-react";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import type { ProfileResponse } from "@/lib/schema/profile";
+import { TERMS_URLS } from "@/lib/constants/terms";
 import { cn } from "@/components/utils";
 import { useAuthStore } from "@/stores/auth";
 
@@ -18,6 +19,8 @@ type UserRole = "doctor" | "vendor";
 
 interface OnboardingFormData {
     nickname: string;
+    termsAgreed: boolean;
+    marketingAgreed: boolean;
 }
 
 function OnboardingForm() {
@@ -26,10 +29,11 @@ function OnboardingForm() {
     const queryClient = useQueryClient();
     const [role, setRole] = useState<UserRole>("doctor");
 
-    const { register, handleSubmit, formState: { errors } } = useForm<OnboardingFormData>();
+    const { register, handleSubmit, watch, formState: { errors } } = useForm<OnboardingFormData>();
+    const termsAgreed = watch("termsAgreed");
 
     const profileMutation = useMutation({
-        mutationFn: async (payload: { role: UserRole; displayName: string }) => {
+        mutationFn: async (payload: { role: UserRole; displayName: string; termsAgreed: true; marketingAgreed?: boolean }) => {
             const response = await api.post<ProfileResponse>("/api/profile", payload);
             return response.data.data.profile;
         },
@@ -43,6 +47,8 @@ function OnboardingForm() {
             await profileMutation.mutateAsync({
                 role,
                 displayName: data.nickname.trim(),
+                termsAgreed: true,
+                marketingAgreed: data.marketingAgreed || false,
             });
 
             toast.success("프로필이 생성되었습니다");
@@ -130,13 +136,60 @@ function OnboardingForm() {
                         })}
                     />
 
+                    {/* 약관 동의 */}
+                    <div className="space-y-3 pt-2">
+                        <label className="flex items-start gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#62e3d5] focus:ring-[#62e3d5]"
+                                {...register("termsAgreed", { required: true })}
+                            />
+                            <span className="text-sm text-gray-700">
+                                <span className="text-red-500">(필수)</span>{" "}
+                                <a
+                                    href={TERMS_URLS.terms}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[#0a3b41] underline hover:text-[#62e3d5] inline-flex items-center gap-0.5"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    이용약관
+                                    <ExternalLink className="h-3 w-3" />
+                                </a>{" "}
+                                및{" "}
+                                <a
+                                    href={TERMS_URLS.privacy}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[#0a3b41] underline hover:text-[#62e3d5] inline-flex items-center gap-0.5"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    개인정보처리방침
+                                    <ExternalLink className="h-3 w-3" />
+                                </a>
+                                에 동의합니다
+                            </span>
+                        </label>
+
+                        <label className="flex items-start gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#62e3d5] focus:ring-[#62e3d5]"
+                                {...register("marketingAgreed")}
+                            />
+                            <span className="text-sm text-gray-700">
+                                <span className="text-gray-400">(선택)</span> 마케팅 정보 수신에 동의합니다
+                            </span>
+                        </label>
+                    </div>
+
                     <Button
                         type="submit"
                         variant="primary"
                         size="lg"
                         className="w-full"
                         isLoading={profileMutation.isPending}
-                        disabled={profileMutation.isPending}
+                        disabled={profileMutation.isPending || !termsAgreed}
                     >
                         시작하기
                     </Button>

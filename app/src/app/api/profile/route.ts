@@ -1,5 +1,5 @@
 import type { TablesUpdate } from "@/lib/database.types";
-import { CURRENT_TERMS_VERSION } from "@/lib/constants/terms";
+import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION } from "@/lib/constants/terms";
 import { ProfileCreateBodySchema, ProfilePatchBodySchema } from "@/lib/schema/profile";
 import { badRequest, conflict, internalServerError, notFound } from "@/server/api/errors";
 import { created, ok } from "@/server/api/response";
@@ -12,6 +12,7 @@ type ProfileUpdateWithAvatar = TablesUpdate<"profiles"> & { avatar_url?: string 
 export const POST = withApi(
     withUser(async (ctx) => {
         const body = ProfileCreateBodySchema.parse(await ctx.req.json());
+        const now = new Date().toISOString();
 
         const { data: existing, error: findError } = await ctx.supabase
             .from("profiles")
@@ -39,7 +40,11 @@ export const POST = withApi(
                 phone: body.phone ?? ctx.user.phone ?? null,
                 email: ctx.user.email ?? null,
                 terms_agreed_version: CURRENT_TERMS_VERSION,
-                terms_agreed_at: new Date().toISOString(),
+                terms_agreed_at: now,
+                privacy_agreed_version: CURRENT_PRIVACY_VERSION,
+                privacy_agreed_at: now,
+                marketing_opt_in_at: body.marketingAgreed ? now : null,
+                marketing_opt_out_at: null,
             })
             .select("*")
             .single();
@@ -57,12 +62,19 @@ export const POST = withApi(
 
         // 마케팅 동의 시 notification_settings 생성
         if (body.marketingAgreed) {
-            await ctx.supabase
+            const { error: marketingSettingsError } = await ctx.supabase
                 .from("notification_settings")
                 .upsert({
                     user_id: ctx.user.id,
                     marketing_enabled: true,
                 });
+
+            if (marketingSettingsError) {
+                throw internalServerError("마케팅 동의 정보를 저장할 수 없습니다.", {
+                    message: marketingSettingsError.message,
+                    code: marketingSettingsError.code,
+                });
+            }
         }
 
         return created({ profile: mapProfileRow(profileRow) });
@@ -74,11 +86,18 @@ export const PATCH = withApi(
         const body = ProfilePatchBodySchema.parse(await ctx.req.json());
 
         const update: ProfileUpdateWithAvatar = {};
+        const now = new Date().toISOString();
         if (typeof body.displayName !== "undefined") {
             update.display_name = body.displayName;
         }
         if (typeof body.phone !== "undefined") {
             update.phone = body.phone;
+        }
+        if (typeof body.termsAgreed !== "undefined") {
+            update.terms_agreed_version = CURRENT_TERMS_VERSION;
+            update.terms_agreed_at = now;
+            update.privacy_agreed_version = CURRENT_PRIVACY_VERSION;
+            update.privacy_agreed_at = now;
         }
         if (typeof body.avatarFileId !== "undefined") {
             if (body.avatarFileId === null) {

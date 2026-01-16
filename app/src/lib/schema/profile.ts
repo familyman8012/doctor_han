@@ -73,9 +73,10 @@ export const ProfilePatchBodySchema = z
         displayName: zNonEmptyString.optional(),
         phone: z.union([z.string().trim().min(1), z.null()]).optional(),
         avatarFileId: z.union([zUuid, z.null()]).optional(),
+        termsAgreed: z.literal(true).optional(),
     })
     .strict()
-    .refine((value) => value.displayName !== undefined || value.phone !== undefined || value.avatarFileId !== undefined, {
+    .refine((value) => value.displayName !== undefined || value.phone !== undefined || value.avatarFileId !== undefined || value.termsAgreed !== undefined, {
         message: "수정할 필드가 없습니다.",
     });
 
@@ -105,13 +106,20 @@ export const MeUserSchema = z.object({
 
 export type MeUser = z.infer<typeof MeUserSchema>;
 
-export const TermsConsentSchema = z.object({
+export const ConsentStateSchema = z.object({
     currentVersion: z.string(),
     agreedVersion: z.string().nullable(),
     agreedAt: z.string().nullable(),
 });
 
-export type TermsConsent = z.infer<typeof TermsConsentSchema>;
+export type ConsentState = z.infer<typeof ConsentStateSchema>;
+
+export const RequiredConsentsSchema = z.object({
+    terms: ConsentStateSchema,
+    privacy: ConsentStateSchema,
+});
+
+export type RequiredConsents = z.infer<typeof RequiredConsentsSchema>;
 
 export const MeDataSchema = z.object({
     user: MeUserSchema.nullable(),
@@ -121,7 +129,7 @@ export const MeDataSchema = z.object({
     onboardingRequired: z.boolean(),
     onboarding: OnboardingStateSchema.nullable(),
     profileCompletion: ProfileCompletionSchema.nullable(),
-    termsConsent: TermsConsentSchema.nullable(),
+    requiredConsents: RequiredConsentsSchema.nullable(),
 });
 
 export type MeData = z.infer<typeof MeDataSchema>;

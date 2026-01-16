@@ -487,7 +487,11 @@ export type Database = {
           display_name: string | null
           email: string | null
           id: string
+          marketing_opt_in_at: string | null
+          marketing_opt_out_at: string | null
           phone: string | null
+          privacy_agreed_at: string | null
+          privacy_agreed_version: string | null
           role: Database["public"]["Enums"]["profile_role"]
           status: Database["public"]["Enums"]["profile_status"]
           terms_agreed_at: string | null
@@ -500,7 +504,11 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id: string
+          marketing_opt_in_at?: string | null
+          marketing_opt_out_at?: string | null
           phone?: string | null
+          privacy_agreed_at?: string | null
+          privacy_agreed_version?: string | null
           role: Database["public"]["Enums"]["profile_role"]
           status?: Database["public"]["Enums"]["profile_status"]
           terms_agreed_at?: string | null
@@ -513,7 +521,11 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id?: string
+          marketing_opt_in_at?: string | null
+          marketing_opt_out_at?: string | null
           phone?: string | null
+          privacy_agreed_at?: string | null
+          privacy_agreed_version?: string | null
           role?: Database["public"]["Enums"]["profile_role"]
           status?: Database["public"]["Enums"]["profile_status"]
           terms_agreed_at?: string | null
