@@ -37,17 +37,25 @@
       "Bash(pnpm add:*)",
       "Bash(cat:*)",
       "WebFetch(domain:replicate.com)",
-      "WebFetch(domain:mcp.replicate.com)"
+      "WebFetch(domain:mcp.replicate.com)",
+      "Bash(tmux:*)",
+      "Bash(brew install:*)",
+      "Bash(claude-squad:*)",
+      "Bash(cs version:*)",
+      "Bash(vtsls:*)",
+      "Bash(pnpm install:*)",
+      "Bash(npm install:*)"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "supabase",
-    "notion",
     "replicate"
   ],
-  "disabledMcpjsonServers": [
-    "replicate"
-  ],
+  "disabledMcpjsonServers": [],
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true
+  },
   "hooks": {
     "PreToolUse": [
       {
@@ -71,6 +79,5 @@
         ]
       }
     ]
-  },
-  "enableAllProjectMcpServers": true
+  }
 }
