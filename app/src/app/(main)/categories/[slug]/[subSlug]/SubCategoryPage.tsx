@@ -7,20 +7,12 @@ import { ChevronRight } from "lucide-react";
 import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
-import { useIsAuthenticated, useUserRole } from "@/stores/auth";
 import { VendorCard } from "../components/VendorCard";
 import { VendorFilter } from "../components/VendorFilter";
 import { SimplePagination } from "../components/SimplePagination";
+import { useFavoriteIds } from "../hooks/useFavoriteIds";
+import type { Category } from "@/lib/schema/category";
 import type { VendorListItem } from "@/lib/schema/vendor";
-
-interface Category {
-    id: string;
-    name: string;
-    slug: string;
-    parentId: string | null;
-    depth: number;
-    sortOrder: number;
-}
 
 const PAGE_SIZE = 12;
 
@@ -50,22 +42,7 @@ export default function SubCategoryPage({ slug, subSlug }: SubCategoryPageProps)
     const currentCategory = categories.find((c) => c.slug === subSlug && c.parentId === parentCategory?.id);
     const siblingCategories = categories.filter((c) => c.parentId === parentCategory?.id);
 
-    const isAuthenticated = useIsAuthenticated();
-    const role = useUserRole();
-    const canFetchFavorites = isAuthenticated && role === "doctor";
-
-    // 찜 목록 조회
-    const { data: favorites = [] } = useQuery({
-        queryKey: ["favorites", "ids"],
-        queryFn: async (): Promise<string[]> => {
-            const response = await api.get<{ data: { items: { vendor: { id: string } | null }[] } }>("/api/favorites");
-            return (response.data.data.items ?? [])
-                .map((item) => item.vendor?.id)
-                .filter((id): id is string => Boolean(id));
-        },
-        staleTime: 60 * 1000,
-        enabled: canFetchFavorites,
-    });
+    const { data: favorites = [] } = useFavoriteIds();
 
     // 업체 리스트 조회
     const { data: vendorData, isLoading: isLoadingVendors } = useQuery({

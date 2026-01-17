@@ -1,1 +1,1 @@
-🐛 SEO 코드 리뷰 피드백 수정 (description fallback, OG 이미지, sitemap)
+♻️ CodeRabbit 피드백 반영 (sitemap 쿼리 최적화, 타입/훅 중복 제거)
