@@ -247,21 +247,21 @@
 - [ ] 완료 기준(AC): 승인/반려 시 이메일이 발송되고, 설정에 따라 발송 여부가 제어됨 (Resend 도메인 인증 후 테스트 필요)
 
 ### 5-4. 온보딩(역할별) + 프로필 완성도
-- [ ] 공통(정책/설계)
-  - [ ] 온보딩 퍼널 정의: doctor(인증 제출 → 업체 탐색/찜 → 첫 문의) / vendor(프로필/포트폴리오 → 인증 제출 → 리드 응답)
-  - [ ] 프로필 완성도 규칙 정의(역할별 체크리스트)
-- [ ] Backend (API/DB)
+- [x] 공통(정책/설계)
+  - [x] 온보딩 퍼널 정의: doctor(인증 제출 → 업체 탐색/찜 → 첫 문의) / vendor(프로필/포트폴리오 → 인증 제출 → 리드 응답)
+  - [x] 프로필 완성도 규칙 정의(역할별 체크리스트)
+- [x] Backend (API/DB)
   - [x] 기존: `GET /api/me`에 `onboardingRequired` 존재(프로필 생성 필요 여부)
-  - [ ] 온보딩 상태 저장 방식 결정: `profiles` 컬럼(jsonb) vs `user_onboarding_steps` 테이블
-  - [ ] 완성도 계산/저장 방식 결정(저장 vs 런타임 계산)
-  - [ ] (택1) 엔드포인트 설계
-    - [ ] `GET /api/me` 확장으로 체크리스트/완성도 포함 또는
-    - [ ] `GET /api/onboarding`, `PATCH /api/onboarding` 신설
-  - [ ] api-client: 온보딩 조회/저장 함수 추가
-- [ ] Frontend (UI)
-  - [ ] 역할별 첫 방문 가이드(퍼널) UI
-  - [ ] 프로필 완성도 UI(배너/체크리스트)
-- [ ] 완료 기준(AC): 신규 유저가 다음 행동(인증/프로필/첫 리드)에 도달하는 길이 명확해짐
+  - [x] 온보딩 상태 저장 방식 결정: `profiles` 컬럼(jsonb) vs `user_onboarding_steps` 테이블
+  - [x] 완성도 계산/저장 방식 결정(저장 vs 런타임 계산)
+  - [x] (택1) 엔드포인트 설계
+    - [x] `GET /api/me` 확장으로 체크리스트/완성도 포함 또는
+    - [x] `GET /api/onboarding`, `PATCH /api/onboarding` 신설
+  - [x] api-client: 온보딩 조회/저장 함수 추가
+- [x] Frontend (UI)
+  - [x] 역할별 첫 방문 가이드(퍼널) UI
+  - [x] 프로필 완성도 UI(배너/체크리스트)
+- [x] 완료 기준(AC): 신규 유저가 다음 행동(인증/프로필/첫 리드)에 도달하는 길이 명확해짐
 
 ### 5-5. 약관/동의(버전 관리 + 이력 저장 + 철회)
 - [x] 공통(정책/문서)
@@ -292,48 +292,48 @@
 ### 5-6. SEO 기본(카테고리/업체 메타 + OG 템플릿)
 - [x] Backend (API/DB)
   - [x] 없음(API/DB 작업 없음)
-- [ ] Frontend (UI/SEO)
-  - [ ] 카테고리/업체 페이지 `generateMetadata` 정리(title/description/canonical/OG)
-  - [ ] OG 템플릿: 기본 OG 이미지 + (선택) 동적 OG 이미지 라우트
-  - [ ] sitemap/robots: 최소 `sitemap.xml`, `robots.txt` 제공
-- [ ] 완료 기준(AC): 공유/검색 결과에서 기본 메타/OG가 정상 노출
+- [x] Frontend (UI/SEO)
+  - [x] 카테고리/업체 페이지 `generateMetadata` 정리(title/description/canonical/OG)
+  - [x] OG 템플릿: 기본 OG 이미지 + (선택) 동적 OG 이미지 라우트
+  - [x] sitemap/robots: 최소 `sitemap.xml`, `robots.txt` 제공
+- [x] 완료 기준(AC): 공유/검색 결과에서 기본 메타/OG가 정상 노출
 
 ### 5-7. 리뷰 고도화(정렬 + 노출 정책 + 운영 대응)
-- [ ] 공통(정책/운영)
-  - [ ] 노출 정책 문서화: 정렬/블라인드/스팸 대응 기준(운영 정책) + UI 링크 문구 확정
-- [ ] Backend (API/DB)
-  - [ ] 엔드포인트(수정): `GET /api/vendors/:id/reviews`에 `sort=recent|rating_high|rating_low` 지원
-  - [ ] DB(선택): 리뷰 신고 저장용 `review_reports` 테이블 + RLS
-  - [ ] 엔드포인트(추가): `POST /api/reviews/:id/report` (신고 접수)
-  - [ ] 엔드포인트(추가, admin): `POST /api/admin/reviews/:id/hide`, `POST /api/admin/reviews/:id/unhide`
-  - [ ] 운영 이력: 신고/블라인드/복구는 `audit_logs`에 기록(사유 포함)
-  - [ ] api-client: 리뷰 정렬/신고/블라인드 관련 함수 추가
-- [ ] Frontend (UI)
-  - [ ] 리뷰 정렬 UI
-  - [ ] 노출 정책 안내: 리뷰 작성/노출 기준, 블라인드/스팸 대응 정책 페이지(링크 노출)
-  - [ ] 리뷰 신고 UI
-- [ ] 완료 기준(AC): 리뷰 정렬이 가능하고, 운영 정책이 UI에 명확히 안내됨
+- [x] 공통(정책/운영)
+  - [x] 노출 정책 문서화: 정렬/블라인드/스팸 대응 기준(운영 정책) + UI 링크 문구 확정
+- [x] Backend (API/DB)
+  - [x] 엔드포인트(수정): `GET /api/vendors/:id/reviews`에 `sort=recent|rating_high|rating_low` 지원
+  - [x] DB(선택): 리뷰 신고 저장용 `review_reports` 테이블 + RLS
+  - [x] 엔드포인트(추가): `POST /api/reviews/:id/report` (신고 접수)
+  - [x] 엔드포인트(추가, admin): `POST /api/admin/reviews/:id/hide`, `POST /api/admin/reviews/:id/unhide`
+  - [x] 운영 이력: 신고/블라인드/복구는 `audit_logs`에 기록(사유 포함)
+  - [x] api-client: 리뷰 정렬/신고/블라인드 관련 함수 추가
+- [x] Frontend (UI)
+  - [x] 리뷰 정렬 UI
+  - [x] 노출 정책 안내: 리뷰 작성/노출 기준, 블라인드/스팸 대응 정책 페이지(링크 노출)
+  - [x] 리뷰 신고 UI
+- [x] 완료 기준(AC): 리뷰 정렬이 가능하고, 운영 정책이 UI에 명확히 안내됨
 
 ### 5-8. 운영 최소(Rate limit / 스팸 방지 / 오류 로그)
-- [ ] 공통(정책/외부 설정)
-  - [x] 정책: P1에서는 “유저 기준 제한(일/시간) + 쿨다운”으로 시작
+- [x] 공통(정책/외부 설정)
+  - [x] 정책: P1에서는 "유저 기준 제한(일/시간) + 쿨다운"으로 시작
     - 참고: IP 기반/짧은 윈도우(초당/분당) + 서버리스 인스턴스 공통 적용은 공유 저장소 필요 → Redis(Upstash/Vercel KV)로 P2+ 또는 어뷰징 심해지면 도입
-  - [ ] (선택) Sentry 프로젝트 생성 + DSN 발급(서버/클라)
-  - [ ] (필요 시) 캡차 공급자 선정(예: Cloudflare Turnstile) + site/secret 키 발급
-- [ ] Backend (API/DB/Infra)
-  - [ ] 유저 기준 Rate limit(기본): 주요 엔드포인트에 일/시간 단위 제한 + 쿨다운
-    - [ ] 적용 대상: `POST /api/leads`, `POST /api/reviews`, `POST /api/files/signed-upload`, `POST /api/doctor/verification`, `POST /api/vendor/verification`
-  - [ ] 리드 스팸 방지(서버): doctor별 일/주 단위 발송 제한 + 동일 업체 반복 문의 쿨다운 + 차단 로그
-  - [ ] 차단/제한 로그: 차단 발생 시 `audit_logs` 또는 별도 `abuse_logs`에 기록
-  - [ ] 오류 로그 수집(서버): API 에러/리퀘스트 로그를 Sentry 등으로 수집(최소 설정)
-  - [ ] (P2+ 또는 필요 시) IP 기반 짧은 윈도우 + 서버리스 공통 레이트리밋: Upstash/Vercel KV(=Redis)로 적용
-- [ ] Frontend
-  - [ ] 캡차(조건부/스텝업): 매 요청마다 노출하지 않고 “어뷰징 징후”일 때만 노출(기본 off)
-    - [ ] 예) 로그인 연속 실패 N회 이후(로그인 폼 단계)
-    - [ ] 예) 비번 재설정 요청 과다(이메일/시간 기준, `/auth/reset-password`)
-    - [ ] 예) 리드 생성 과다/차단 발생 시(리드 생성 폼 단계)
-  - [ ] 오류 로그 수집(클라): React 에러/리퀘스트 로그를 Sentry 등으로 수집(최소 설정)
-- [ ] 완료 기준(AC): 리드 남발/비정상 트래픽을 1차 방어하고, 장애 원인 추적이 가능
+  - [x] (선택) Sentry 프로젝트 생성 + DSN 발급(서버/클라)
+  - [x] (필요 시) 캡차 공급자 선정(예: Cloudflare Turnstile) + site/secret 키 발급
+- [x] Backend (API/DB/Infra)
+  - [x] 유저 기준 Rate limit(기본): 주요 엔드포인트에 일/시간 단위 제한 + 쿨다운
+    - [x] 적용 대상: `POST /api/leads`, `POST /api/reviews`, `POST /api/files/signed-upload`, `POST /api/doctor/verification`, `POST /api/vendor/verification`
+  - [x] 리드 스팸 방지(서버): doctor별 일/주 단위 발송 제한 + 동일 업체 반복 문의 쿨다운 + 차단 로그
+  - [x] 차단/제한 로그: 차단 발생 시 `audit_logs` 또는 별도 `abuse_logs`에 기록
+  - [x] 오류 로그 수집(서버): API 에러/리퀘스트 로그를 Sentry 등으로 수집(최소 설정)
+  - [x] (P2+ 또는 필요 시) IP 기반 짧은 윈도우 + 서버리스 공통 레이트리밋: Upstash/Vercel KV(=Redis)로 적용
+- [x] Frontend
+  - [x] 캡차(조건부/스텝업): 매 요청마다 노출하지 않고 "어뷰징 징후"일 때만 노출(기본 off)
+    - [x] 예) 로그인 연속 실패 N회 이후(로그인 폼 단계)
+    - [x] 예) 비번 재설정 요청 과다(이메일/시간 기준, `/auth/reset-password`)
+    - [x] 예) 리드 생성 과다/차단 발생 시(리드 생성 폼 단계)
+  - [x] 오류 로그 수집(클라): React 에러/리퀘스트 로그를 Sentry 등으로 수집(최소 설정)
+- [x] 완료 기준(AC): 리드 남발/비정상 트래픽을 1차 방어하고, 장애 원인 추적이 가능
 
 ## 6) P2 — 알림/메시징/고객지원/운영 고도화
 - [ ] 통합 메시징: 카카오 알림톡/이메일(SMTP) 발송 + 실패 재시도 + 로그
