@@ -33,10 +33,10 @@ export function ReviewSection({ vendorId, ratingAvg, reviewCount, currentUserId 
     const [reportingReviewId, setReportingReviewId] = useState<string | null>(null);
     const [isSortOpen, setIsSortOpen] = useState(false);
 
-    /* eslint-disable-next-line react-compiler/react-compiler -- vendorId나 sort 변경 시 페이지 초기화 필요 */
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- vendorId 변경 시 페이지 초기화 필요
         setPage(1);
-    }, [vendorId, sort]);
+    }, [vendorId]);
 
     const { data: reviewData, isLoading, isError } = useQuery({
         queryKey: ["reviews", vendorId, page, sort],
@@ -89,6 +89,7 @@ export function ReviewSection({ vendorId, ratingAvg, reviewCount, currentUserId 
                                             type="button"
                                             onClick={() => {
                                                 setSort(option.value);
+                                                setPage(1);
                                                 setIsSortOpen(false);
                                             }}
                                             className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg ${

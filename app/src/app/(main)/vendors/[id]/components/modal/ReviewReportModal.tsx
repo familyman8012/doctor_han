@@ -47,7 +47,7 @@ export function ReviewReportModal({ reviewId, onClose }: ReviewReportModalProps)
 
         reportMutation.mutate({
             reason,
-            detail: detail.trim() || undefined,
+            detail: reason === "other" ? detail.trim() || undefined : undefined,
         });
     };
 

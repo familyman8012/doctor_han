@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 
+const EFFECTIVE_DATE = "2026-01-18";
+const EFFECTIVE_DATE_KR = "2026년 1월 18일";
+
 export const metadata: Metadata = {
     title: "리뷰 정책 | 메디허브",
     description: "메디허브 리뷰 작성 및 노출 정책",
@@ -9,7 +12,9 @@ export default function ReviewPolicyPage() {
     return (
         <article className="prose prose-gray max-w-none">
             <h1 className="text-2xl font-bold text-[#0a3b41] mb-6">리뷰 정책</h1>
-            <p className="text-sm text-gray-500 mb-8">시행일: 2026년 1월 18일</p>
+            <p className="text-sm text-gray-500 mb-8">
+                시행일: <time dateTime={EFFECTIVE_DATE}>{EFFECTIVE_DATE_KR}</time>
+            </p>
 
             <p className="text-gray-700 leading-relaxed mb-8">
                 메디허브는 한의사와 업체 간의 신뢰할 수 있는 거래 환경을 조성하기 위해
@@ -142,7 +147,7 @@ export default function ReviewPolicyPage() {
                 <h2 className="text-lg font-semibold text-[#0a3b41]">제8조 (이의 신청)</h2>
                 <p className="text-gray-700 leading-relaxed">
                     블라인드 처리된 리뷰에 대해 이의가 있는 경우,
-                    고객센터(support@medihub.kr)로 문의하시기 바랍니다.
+                    고객센터(<a href="mailto:support@medihub.kr" className="text-primary underline">support@medihub.kr</a>)로 문의하시기 바랍니다.
                     이의 신청은 블라인드 처리일로부터 30일 이내에 가능합니다.
                 </p>
             </section>
@@ -157,7 +162,7 @@ export default function ReviewPolicyPage() {
 
             <div className="mt-12 pt-6 border-t border-gray-200">
                 <p className="text-sm text-gray-500">
-                    본 리뷰 정책은 2026년 1월 18일부터 시행됩니다.
+                    본 리뷰 정책은 <time dateTime={EFFECTIVE_DATE}>{EFFECTIVE_DATE_KR}</time>부터 시행됩니다.
                 </p>
             </div>
         </article>
