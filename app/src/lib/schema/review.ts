@@ -42,8 +42,55 @@ export const ReviewCreateBodySchema = z
 
 export type ReviewCreateBody = z.infer<typeof ReviewCreateBodySchema>;
 
-export const ReviewListQuerySchema = zPaginationQuery.strict();
+// 정렬 옵션
+export const ReviewSortSchema = z.enum(["recent", "rating_high", "rating_low"]);
+export type ReviewSort = z.infer<typeof ReviewSortSchema>;
+
+export const ReviewListQuerySchema = z
+    .object({
+        sort: ReviewSortSchema.default("recent"),
+    })
+    .merge(zPaginationQuery)
+    .strict();
 export type ReviewListQuery = z.infer<typeof ReviewListQuerySchema>;
+
+// 신고 사유
+export const ReviewReportReasonSchema = z.enum([
+    "spam",
+    "inappropriate",
+    "false_info",
+    "privacy",
+    "other",
+]);
+export type ReviewReportReason = z.infer<typeof ReviewReportReasonSchema>;
+
+// 신고 요청
+export const ReviewReportBodySchema = z
+    .object({
+        reason: ReviewReportReasonSchema,
+        detail: z.string().trim().min(1).max(500).optional(),
+    })
+    .strict()
+    .refine((data) => data.reason !== "other" || !!data.detail, {
+        message: "'기타' 사유는 상세 내용이 필요합니다.",
+        path: ["detail"],
+    });
+export type ReviewReportBody = z.infer<typeof ReviewReportBodySchema>;
+
+// Admin 블라인드/복구 요청
+export const AdminReviewHideBodySchema = z
+    .object({
+        reason: zNonEmptyString.max(500),
+    })
+    .strict();
+export type AdminReviewHideBody = z.infer<typeof AdminReviewHideBodySchema>;
+
+export const AdminReviewUnhideBodySchema = z
+    .object({
+        reason: z.string().trim().max(500).optional(),
+    })
+    .strict();
+export type AdminReviewUnhideBody = z.infer<typeof AdminReviewUnhideBodySchema>;
 
 export const ReviewPatchBodySchema = z
     .object({

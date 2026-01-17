@@ -1,1 +1,2 @@
 ♻️ CodeRabbit 피드백 반영 (sitemap 쿼리 최적화, 타입/훅 중복 제거)
+🔧 CodeRabbit PR 리뷰 이슈 해결 (detail 조건부 전송/double fetch 방지/시맨틱 마크업)
