@@ -44,7 +44,14 @@
       "Bash(cs version:*)",
       "Bash(vtsls:*)",
       "Bash(pnpm install:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(where:*)",
+      "Bash(powershell -Command \"[Environment]::SetEnvironmentVariable\\(''ENABLE_LSP_TOOLS'', ''1'', ''User''\\)\")",
+      "Bash(powershell -Command \"[Environment]::GetEnvironmentVariable\\(''ENABLE_LSP_TOOLS'', ''User''\\)\")",
+      "Bash(powershell -Command \"echo $env:APPDATA\")",
+      "Bash(powershell -Command \"[Environment]::GetFolderPath\\(''ApplicationData''\\)\")",
+      "Bash(powershell -Command \"Get-ChildItem ''C:\\\\Users\\\\famil\\\\AppData\\\\Roaming'' -Directory | Select-Object Name\")",
+      "Bash(powershell -Command:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
@@ -53,9 +60,6 @@
     "replicate"
   ],
   "disabledMcpjsonServers": [],
-  "enabledPlugins": {
-    "typescript-lsp@claude-plugins-official": true
-  },
   "hooks": {
     "PreToolUse": [
       {
@@ -79,5 +83,8 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true
   }
 }
