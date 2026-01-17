@@ -1,1 +1,1 @@
-🔧 서브에이전트 LSP 최적화 (shipper 제거, 활용 지침 강화)
+🐛 SEO 코드 리뷰 피드백 수정 (description fallback, OG 이미지, sitemap)

@@ -49,7 +49,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     );
 
     const subCategoryPages: MetadataRoute.Sitemap = (allCategories ?? [])
-        .filter((c) => c.depth === 2 && c.parent_id)
+        .filter((c) => c.depth === 2 && c.parent_id && parentMap.has(c.parent_id))
         .map((cat) => ({
             url: `${BASE_URL}/categories/${parentMap.get(cat.parent_id!)}/${cat.slug}`,
             lastModified: new Date(cat.updated_at),
@@ -63,7 +63,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .select("id, updated_at")
         .eq("status", "active")
         .order("updated_at", { ascending: false })
-        .limit(1000);
+        .limit(10000);
 
     const vendorPages: MetadataRoute.Sitemap = (vendors ?? []).map((vendor) => ({
         url: `${BASE_URL}/vendors/${vendor.id}`,

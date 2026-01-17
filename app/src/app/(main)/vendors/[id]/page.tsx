@@ -21,7 +21,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         return { title: "업체를 찾을 수 없습니다" };
     }
 
-    const description = vendor.summary || (vendor.description?.slice(0, 150) + "...") || `${vendor.name} - 메디허브에서 만나보세요.`;
+    const description = vendor.summary
+        || (vendor.description ? vendor.description.slice(0, 150) + "..." : null)
+        || `${vendor.name} - 메디허브에서 만나보세요.`;
 
     return {
         title: vendor.name,
