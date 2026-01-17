@@ -1,9 +1,10 @@
 import { FileSignedUploadBodySchema } from "@/lib/schema/file";
-import { forbidden, internalServerError } from "@/server/api/errors";
+import { forbidden, internalServerError, tooManyRequests } from "@/server/api/errors";
 import { created } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withAuth } from "@/server/auth/guards";
 import { mapFileRow } from "@/server/file/mapper";
+import { checkRateLimit, incrementRateLimit, logRateLimitExceeded } from "@/server/rate-limit";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
 
 const DEFAULT_BUCKET = "uploads";
@@ -48,6 +49,16 @@ async function ensurePrivateBucketExists(bucket: string): Promise<void> {
 export const POST = withApi(
     withAuth(async (ctx) => {
         const body = FileSignedUploadBodySchema.parse(await ctx.req.json());
+
+        // Rate limit 체크
+        const rateCheck = await checkRateLimit(ctx.user.id, "file_upload");
+        if (!rateCheck.allowed) {
+            await logRateLimitExceeded(ctx.user.id, "file_upload", { purpose: body.purpose });
+            throw tooManyRequests("파일 업로드 횟수를 초과했습니다.", {
+                resetAt: rateCheck.resetAt?.toISOString(),
+                retryAfter: rateCheck.retryAfterSeconds,
+            });
+        }
 
         const allowedPurposesByRole: Record<string, readonly string[]> = {
             doctor: ["doctor_license", "lead_attachment", "avatar", "review_photo"],
@@ -104,6 +115,9 @@ export const POST = withApi(
                 ...meta,
             });
         }
+
+        // 성공 시 rate limit 카운트 증가
+        await incrementRateLimit(ctx.user.id, "file_upload");
 
         return created({
             file: mapFileRow(fileRow),

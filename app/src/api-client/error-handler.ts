@@ -57,8 +57,11 @@ const extractDescription = (details: unknown): string | undefined => {
 
 // 특별 처리가 필요한 에러 메시지만 정의
 const getSpecialErrorMessage = (code: string): string | null => {
-    // 8xxx: 인증/권한 에러만 특별 처리
     switch (code) {
+        // 4xxx: 클라이언트 에러 특별 처리
+        case "4290":
+            return null; // 429 에러는 details에서 직접 메시지 구성
+        // 8xxx: 인증/권한 에러 특별 처리
         case "8001":
             return "승인 대기/반려 상태입니다. 검수 페이지에서 확인해주세요.";
         case "8999":
@@ -73,6 +76,16 @@ const getSpecialErrorMessage = (code: string): string | null => {
 // 중앙 에러 핸들러
 export const errorHandler = (errorData: unknown): void => {
     const { code, message, error, details, data } = errorData as ServerError;
+
+    // 429 Too Many Requests 특별 처리
+    if (code === "4290") {
+        const retryAfter = (details as { retryAfter?: number } | undefined)?.retryAfter;
+        const rateLimitMessage = retryAfter
+            ? `요청 횟수를 초과했습니다. ${retryAfter}초 후 다시 시도해주세요.`
+            : message || "요청 횟수를 초과했습니다. 잠시 후 다시 시도해주세요.";
+        toast.error(rateLimitMessage, { id: code });
+        return;
+    }
 
     // 특별 메시지가 있으면 사용, 없으면 전달받은 메시지 사용
     const errorMessage = getSpecialErrorMessage(code) || message || error;

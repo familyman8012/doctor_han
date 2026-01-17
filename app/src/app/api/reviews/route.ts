@@ -1,9 +1,10 @@
 import { MAX_REVIEW_PHOTOS, MyReviewListQuerySchema, ReviewCreateBodySchema } from "@/lib/schema/review";
-import { badRequest, conflict, internalServerError, notFound } from "@/server/api/errors";
+import { badRequest, conflict, internalServerError, notFound, tooManyRequests } from "@/server/api/errors";
 import { created, ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withApprovedDoctor, withRole } from "@/server/auth/guards";
 import { mapReviewRow } from "@/server/review/mapper";
+import { checkRateLimit, incrementRateLimit, logRateLimitExceeded } from "@/server/rate-limit";
 import type { AuthedContext } from "@/server/auth/guards";
 import type { Tables, TablesInsert } from "@/lib/database.types";
 
@@ -73,6 +74,17 @@ function mapReviewVendorSummary(input: { id: string; name: string } | null | und
 export const POST = withApi(
     withApprovedDoctor(async (ctx) => {
         const body = ReviewCreateBodySchema.parse(await ctx.req.json());
+
+        // Rate limit 체크
+        const rateCheck = await checkRateLimit(ctx.user.id, "review_create");
+        if (!rateCheck.allowed) {
+            await logRateLimitExceeded(ctx.user.id, "review_create", { vendorId: body.vendorId });
+            throw tooManyRequests("리뷰 작성 횟수를 초과했습니다.", {
+                resetAt: rateCheck.resetAt?.toISOString(),
+                retryAfter: rateCheck.retryAfterSeconds,
+            });
+        }
+
         const { photoFileIdsOrNull } = await validateReviewPhotoFileIds(ctx, body.photoFileIds);
 
         const { data: lead, error: leadError } = await ctx.supabase
@@ -147,6 +159,9 @@ export const POST = withApi(
                 code: error.code,
             });
         }
+
+        // 성공 시 rate limit 카운트 증가
+        await incrementRateLimit(ctx.user.id, "review_create");
 
         return created({ review: mapReviewRow(review) });
     }),
