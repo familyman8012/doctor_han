@@ -1,7 +1,7 @@
 ---
 name: planner
-description: Creates TSD (implementation plan) from PRD. Use when planning new features or complex changes. Does not write source code.
-tools: Read, Glob, Grep, Write, Edit
+description: Creates TSD (implementation plan) from PRD. Uses LSP for precise type tracking, call hierarchy analysis, and dependency mapping. Does not write source code.
+tools: Read, Glob, Grep, Write, Edit, LSP
 model: opus
 skills:
   - api-generator
@@ -82,6 +82,12 @@ PRD 확인: app/doc/domains/<domain>/prd.md
 
 #### 2.2 탐색 방법 (Explore-medium Tier)
 
+**LSP 우선 활용:**
+- 특정 함수/타입의 정의를 찾을 때 → `LSP goToDefinition`
+- 변경 대상의 사용처를 파악할 때 → `LSP findReferences`
+- 호출 흐름을 추적할 때 → `LSP callHierarchy (incomingCalls/outgoingCalls)`
+
+**Grep/Glob 보조:**
 다음 중 최소 2가지를 조합해 "연관 파일 후보"를 수집하고, 상위 N개를 실제로 열어 확인합니다:
 
 1. **키워드 기반**: PRD의 핵심 명사(도메인, 리소스명, UI 라우트, 상태값, 필터 키 등)로 `Grep` 탐색
@@ -93,6 +99,12 @@ PRD 확인: app/doc/domains/<domain>/prd.md
 
 #### 2.3 통합 포인트/의존성 맵 만들기
 
+**LSP 호출 계층 활용:**
+- API Route의 핸들러 함수에서 `outgoingCalls` → Service 함수 파악
+- Service 함수에서 `outgoingCalls` → Repository/Supabase 호출 파악
+- 역방향: 특정 DB 함수에서 `incomingCalls` → 어느 API에서 사용하는지
+
+**흐름 정리:**
 - "UI → API Route → Service → Supabase/DB" 흐름으로 호출/데이터 경로를 1줄로 요약합니다.
 - UI-only라고 생각되면, **왜** API/Schema/Service가 불필요한지 근거를 적습니다(예: "기존 API가 이미 필터를 지원하고 UI에서 querystring만 전달하면 됨").
 

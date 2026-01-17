@@ -1,7 +1,7 @@
 ---
 name: reviewer
-description: Reviews code changes for quality, security, and pattern compliance. Saves a review report under app/doc/domains/<domain>/code-review.md. Does not modify source code.
-tools: Read, Glob, Grep, Bash, Write, Edit
+description: Reviews code changes for quality, security, and pattern compliance. Uses LSP for definition tracking, reference analysis, and type verification. Saves a review report under app/doc/domains/<domain>/code-review.md. Does not modify source code.
+tools: Read, Glob, Grep, Bash, Write, Edit, LSP
 model: opus
 skills:
   - api-generator
@@ -42,6 +42,12 @@ git diff --cached
 ```
 
 ### 2. 카테고리별 검토
+
+**LSP 기반 영향 분석 (변경된 파일마다):**
+- 변경된 함수 → `findReferences`로 사용처 확인
+- 타입/인터페이스 변경 → `findReferences`로 영향 범위 파악
+- 의심되는 호출 → `goToDefinition`으로 원본 확인
+- 호출 흐름 검증 → `incomingCalls`/`outgoingCalls`로 상하위 의존성 확인
 
 #### 정책(Policy) 위반 — 즉시 수정
 
