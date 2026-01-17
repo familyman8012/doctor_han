@@ -12,6 +12,7 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
 
     const { searchParams } = new URL(req.url);
     const query = ReviewListQuerySchema.parse({
+        sort: searchParams.get("sort") ?? undefined,
         page: searchParams.get("page") ?? undefined,
         pageSize: searchParams.get("pageSize") ?? undefined,
     });
@@ -38,13 +39,23 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
     const from = (query.page - 1) * query.pageSize;
     const to = from + query.pageSize - 1;
 
-    const { data: rows, error, count } = await supabase
+    // 정렬 방향 설정
+    const ratingAsc = query.sort === "rating_low";
+    const useRatingSort = query.sort === "rating_high" || query.sort === "rating_low";
+
+    // 쿼리 빌드
+    const baseQuery = supabase
         .from("reviews")
         .select("*", { count: "exact" })
         .eq("vendor_id", vendorId)
-        .eq("status", "published")
-        .order("created_at", { ascending: false })
-        .range(from, to);
+        .eq("status", "published");
+
+    // 정렬 적용
+    const sortedQuery = useRatingSort
+        ? baseQuery.order("rating", { ascending: ratingAsc }).order("created_at", { ascending: false })
+        : baseQuery.order("created_at", { ascending: false });
+
+    const { data: rows, error, count } = await sortedQuery.range(from, to);
 
     if (error) {
         throw internalServerError("리뷰를 조회할 수 없습니다.", {
