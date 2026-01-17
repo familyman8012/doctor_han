@@ -26,3 +26,12 @@ export const CategoryListResponseSchema = z.object({
 
 export type CategoryListResponse = z.infer<typeof CategoryListResponseSchema>;
 
+/** 카테고리 페이지에서 사용하는 간소화된 타입 */
+export interface Category {
+    id: string;
+    name: string;
+    slug: string;
+    parentId: string | null;
+    depth: number;
+    sortOrder: number;
+}

@@ -1,1 +1,1 @@
-🔧 서브에이전트 LSP 최적화 (shipper 제거, 활용 지침 강화)
+♻️ CodeRabbit 피드백 반영 (sitemap 쿼리 최적화, 타입/훅 중복 제거)
