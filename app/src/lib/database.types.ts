@@ -570,6 +570,67 @@ export type Database = {
           },
         ]
       }
+      review_reports: {
+        Row: {
+          created_at: string
+          detail: string | null
+          id: string
+          reason: Database["public"]["Enums"]["review_report_reason"]
+          reporter_user_id: string
+          review_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["review_report_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          reason: Database["public"]["Enums"]["review_report_reason"]
+          reporter_user_id: string
+          review_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["review_report_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          reason?: Database["public"]["Enums"]["review_report_reason"]
+          reporter_user_id?: string
+          review_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["review_report_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_reports_reporter_user_id_fkey"
+            columns: ["reporter_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_reports_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_reports_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           amount: number | null
@@ -964,6 +1025,13 @@ export type Database = {
         | "review_received"
       profile_role: "doctor" | "vendor" | "admin"
       profile_status: "active" | "inactive" | "banned"
+      review_report_reason:
+        | "spam"
+        | "inappropriate"
+        | "false_info"
+        | "privacy"
+        | "other"
+      review_report_status: "pending" | "reviewed" | "dismissed"
       review_status: "published" | "hidden"
       vendor_status: "draft" | "active" | "inactive" | "banned"
       verification_status: "pending" | "approved" | "rejected"
@@ -1122,6 +1190,14 @@ export const Constants = {
       ],
       profile_role: ["doctor", "vendor", "admin"],
       profile_status: ["active", "inactive", "banned"],
+      review_report_reason: [
+        "spam",
+        "inappropriate",
+        "false_info",
+        "privacy",
+        "other",
+      ],
+      review_report_status: ["pending", "reviewed", "dismissed"],
       review_status: ["published", "hidden"],
       vendor_status: ["draft", "active", "inactive", "banned"],
       verification_status: ["pending", "approved", "rejected"],

@@ -23,6 +23,7 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
         .from("vendors")
         .select("id")
         .eq("id", vendorId)
+        .eq("status", "active")
         .maybeSingle();
 
     if (vendorError) {
@@ -50,10 +51,15 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
         .eq("vendor_id", vendorId)
         .eq("status", "published");
 
-    // 정렬 적용
+    // 정렬 적용 (tie-breaker로 id 추가)
     const sortedQuery = useRatingSort
-        ? baseQuery.order("rating", { ascending: ratingAsc }).order("created_at", { ascending: false })
-        : baseQuery.order("created_at", { ascending: false });
+        ? baseQuery
+              .order("rating", { ascending: ratingAsc })
+              .order("created_at", { ascending: false })
+              .order("id", { ascending: false })
+        : baseQuery
+              .order("created_at", { ascending: false })
+              .order("id", { ascending: false });
 
     const { data: rows, error, count } = await sortedQuery.range(from, to);
 

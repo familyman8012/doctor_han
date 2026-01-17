@@ -7,7 +7,7 @@ import { ChevronRight } from "lucide-react";
 import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
-import { useIsAuthenticated, useUserRole } from "@/stores/auth";
+import { useIsAuthenticated, useUser, useUserRole } from "@/stores/auth";
 import { VendorHeader } from "./components/VendorHeader";
 import { VendorInfo } from "./components/VendorInfo";
 import { PortfolioSection } from "./components/PortfolioSection";
@@ -18,6 +18,7 @@ export default function VendorDetailPage() {
     const params = useParams();
     const vendorId = params.id as string;
 
+    const user = useUser();
     const isAuthenticated = useIsAuthenticated();
     const role = useUserRole();
     const canFetchFavorites = isAuthenticated && role === "doctor";
@@ -104,6 +105,7 @@ export default function VendorDetailPage() {
                         vendorId={vendor.id}
                         ratingAvg={vendor.ratingAvg}
                         reviewCount={vendor.reviewCount}
+                        currentUserId={user?.id}
                     />
                 </div>
 

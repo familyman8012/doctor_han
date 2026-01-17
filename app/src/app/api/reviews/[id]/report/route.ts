@@ -1,19 +1,9 @@
-import type { ReviewReportReason } from "@/lib/schema/review";
 import { ReviewReportBodySchema } from "@/lib/schema/review";
 import { zUuid } from "@/lib/schema/common";
 import { badRequest, conflict, internalServerError, notFound } from "@/server/api/errors";
 import { created } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withAuth } from "@/server/auth/guards";
-
-// NOTE: review_reports 테이블 타입은 마이그레이션 적용 및 타입 생성 후 자동 반영됩니다.
-// pnpm db:reset && pnpm db:gen -- --local 실행 후 @ts-expect-error 제거 필요
-type ReviewReportInsert = {
-    review_id: string;
-    reporter_user_id: string;
-    reason: ReviewReportReason;
-    detail: string | null;
-};
 
 export const POST = withApi(
     withAuth<{ id: string }>(async (ctx) => {
@@ -44,9 +34,7 @@ export const POST = withApi(
         }
 
         // 중복 신고 확인 (review_reports 테이블)
-        // NOTE: review_reports 테이블 타입은 마이그레이션 후 생성됨 (pnpm db:reset && pnpm db:gen -- --local)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: existingReport, error: existingError } = await (ctx.supabase as any)
+        const { data: existingReport, error: existingError } = await ctx.supabase
             .from("review_reports")
             .select("id")
             .eq("review_id", reviewId)
@@ -65,15 +53,14 @@ export const POST = withApi(
         }
 
         // 신고 저장
-        const insertData: ReviewReportInsert = {
+        const insertData = {
             review_id: reviewId,
             reporter_user_id: ctx.user.id,
             reason: body.reason,
             detail: body.detail ?? null,
         };
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: report, error: insertError } = await (ctx.supabase as any)
+        const { data: report, error: insertError } = await ctx.supabase
             .from("review_reports")
             .insert(insertData)
             .select("id")
