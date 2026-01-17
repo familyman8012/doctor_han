@@ -1,8 +1,9 @@
 import { VendorVerificationUpsertBodySchema } from "@/lib/schema/verification";
-import { conflict, internalServerError } from "@/server/api/errors";
+import { conflict, internalServerError, tooManyRequests } from "@/server/api/errors";
 import { created, ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withRole } from "@/server/auth/guards";
+import { checkRateLimit, incrementRateLimit, logRateLimitExceeded } from "@/server/rate-limit";
 import { mapVendorVerificationRow } from "@/server/verification/mapper";
 
 export const GET = withApi(
@@ -27,6 +28,16 @@ export const GET = withApi(
 export const POST = withApi(
     withRole(["vendor"], async (ctx) => {
         const body = VendorVerificationUpsertBodySchema.parse(await ctx.req.json());
+
+        // Rate limit 체크
+        const rateCheck = await checkRateLimit(ctx.user.id, "verification_submit");
+        if (!rateCheck.allowed) {
+            await logRateLimitExceeded(ctx.user.id, "verification_submit", { role: "vendor" });
+            throw tooManyRequests("검수 제출 횟수를 초과했습니다.", {
+                resetAt: rateCheck.resetAt?.toISOString(),
+                retryAfter: rateCheck.retryAfterSeconds,
+            });
+        }
 
         const { data: existing, error: existingError } = await ctx.supabase
             .from("vendor_verifications")
@@ -77,6 +88,9 @@ export const POST = withApi(
                 });
             }
 
+            // 성공 시 rate limit 카운트 증가
+            await incrementRateLimit(ctx.user.id, "verification_submit");
+
             return created({ verification: mapVendorVerificationRow(data) });
         }
 
@@ -106,6 +120,9 @@ export const POST = withApi(
                 code: error.code,
             });
         }
+
+        // 성공 시 rate limit 카운트 증가
+        await incrementRateLimit(ctx.user.id, "verification_submit");
 
         return ok({ verification: mapVendorVerificationRow(data) });
     }),

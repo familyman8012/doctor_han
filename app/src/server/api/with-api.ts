@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { ZodError } from "zod";
 import { ApiError, internalServerError } from "./errors";
 import { fail } from "./response";
@@ -18,6 +19,7 @@ export function withApi<TArgs extends unknown[], TResult>(
             }
 
             console.error("[API Error]", error);
+            Sentry.captureException(error);
             const safe = internalServerError();
             return fail({ status: safe.status, code: safe.code, message: safe.message });
         }

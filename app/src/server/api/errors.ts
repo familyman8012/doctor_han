@@ -1,4 +1,4 @@
-export type ApiErrorCode = "4000" | "4040" | "4090" | "5000" | "8999" | "8991" | "8001";
+export type ApiErrorCode = "4000" | "4040" | "4090" | "4290" | "5000" | "8999" | "8991" | "8001";
 
 export class ApiError extends Error {
     public readonly status: number;
@@ -40,5 +40,12 @@ export function forbidden(message = "권한이 없습니다.", details?: unknown
 
 export function approvalRequired(message = "승인이 필요한 계정입니다.", details?: unknown): ApiError {
     return new ApiError({ status: 403, code: "8001", message, details });
+}
+
+export function tooManyRequests(
+    message = "요청 횟수를 초과했습니다.",
+    details?: { resetAt?: string; retryAfter?: number },
+): ApiError {
+    return new ApiError({ status: 429, code: "4290", message, details });
 }
 

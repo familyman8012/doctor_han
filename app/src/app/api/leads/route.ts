@@ -1,10 +1,11 @@
 import { LeadCreateBodySchema, LeadListQuerySchema } from "@/lib/schema/lead";
-import { internalServerError, notFound } from "@/server/api/errors";
+import { internalServerError, notFound, tooManyRequests } from "@/server/api/errors";
 import { created, ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withApprovedDoctor, withAuth } from "@/server/auth/guards";
 import { mapLeadRow, mapLeadVendorSummary } from "@/server/lead/mapper";
 import { fetchLeadDetail } from "@/server/lead/repository";
+import { checkRateLimit, incrementRateLimit, logRateLimitExceeded } from "@/server/rate-limit";
 
 export const GET = withApi(
     withAuth(async (ctx) => {
@@ -48,6 +49,16 @@ export const GET = withApi(
 export const POST = withApi(
     withApprovedDoctor(async (ctx) => {
         const body = LeadCreateBodySchema.parse(await ctx.req.json());
+
+        // Rate limit 체크
+        const rateCheck = await checkRateLimit(ctx.user.id, "lead_create", body.vendorId);
+        if (!rateCheck.allowed) {
+            await logRateLimitExceeded(ctx.user.id, "lead_create", { vendorId: body.vendorId });
+            throw tooManyRequests("리드 생성 횟수를 초과했습니다.", {
+                resetAt: rateCheck.resetAt?.toISOString(),
+                retryAfter: rateCheck.retryAfterSeconds,
+            });
+        }
 
         // 대상 업체가 공개 상태인지 확인 (RLS로 비공개면 조회되지 않는다)
         const { data: vendor, error: vendorError } = await ctx.supabase
@@ -117,6 +128,9 @@ export const POST = withApi(
                 console.error("[POST /api/leads] lead_attachments insert failed", attachmentError);
             }
         }
+
+        // 성공 시 rate limit 카운트 증가
+        await incrementRateLimit(ctx.user.id, "lead_create", body.vendorId);
 
         const detail = await fetchLeadDetail(ctx.supabase, lead.id);
         return created({ lead: detail });
