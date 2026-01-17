@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, ChevronRight, FolderTree } from "lucide-react";
 import { adminApi } from "@/api-client/admin";
-import { Button } from "@/components/ui/Button/Button";
+import { Button } from "@/components/ui/Button/button";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";

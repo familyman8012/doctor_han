@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, User, Stethoscope, Building2, Shield } from "lucide-react";
 import dayjs from "dayjs";
 import { adminApi } from "@/api-client/admin";
-import { Button } from "@/components/ui/Button/Button";
+import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { Spinner } from "@/components/ui/Spinner/Spinner";

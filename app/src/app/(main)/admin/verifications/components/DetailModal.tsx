@@ -3,7 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { X, Download } from "lucide-react";
 import dayjs from "dayjs";
-import { Button } from "@/components/ui/Button/Button";
+import { Button } from "@/components/ui/Button/button";
 import { Badge } from "@/components/ui/Badge/Badge";
 import type { AdminDoctorVerificationListItem, AdminVendorVerificationListItem } from "@/lib/schema/admin";
 import type { FileSignedDownloadResponse } from "@/lib/schema/file";

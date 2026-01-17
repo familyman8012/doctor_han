@@ -30,5 +30,19 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "**/*.stories.ts",
+    "**/*.stories.tsx",
+    "src/api-client/as.ts",
+    "src/components/layouts/**",
+    "src/components/Modal/**",
+    "src/components/ui/Select/*Select/**",
+    "src/components/ui/Select/FulfillmentSkuSelect.tsx",
+    "src/components/ui/Select/OrgUnitPathSelect.tsx",
+    "src/components/widgets/AddressForm/**",
+    "src/components/widgets/AddressSearch/**",
+    "src/components/widgets/CountrySelector/**",
+    "src/components/widgets/UploadBlock/**"
+  ]
 }

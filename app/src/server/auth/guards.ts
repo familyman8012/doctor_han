@@ -9,14 +9,18 @@ import type { NextRequest } from "next/server";
 export type ProfileRow = Tables<"profiles">;
 export type ProfileRole = ProfileRow["role"];
 
-export type UserContext<TParams = Record<string, string>> = {
+type NextRouteContext<TParams> = {
+    params: Promise<TParams>;
+};
+
+export type UserContext<TParams = {}> = {
     req: NextRequest;
     params: TParams;
     supabase: SupabaseClient<Database>;
     user: User;
 };
 
-export type AuthedContext<TParams = Record<string, string>> = {
+export type AuthedContext<TParams = {}> = {
     req: NextRequest;
     params: TParams;
     supabase: SupabaseClient<Database>;
@@ -76,35 +80,36 @@ export async function requireApprovedVendor(supabase: SupabaseClient<Database>, 
     }
 }
 
-export function withUser<TParams = Record<string, string>>(
+export function withUser<TParams = {}>(
     handler: (ctx: UserContext<TParams>) => Promise<Response>,
-): (req: NextRequest, routeCtx: { params?: TParams }) => Promise<Response> {
+): (req: NextRequest, routeCtx: NextRouteContext<TParams>) => Promise<Response> {
     return async (req, routeCtx) => {
         const supabase = await createSupabaseServerClient();
         const user = await requireUser(supabase);
+        const params = await routeCtx.params;
 
         return handler({
             req,
-            params: (routeCtx?.params ?? {}) as TParams,
+            params,
             supabase,
             user,
         });
     };
 }
 
-export function withAuth<TParams = Record<string, string>>(
+export function withAuth<TParams = {}>(
     handler: (ctx: AuthedContext<TParams>) => Promise<Response>,
-): (req: NextRequest, routeCtx: { params?: TParams }) => Promise<Response> {
+): (req: NextRequest, routeCtx: NextRouteContext<TParams>) => Promise<Response> {
     return withUser(async (ctx) => {
         const profile = await requireProfile(ctx.supabase, ctx.user.id);
         return handler({ ...ctx, profile });
     });
 }
 
-export function withRole<TParams = Record<string, string>>(
+export function withRole<TParams = {}>(
     allowedRoles: readonly ProfileRole[],
     handler: (ctx: AuthedContext<TParams>) => Promise<Response>,
-): (req: NextRequest, routeCtx: { params?: TParams }) => Promise<Response> {
+): (req: NextRequest, routeCtx: NextRouteContext<TParams>) => Promise<Response> {
     return withAuth(async (ctx) => {
         if (!allowedRoles.includes(ctx.profile.role)) {
             throw forbidden();
@@ -113,18 +118,18 @@ export function withRole<TParams = Record<string, string>>(
     });
 }
 
-export function withApprovedDoctor<TParams = Record<string, string>>(
+export function withApprovedDoctor<TParams = {}>(
     handler: (ctx: AuthedContext<TParams>) => Promise<Response>,
-): (req: NextRequest, routeCtx: { params?: TParams }) => Promise<Response> {
+): (req: NextRequest, routeCtx: NextRouteContext<TParams>) => Promise<Response> {
     return withRole(["doctor"], async (ctx) => {
         await requireApprovedDoctor(ctx.supabase, ctx.user.id);
         return handler(ctx);
     });
 }
 
-export function withApprovedVendor<TParams = Record<string, string>>(
+export function withApprovedVendor<TParams = {}>(
     handler: (ctx: AuthedContext<TParams>) => Promise<Response>,
-): (req: NextRequest, routeCtx: { params?: TParams }) => Promise<Response> {
+): (req: NextRequest, routeCtx: NextRouteContext<TParams>) => Promise<Response> {
     return withRole(["vendor"], async (ctx) => {
         await requireApprovedVendor(ctx.supabase, ctx.user.id);
         return handler(ctx);

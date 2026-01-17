@@ -7,8 +7,8 @@ import { mapReviewRow } from "@/server/review/mapper";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import type { NextRequest } from "next/server";
 
-export const GET = withApi(async (req: NextRequest, routeCtx: { params: { id: string } }) => {
-    const vendorId = zUuid.parse(routeCtx.params.id);
+export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<{ id: string }> }) => {
+    const vendorId = zUuid.parse((await routeCtx.params).id);
 
     const { searchParams } = new URL(req.url);
     const query = ReviewListQuerySchema.parse({
@@ -60,4 +60,3 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: { id: st
         total: count ?? 0,
     });
 });
-

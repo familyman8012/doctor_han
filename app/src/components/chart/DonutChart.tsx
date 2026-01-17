@@ -2,22 +2,32 @@
 
 import type React from "react";
 import { ResponsiveContainer, PieChart, Pie, Legend, Tooltip, Cell } from "recharts";
+import type { PieLabelRenderProps } from "recharts/types/polar/Pie";
 import { BasicTooltip } from "./BasicTooltip";
 import { DonutBasicLegend } from "./DonutBasicLegend";
 import { cn } from "@/components/utils";
 import { getChartColors } from "./chartTheme";
 
-type RenderCustomizedLabelProps = {
-    cx: number;
-    cy: number;
-    midAngle: number;
-    innerRadius: number;
-    outerRadius: number;
-    percent: number;
-};
-
 const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: RenderCustomizedLabelProps) => {
+const renderCustomizedLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+}: PieLabelRenderProps): React.ReactNode => {
+    if (
+        typeof cx !== "number" ||
+        typeof cy !== "number" ||
+        typeof midAngle !== "number" ||
+        typeof innerRadius !== "number" ||
+        typeof outerRadius !== "number" ||
+        typeof percent !== "number"
+    ) {
+        return null;
+    }
+
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);

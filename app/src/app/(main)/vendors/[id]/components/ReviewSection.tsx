@@ -99,13 +99,14 @@ export function ReviewSection({ vendorId, ratingAvg, reviewCount }: ReviewSectio
                     description="첫 번째 리뷰를 작성해 보세요"
                 />
             ) : (
-                <div className="space-y-6">
-                    {reviewData?.items.map((review) => {
-                        const hasAmount = review.amount !== null;
-                        const hasWorkedAt = Boolean(review.workedAt);
-
-                        return (
-                            <div key={review.id} className="border-b border-gray-100 pb-6 last:border-0">
+	                <div className="space-y-6">
+	                    {reviewData?.items.map((review) => {
+	                        const amount = review.amount;
+	                        const hasAmount = amount !== null;
+	                        const hasWorkedAt = Boolean(review.workedAt);
+	
+	                        return (
+	                            <div key={review.id} className="border-b border-gray-100 pb-6 last:border-0">
                                 <div className="flex items-start gap-3">
                                     <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                                         <User className="w-5 h-5 text-gray-400" />
@@ -119,17 +120,17 @@ export function ReviewSection({ vendorId, ratingAvg, reviewCount }: ReviewSectio
                                         </div>
                                         <p className="text-[#0a3b41] whitespace-pre-wrap">
                                             {review.content}
-                                        </p>
-                                        {(hasAmount || hasWorkedAt) && (
-                                            <div className="flex flex-wrap gap-3 mt-2 text-sm text-gray-500">
-                                                {hasAmount && (
-                                                    <span>결제 금액: {review.amount.toLocaleString()}원</span>
-                                                )}
-                                                {hasWorkedAt && (
-                                                    <span>작업일: {review.workedAt}</span>
-                                                )}
-                                            </div>
-                                        )}
+	                                        </p>
+	                                        {(hasAmount || hasWorkedAt) && (
+	                                            <div className="flex flex-wrap gap-3 mt-2 text-sm text-gray-500">
+	                                                {hasAmount && (
+	                                                    <span>결제 금액: {amount.toLocaleString()}원</span>
+	                                                )}
+	                                                {hasWorkedAt && (
+	                                                    <span>작업일: {review.workedAt}</span>
+	                                                )}
+	                                            </div>
+	                                        )}
                                     </div>
                                 </div>
                             </div>

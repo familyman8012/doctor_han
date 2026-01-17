@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Search, CheckCircle, XCircle, Clock, FileText, Building2 } from "lucide-react";
 import dayjs from "dayjs";
 import { adminApi } from "@/api-client/admin";
-import { Button } from "@/components/ui/Button/Button";
+import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { Spinner } from "@/components/ui/Spinner/Spinner";

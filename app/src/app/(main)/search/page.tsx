@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { Search, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import api from "@/api-client/client";
 import { Input } from "@/components/ui/Input/Input";
 import { Button } from "@/components/ui/Button/button";
@@ -17,7 +17,7 @@ import type { VendorListItem } from "@/lib/schema/vendor";
 
 const PAGE_SIZE = 12;
 
-export default function SearchPage() {
+function SearchContent() {
     // URL 상태 관리
     const [q, setQ] = useQueryState("q", parseAsString.withDefault(""));
     const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
@@ -207,5 +207,38 @@ export default function SearchPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+function SearchSkeleton() {
+    return (
+        <div className="space-y-6 animate-pulse">
+            <div className="bg-white rounded-xl border border-gray-100 p-6">
+                <div className="h-8 w-32 bg-gray-200 rounded mb-4" />
+                <div className="flex gap-3">
+                    <div className="flex-1 h-12 bg-gray-200 rounded" />
+                    <div className="w-20 h-12 bg-gray-200 rounded" />
+                </div>
+                <div className="mt-4 flex gap-2">
+                    <div className="h-6 w-12 bg-gray-200 rounded" />
+                    {Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className="h-6 w-16 bg-gray-200 rounded-full" />
+                    ))}
+                </div>
+            </div>
+            <div className="text-center py-16">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-200" />
+                <div className="h-6 w-48 bg-gray-200 rounded mx-auto mb-2" />
+                <div className="h-4 w-64 bg-gray-200 rounded mx-auto" />
+            </div>
+        </div>
+    );
+}
+
+export default function SearchPage() {
+    return (
+        <Suspense fallback={<SearchSkeleton />}>
+            <SearchContent />
+        </Suspense>
     );
 }

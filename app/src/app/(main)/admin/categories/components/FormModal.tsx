@@ -6,10 +6,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 import { adminApi } from "@/api-client/admin";
-import { Button } from "@/components/ui/Button/Button";
+import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
 import { InputNumber } from "@/components/ui/InputNumber";
-import { Select } from "@/components/ui/Select/Select";
+import { Select, type IOption } from "@/components/ui/Select/Select";
 import { Toggle } from "@/components/ui/Toggle/Toggle";
 import type { CategoryView } from "@/lib/schema/category";
 import type { AdminCategoryCreateBody, AdminCategoryPatchBody } from "@/lib/schema/admin";
@@ -166,6 +166,14 @@ export function CategoryFormModal({
 
     if (!isOpen) return null;
 
+    const parentOptions: IOption[] = [
+        { value: "", label: "없음 (최상위)" },
+        ...availableParents.map((cat) => ({
+            value: cat.id,
+            label: `${cat.depth > 0 ? "└ ".repeat(cat.depth) : ""}${cat.name}`,
+        })),
+    ];
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             {/* Backdrop */}
@@ -237,17 +245,18 @@ export function CategoryFormModal({
                                 control={control}
                                 render={({ field }) => (
                                     <Select
+                                        options={parentOptions}
                                         value={field.value ?? ""}
-                                        onChange={(e) => field.onChange(e.target.value || null)}
-                                    >
-                                        <option value="">없음 (최상위)</option>
-                                        {availableParents.map((cat) => (
-                                            <option key={cat.id} value={cat.id}>
-                                                {cat.depth > 0 ? "└ ".repeat(cat.depth) : ""}
-                                                {cat.name}
-                                            </option>
-                                        ))}
-                                    </Select>
+                                        onChange={(option) => {
+                                            if (!option || Array.isArray(option)) {
+                                                field.onChange(null);
+                                                return;
+                                            }
+                                            const nextValue = option.value === "" ? null : option.value;
+                                            field.onChange(nextValue);
+                                        }}
+                                        isSearchable={false}
+                                    />
                                 )}
                             />
                         </div>

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, {
     ChangeEvent,
@@ -6,22 +6,22 @@ import React, {
     useRef,
     useState,
     forwardRef,
-  } from 'react';
-  import { ko } from 'date-fns/locale/ko';
-  import DatepickerLibrary, { ReactDatePickerProps, registerLocale } from 'react-datepicker'
-  import CustomHeader from './CustomHeader';
-  import { Input } from '@/components/ui/Input/Input';
-  import { Calendar } from 'lucide-react';
-  import 'react-datepicker/dist/react-datepicker.css';
-  import './DatePicker.css';
+} from "react";
+import { ko } from "date-fns/locale/ko";
+import DatepickerLibrary, { registerLocale } from "react-datepicker";
+import CustomHeader from "./CustomHeader";
+import { Input } from "@/components/ui/Input/Input";
+import { Calendar } from "lucide-react";
+import "react-datepicker/dist/react-datepicker.css";
+import "./DatePicker.css";
 
-  registerLocale('ko', ko);
+registerLocale("ko", ko);
 
-  export type NewDate = string | ChangeEvent<Element> | null;
+export type NewDate = string | ChangeEvent<Element> | null;
 
 export interface DatePickerProps {
   className?: string;
-  DatePickerRef?: React.RefObject<ReactDatePickerProps>;
+  DatePickerRef?: React.RefObject<DatepickerLibrary | null>;
   selectedDate: string | null;
   onChange?: (date: string | null, event?: unknown) => void;
   disabled?: boolean;
@@ -94,7 +94,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
     selectedDate ? new Date(selectedDate + 'T00:00:00') : null
   );
   const [showMonthYearPicker, setShowMonthYearPicker] = useState(false);
-  const datePickerRef = useRef<any>(null);
+  const datePickerRef = useRef<DatepickerLibrary | null>(null);
   const resolvedDatePickerRef = DatePickerRef ?? datePickerRef;
   const [portalElementId, setPortalElementId] = useState<string | undefined>(
     usePortal ? portalId : undefined
@@ -155,8 +155,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
           selected={selectedDateState}
           onChange={handleChange}
           dateFormat={dateFormat}
-          minDate={minDate}
-          maxDate={maxDate}
+          minDate={minDate ?? undefined}
+          maxDate={maxDate ?? undefined}
           renderCustomHeader={(params:any) =>  CustomHeader({
             showMonthYearPicker,
             setShowMonthYearPicker,
