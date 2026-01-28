@@ -10,5 +10,8 @@
   "enabledMcpjsonServers": [
     "supabase",
     "replicate"
-  ]
+  ],
+  "enabledPlugins": {
+    "medihub@doctor-marketplace": true
+  }
 }
