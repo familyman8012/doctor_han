@@ -1,90 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(brew upgrade:*)",
-      "Bash(claude --version)",
-      "Bash(brew update:*)",
-      "Bash(brew info:*)",
-      "Bash(npm view:*)",
-      "Bash(git checkout:*)",
-      "Bash(git pull:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
-      "Bash(xargs:*)",
       "Bash(tree:*)",
-      "Bash(chmod:*)",
-      "WebSearch",
-      "Bash(echo:*)",
-      "Bash(python3 .claude/scripts/refresh.py:*)",
-      "Bash(pnpm lint:*)",
-      "Bash(pnpm type-check:*)",
-      "Bash(pnpm test:*)",
-      "Bash(pnpm build:*)",
-      "Bash(pnpm db:*)",
-      "Bash(cd app && pnpm lint:*)",
-      "Bash(cd app && pnpm type-check:*)",
-      "Bash(cd app && pnpm test:*)",
-      "Bash(cd app && pnpm build:*)",
-      "Bash(cd app && pnpm db:*)",
-      "Bash(wc:*)",
-      "Bash(ls:*)",
-      "Bash(find:*)",
-      "Bash(rg:*)",
-      "Bash(grep:*)",
-      "Bash(pnpm db:reset:*)",
-      "Bash(pnpm db:gen:*)",
-      "Bash(pnpm add:*)",
-      "Bash(cat:*)",
-      "WebFetch(domain:replicate.com)",
-      "WebFetch(domain:mcp.replicate.com)",
-      "Bash(tmux:*)",
-      "Bash(brew install:*)",
-      "Bash(claude-squad:*)",
-      "Bash(cs version:*)",
-      "Bash(vtsls:*)",
-      "Bash(pnpm install:*)",
-      "Bash(npm install:*)",
-      "Bash(where:*)",
-      "Bash(powershell -Command \"[Environment]::SetEnvironmentVariable\\(''ENABLE_LSP_TOOLS'', ''1'', ''User''\\)\")",
-      "Bash(powershell -Command \"[Environment]::GetEnvironmentVariable\\(''ENABLE_LSP_TOOLS'', ''User''\\)\")",
-      "Bash(powershell -Command \"echo $env:APPDATA\")",
-      "Bash(powershell -Command \"[Environment]::GetFolderPath\\(''ApplicationData''\\)\")",
-      "Bash(powershell -Command \"Get-ChildItem ''C:\\\\Users\\\\famil\\\\AppData\\\\Roaming'' -Directory | Select-Object Name\")",
-      "Bash(powershell -Command:*)"
+      "Bash(head:*)",
+      "Bash(git -C /Users/yun-eunseog/workspace/doctor_han log --oneline -20)",
+      "Bash(git -C /Users/yun-eunseog/workspace/doctor_han show e8015ab --stat)"
     ]
   },
-  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "supabase",
     "replicate"
-  ],
-  "disabledMcpjsonServers": [],
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|MultiEdit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/pre-migration-guard.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|MultiEdit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/post-lint-fix.sh"
-          }
-        ]
-      }
-    ]
-  },
-  "enabledPlugins": {
-    "typescript-lsp@claude-plugins-official": true
-  }
+  ]
 }
