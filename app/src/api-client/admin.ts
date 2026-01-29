@@ -14,6 +14,18 @@ import type {
     AdminCategoryDeleteResponse,
 } from "@/lib/schema/admin";
 import type { CategoryListResponse } from "@/lib/schema/category";
+import type {
+    AdminReportListQuery,
+    AdminReportListResponse,
+    AdminReportDetailResponse,
+    AdminReportActionResponse,
+    AdminReportResolveBody,
+    AdminReportDismissBody,
+    AdminSanctionListQuery,
+    AdminSanctionListResponse,
+    AdminSanctionActionResponse,
+    AdminSanctionRevokeBody,
+} from "@/lib/schema/report";
 import api from "./client";
 
 export const adminApi = {
@@ -80,6 +92,56 @@ export const adminApi = {
     // 카테고리 삭제
     deleteCategory: async (id: string): Promise<AdminCategoryDeleteResponse> => {
         const response = await api.delete<AdminCategoryDeleteResponse>(`/api/admin/categories/${id}`);
+        return response.data;
+    },
+
+    // ===========================
+    // 신고 관리
+    // ===========================
+
+    // 신고 목록 조회
+    getReports: async (params: AdminReportListQuery): Promise<AdminReportListResponse> => {
+        const response = await api.get<AdminReportListResponse>("/api/admin/reports", { params });
+        return response.data;
+    },
+
+    // 신고 상세 조회
+    getReport: async (id: string): Promise<AdminReportDetailResponse> => {
+        const response = await api.get<AdminReportDetailResponse>(`/api/admin/reports/${id}`);
+        return response.data;
+    },
+
+    // 신고 심사 시작
+    reviewReport: async (id: string): Promise<AdminReportActionResponse> => {
+        const response = await api.post<AdminReportActionResponse>(`/api/admin/reports/${id}/review`);
+        return response.data;
+    },
+
+    // 신고 처리 완료
+    resolveReport: async (id: string, body: AdminReportResolveBody): Promise<AdminReportActionResponse> => {
+        const response = await api.post<AdminReportActionResponse>(`/api/admin/reports/${id}/resolve`, body);
+        return response.data;
+    },
+
+    // 신고 기각
+    dismissReport: async (id: string, body: AdminReportDismissBody): Promise<AdminReportActionResponse> => {
+        const response = await api.post<AdminReportActionResponse>(`/api/admin/reports/${id}/dismiss`, body);
+        return response.data;
+    },
+
+    // ===========================
+    // 제재 관리
+    // ===========================
+
+    // 제재 목록 조회
+    getSanctions: async (params: AdminSanctionListQuery): Promise<AdminSanctionListResponse> => {
+        const response = await api.get<AdminSanctionListResponse>("/api/admin/sanctions", { params });
+        return response.data;
+    },
+
+    // 제재 해제
+    revokeSanction: async (id: string, body: AdminSanctionRevokeBody): Promise<AdminSanctionActionResponse> => {
+        const response = await api.post<AdminSanctionActionResponse>(`/api/admin/sanctions/${id}/revoke`, body);
         return response.data;
     },
 };
