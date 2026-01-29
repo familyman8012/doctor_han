@@ -26,6 +26,7 @@ export const PATCH = withApi(
 
 		const settings = await upsertNotificationSettings(ctx.supabase, ctx.user.id, {
 			email_enabled: body.emailEnabled,
+			kakao_enabled: body.kakaoEnabled,
 			verification_result_enabled: body.verificationResultEnabled,
 			lead_enabled: body.leadEnabled,
 			marketing_enabled: body.marketingEnabled,

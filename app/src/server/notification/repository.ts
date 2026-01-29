@@ -43,6 +43,7 @@ export async function upsertNotificationSettings(
 	const merged = {
 		user_id: userId,
 		email_enabled: updates?.email_enabled ?? existing?.email_enabled ?? true,
+		kakao_enabled: updates?.kakao_enabled ?? existing?.kakao_enabled ?? false,
 		verification_result_enabled: updates?.verification_result_enabled ?? existing?.verification_result_enabled ?? true,
 		lead_enabled: updates?.lead_enabled ?? existing?.lead_enabled ?? true,
 		marketing_enabled: updates?.marketing_enabled ?? existing?.marketing_enabled ?? false,
@@ -98,6 +99,9 @@ export async function insertNotificationDelivery(
 		sentAt?: string;
 		failedAt?: string;
 		errorMessage?: string;
+		retryCount?: number;
+		maxRetries?: number;
+		status?: "pending" | "sent" | "failed";
 	},
 ) {
 	const { error } = await supabase.from("notification_deliveries").insert({
@@ -112,9 +116,41 @@ export async function insertNotificationDelivery(
 		sent_at: payload.sentAt ?? new Date().toISOString(),
 		failed_at: payload.failedAt ?? null,
 		error_message: payload.errorMessage ?? null,
+		retry_count: payload.retryCount ?? 0,
+		max_retries: payload.maxRetries ?? 3,
+		status: payload.status ?? "pending",
 	});
 
 	if (error) {
 		console.error("[Notification] Failed to insert delivery log", error);
+	}
+}
+
+export async function updateDeliveryStatus(
+	supabase: SupabaseClient<Database>,
+	deliveryId: string,
+	updates: {
+		status?: "pending" | "sent" | "failed";
+		retryCount?: number;
+		sentAt?: string;
+		failedAt?: string;
+		errorMessage?: string;
+		providerResponse?: Json;
+	},
+) {
+	const { error } = await supabase
+		.from("notification_deliveries")
+		.update({
+			status: updates.status,
+			retry_count: updates.retryCount,
+			sent_at: updates.sentAt,
+			failed_at: updates.failedAt,
+			error_message: updates.errorMessage,
+			provider_response: updates.providerResponse,
+		})
+		.eq("id", deliveryId);
+
+	if (error) {
+		console.error("[Notification] Failed to update delivery status", error);
 	}
 }

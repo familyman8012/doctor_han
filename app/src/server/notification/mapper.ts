@@ -7,6 +7,7 @@ export function mapNotificationSettingsRow(row: NotificationSettingsRow): Notifi
 	return {
 		userId: row.user_id,
 		emailEnabled: row.email_enabled,
+		kakaoEnabled: row.kakao_enabled,
 		verificationResultEnabled: row.verification_result_enabled,
 		leadEnabled: row.lead_enabled,
 		marketingEnabled: row.marketing_enabled,
