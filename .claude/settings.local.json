@@ -4,14 +4,15 @@
       "Bash(tree:*)",
       "Bash(head:*)",
       "Bash(git -C /Users/yun-eunseog/workspace/doctor_han log --oneline -20)",
-      "Bash(git -C /Users/yun-eunseog/workspace/doctor_han show e8015ab --stat)"
+      "Bash(git -C /Users/yun-eunseog/workspace/doctor_han show e8015ab --stat)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)"
     ]
   },
   "enabledMcpjsonServers": [
     "supabase",
     "replicate"
   ],
-  "enabledPlugins": {
-    "medihub@doctor-marketplace": true
-  }
+  "enabledPlugins": {}
 }
