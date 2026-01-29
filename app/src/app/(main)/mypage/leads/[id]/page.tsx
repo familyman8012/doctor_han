@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,9 +12,11 @@ import { Button } from "@/components/ui/Button/button";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
 import { Badge, type BadgeColor } from "@/components/ui/Badge/Badge";
-import { useIsAuthenticated, useUserRole, useAuthStore } from "@/stores/auth";
+import { Tabs } from "@/components/ui/Tab/Tab";
+import { useIsAuthenticated, useUserRole, useAuthStore, useUser } from "@/stores/auth";
 import { LeadStatusHistory } from "./components/StatusHistory";
 import { LeadAttachments } from "./components/Attachments";
+import { MessagesTab } from "./components/MessagesTab";
 import type { LeadStatus } from "@/lib/schema/lead";
 
 const STATUS_CONFIG: Record<LeadStatus, { label: string; color: BadgeColor }> = {
@@ -48,7 +51,9 @@ export default function LeadDetailPage() {
     const leadId = params.id as string;
     const isAuthenticated = useIsAuthenticated();
     const role = useUserRole();
+    const user = useUser();
     const { isInitialized } = useAuthStore();
+    const [activeTabIndex, setActiveTabIndex] = useState(0);
 
     // 리드 상세 조회
     const { data, isLoading, isError } = useQuery({
@@ -56,6 +61,22 @@ export default function LeadDetailPage() {
         queryFn: () => leadsApi.getDetail(leadId),
         enabled: isAuthenticated,
     });
+
+    // 안 읽은 메시지 수 조회
+    const { data: messagesData } = useQuery({
+        queryKey: ["lead-messages", leadId],
+        queryFn: () => leadsApi.getMessages(leadId, { pageSize: 50 }),
+        enabled: isAuthenticated && !!leadId,
+        staleTime: 30000,
+    });
+
+    const userId = user?.id;
+    const unreadCount = useMemo(() => {
+        if (!messagesData?.data?.items || !userId) return 0;
+        return messagesData.data.items.filter(
+            (m) => m.senderId !== userId && !m.readAt,
+        ).length;
+    }, [messagesData, userId]);
 
     // 문의 취소 mutation
     const cancelMutation = useMutation({
@@ -110,6 +131,11 @@ export default function LeadDetailPage() {
     const statusConfig = STATUS_CONFIG[lead.status];
     const canCancel = role === "doctor" && !["canceled", "closed", "contracted"].includes(lead.status);
 
+    const tabs = [
+        { title: "상세정보" },
+        { title: "대화", label: unreadCount > 0 ? String(unreadCount) : undefined },
+    ];
+
     return (
         <div className="max-w-3xl mx-auto space-y-6">
             {/* 브레드크럼 */}
@@ -151,74 +177,96 @@ export default function LeadDetailPage() {
                 </p>
             </div>
 
-            {/* 문의 내용 */}
-            <div className="bg-white rounded-xl border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-[#0a3b41] mb-4">문의 내용</h2>
-                <p className="text-gray-700 whitespace-pre-wrap">{lead.content}</p>
-            </div>
+            {/* 탭 */}
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                <Tabs
+                    id="lead-detail-tabs"
+                    tabs={tabs}
+                    activeTabIndex={activeTabIndex}
+                    onTabChange={setActiveTabIndex}
+                    className="px-4"
+                />
 
-            {/* 연락처 정보 */}
-            <div className="bg-white rounded-xl border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-[#0a3b41] mb-4">연락처 정보</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                            <Phone className="w-4 h-4 text-gray-500" />
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500">연락처</p>
-                            <p className="text-[#0a3b41] font-medium">{lead.contactPhone}</p>
-                        </div>
-                    </div>
-                    {lead.contactEmail && (
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                <Mail className="w-4 h-4 text-gray-500" />
-                            </div>
+                {/* 탭 컨텐츠 */}
+                <div className="p-6">
+                    {activeTabIndex === 0 && (
+                        <div className="space-y-6">
+                            {/* 문의 내용 */}
                             <div>
-                                <p className="text-sm text-gray-500">이메일</p>
-                                <p className="text-[#0a3b41] font-medium">{lead.contactEmail}</p>
+                                <h2 className="text-lg font-bold text-[#0a3b41] mb-4">문의 내용</h2>
+                                <p className="text-gray-700 whitespace-pre-wrap">{lead.content}</p>
                             </div>
+
+                            {/* 연락처 정보 */}
+                            <div>
+                                <h2 className="text-lg font-bold text-[#0a3b41] mb-4">연락처 정보</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                            <Phone className="w-4 h-4 text-gray-500" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">연락처</p>
+                                            <p className="text-[#0a3b41] font-medium">{lead.contactPhone}</p>
+                                        </div>
+                                    </div>
+                                    {lead.contactEmail && (
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                                <Mail className="w-4 h-4 text-gray-500" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-500">이메일</p>
+                                                <p className="text-[#0a3b41] font-medium">{lead.contactEmail}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {lead.preferredChannel && (
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                                <FileText className="w-4 h-4 text-gray-500" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-500">선호 연락 방법</p>
+                                                <p className="text-[#0a3b41] font-medium">
+                                                    {CHANNEL_LABELS[lead.preferredChannel] ?? lead.preferredChannel}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {lead.preferredTime && (
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                                <Clock className="w-4 h-4 text-gray-500" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-500">선호 연락 시간</p>
+                                                <p className="text-[#0a3b41] font-medium">
+                                                    {TIME_LABELS[lead.preferredTime] ?? lead.preferredTime}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* 첨부파일 */}
+                            {lead.attachments.length > 0 && (
+                                <LeadAttachments attachments={lead.attachments} />
+                            )}
+
+                            {/* 상태 이력 */}
+                            {lead.statusHistory.length > 0 && (
+                                <LeadStatusHistory history={lead.statusHistory} />
+                            )}
                         </div>
                     )}
-                    {lead.preferredChannel && (
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                <FileText className="w-4 h-4 text-gray-500" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500">선호 연락 방법</p>
-                                <p className="text-[#0a3b41] font-medium">
-                                    {CHANNEL_LABELS[lead.preferredChannel] ?? lead.preferredChannel}
-                                </p>
-                            </div>
-                        </div>
-                    )}
-                    {lead.preferredTime && (
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                <Clock className="w-4 h-4 text-gray-500" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500">선호 연락 시간</p>
-                                <p className="text-[#0a3b41] font-medium">
-                                    {TIME_LABELS[lead.preferredTime] ?? lead.preferredTime}
-                                </p>
-                            </div>
-                        </div>
+
+                    {activeTabIndex === 1 && user?.id && (
+                        <MessagesTab leadId={leadId} currentUserId={user.id} />
                     )}
                 </div>
             </div>
-
-            {/* 첨부파일 */}
-            {lead.attachments.length > 0 && (
-                <LeadAttachments attachments={lead.attachments} />
-            )}
-
-            {/* 상태 이력 */}
-            {lead.statusHistory.length > 0 && (
-                <LeadStatusHistory history={lead.statusHistory} />
-            )}
         </div>
     );
 }

@@ -61,9 +61,9 @@ export const POST = withApi(
         }
 
         const allowedPurposesByRole: Record<string, readonly string[]> = {
-            doctor: ["doctor_license", "lead_attachment", "avatar", "review_photo"],
-            vendor: ["vendor_business_license", "portfolio", "lead_attachment", "avatar"],
-            admin: ["doctor_license", "vendor_business_license", "portfolio", "lead_attachment", "avatar", "review_photo"],
+            doctor: ["doctor_license", "lead_attachment", "lead_message_attachment", "avatar", "review_photo"],
+            vendor: ["vendor_business_license", "portfolio", "lead_attachment", "lead_message_attachment", "avatar"],
+            admin: ["doctor_license", "vendor_business_license", "portfolio", "lead_attachment", "lead_message_attachment", "avatar", "review_photo"],
         };
 
         const allowed = allowedPurposesByRole[ctx.profile.role] ?? [];
