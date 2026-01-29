@@ -56,6 +56,7 @@
     "recharts": "^3.6.0",
     "resend": "^6.7.0",
     "simplebar-react": "^3.3.2",
+    "solapi": "^5.5.4",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.2.1",

@@ -5,7 +5,7 @@ import { internalServerError, notFound } from "@/server/api/errors";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withRole } from "@/server/auth/guards";
-import { sendVerificationResultEmail } from "@/server/notification/service";
+import { sendVerificationResult } from "@/server/notification/service";
 import { mapDoctorVerificationRow, mapVendorVerificationRow } from "@/server/verification/mapper";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -113,29 +113,38 @@ export const POST = withApi(
                 console.error("[POST /api/admin/verifications/:id/reject] audit_logs insert failed", auditResult.error);
             }
 
-            // 이메일 알림 발송
-            let emailWarning: string | undefined;
+            // 알림 발송 (이메일 + 카카오 병렬)
+            let notificationWarning: string | undefined;
             const { data: profile } = await ctx.supabase
                 .from("profiles")
-                .select("display_name, email")
+                .select("display_name, email, phone")
                 .eq("id", data.user_id)
                 .single();
 
-            if (profile?.email) {
-                const emailResult = await sendVerificationResultEmail({
+            if (profile?.email || profile?.phone) {
+                const notificationResult = await sendVerificationResult({
                     userId: data.user_id,
-                    email: profile.email,
+                    email: profile.email ?? "",
+                    phone: profile.phone ?? undefined,
                     recipientName: profile.display_name || "회원",
                     type: "doctor",
                     action: "rejected",
                     rejectReason: body.reason,
                 });
-                if (!emailResult.success) {
-                    emailWarning = "이메일 알림 발송에 실패했습니다.";
+
+                const warnings: string[] = [];
+                if (!notificationResult.email.success && !notificationResult.email.skipped) {
+                    warnings.push("이메일");
+                }
+                if (!notificationResult.kakao.success && !notificationResult.kakao.skipped) {
+                    warnings.push("카카오");
+                }
+                if (warnings.length > 0) {
+                    notificationWarning = `${warnings.join(", ")} 알림 발송에 실패했습니다.`;
                 }
             }
 
-            return ok({ type: "doctor" as const, verification: mapDoctorVerificationRow(data), emailWarning });
+            return ok({ type: "doctor" as const, verification: mapDoctorVerificationRow(data), emailWarning: notificationWarning });
         }
 
         const { data, error } = await ctx.supabase
@@ -170,29 +179,38 @@ export const POST = withApi(
             console.error("[POST /api/admin/verifications/:id/reject] audit_logs insert failed", auditResult.error);
         }
 
-        // 이메일 알림 발송
-        let emailWarning: string | undefined;
+        // 알림 발송 (이메일 + 카카오 병렬)
+        let notificationWarning: string | undefined;
         const { data: profile } = await ctx.supabase
             .from("profiles")
-            .select("display_name, email")
+            .select("display_name, email, phone")
             .eq("id", data.user_id)
             .single();
 
-        if (profile?.email) {
-            const emailResult = await sendVerificationResultEmail({
+        if (profile?.email || profile?.phone) {
+            const notificationResult = await sendVerificationResult({
                 userId: data.user_id,
-                email: profile.email,
+                email: profile.email ?? "",
+                phone: profile.phone ?? undefined,
                 recipientName: profile.display_name || "회원",
                 type: "vendor",
                 action: "rejected",
                 rejectReason: body.reason,
             });
-            if (!emailResult.success) {
-                emailWarning = "이메일 알림 발송에 실패했습니다.";
+
+            const warnings: string[] = [];
+            if (!notificationResult.email.success && !notificationResult.email.skipped) {
+                warnings.push("이메일");
+            }
+            if (!notificationResult.kakao.success && !notificationResult.kakao.skipped) {
+                warnings.push("카카오");
+            }
+            if (warnings.length > 0) {
+                notificationWarning = `${warnings.join(", ")} 알림 발송에 실패했습니다.`;
             }
         }
 
-        return ok({ type: "vendor" as const, verification: mapVendorVerificationRow(data), emailWarning });
+        return ok({ type: "vendor" as const, verification: mapVendorVerificationRow(data), emailWarning: notificationWarning });
     }),
 );
 

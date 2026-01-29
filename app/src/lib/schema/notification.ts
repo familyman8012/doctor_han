@@ -4,6 +4,7 @@ import { z } from "zod";
 export const NotificationSettingsViewSchema = z.object({
 	userId: z.string().uuid(),
 	emailEnabled: z.boolean(),
+	kakaoEnabled: z.boolean(),
 	verificationResultEnabled: z.boolean(),
 	leadEnabled: z.boolean(),
 	marketingEnabled: z.boolean(),
@@ -17,6 +18,7 @@ export type NotificationSettingsView = z.infer<typeof NotificationSettingsViewSc
 export const UpdateNotificationSettingsBodySchema = z
 	.object({
 		emailEnabled: z.boolean().optional(),
+		kakaoEnabled: z.boolean().optional(),
 		verificationResultEnabled: z.boolean().optional(),
 		leadEnabled: z.boolean().optional(),
 		marketingEnabled: z.boolean().optional(),
@@ -25,6 +27,7 @@ export const UpdateNotificationSettingsBodySchema = z
 	.refine(
 		(v) =>
 			v.emailEnabled !== undefined ||
+			v.kakaoEnabled !== undefined ||
 			v.verificationResultEnabled !== undefined ||
 			v.leadEnabled !== undefined ||
 			v.marketingEnabled !== undefined,

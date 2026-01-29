@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Mail, Shield, Megaphone, MessageSquare, ChevronRight, FileText, ShieldCheck } from "lucide-react";
+import { Mail, Shield, Megaphone, MessageSquare, MessageCircle, ChevronRight, FileText, ShieldCheck } from "lucide-react";
 import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { toast } from "sonner";
 import type { NotificationSettingsView } from "@/lib/schema/notification";
 
-type ToggleableKey = "emailEnabled" | "verificationResultEnabled" | "leadEnabled" | "marketingEnabled";
+type ToggleableKey = "emailEnabled" | "kakaoEnabled" | "verificationResultEnabled" | "leadEnabled" | "marketingEnabled";
 
 interface ToggleItemProps {
 	icon: React.ReactNode;
@@ -68,6 +68,7 @@ export default function PartnerNotificationSettingsPage() {
 	const updateMutation = useMutation({
 		mutationFn: async (updates: {
 			emailEnabled?: boolean;
+			kakaoEnabled?: boolean;
 			verificationResultEnabled?: boolean;
 			leadEnabled?: boolean;
 			marketingEnabled?: boolean;
@@ -108,7 +109,7 @@ export default function PartnerNotificationSettingsPage() {
 		<div className="space-y-6">
 			<div>
 				<h1 className="text-2xl font-bold text-[#0a3b41]">알림 설정</h1>
-				<p className="text-gray-500 mt-1">이메일 알림 수신 여부를 관리합니다</p>
+				<p className="text-gray-500 mt-1">이메일 및 카카오 알림 수신 여부를 관리합니다</p>
 			</div>
 
 			<div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -151,6 +152,22 @@ export default function PartnerNotificationSettingsPage() {
 
 			<p className="text-xs text-gray-400">
 				* 이메일 알림 전체를 끄면 하위 알림도 수신하지 않습니다.
+			</p>
+
+			{/* 카카오 알림톡 섹션 */}
+			<div className="bg-white rounded-xl border border-gray-200 p-6">
+				<ToggleItem
+					icon={<MessageCircle className="w-5 h-5 text-[#FEE500]" />}
+					label="카카오 알림톡"
+					description="카카오 알림톡으로 중요 알림을 받습니다"
+					checked={data.kakaoEnabled}
+					onChange={(v) => handleToggle("kakaoEnabled", v)}
+					disabled={updateMutation.isPending}
+				/>
+			</div>
+
+			<p className="text-xs text-gray-400">
+				* 휴대폰 번호가 등록되어 있어야 카카오 알림톡을 수신할 수 있습니다.
 			</p>
 
 			{/* 약관 및 정책 */}
