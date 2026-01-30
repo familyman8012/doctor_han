@@ -238,6 +238,93 @@ export type Database = {
           },
         ]
       }
+      help_articles: {
+        Row: {
+          category_id: string | null
+          content: string
+          created_at: string
+          created_by: string
+          display_order: number
+          id: string
+          is_pinned: boolean
+          is_published: boolean
+          title: string
+          type: Database["public"]["Enums"]["help_article_type"]
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          content: string
+          created_at?: string
+          created_by: string
+          display_order?: number
+          id?: string
+          is_pinned?: boolean
+          is_published?: boolean
+          title: string
+          type: Database["public"]["Enums"]["help_article_type"]
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string
+          display_order?: number
+          id?: string
+          is_pinned?: boolean
+          is_published?: boolean
+          title?: string
+          type?: Database["public"]["Enums"]["help_article_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "help_articles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "help_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "help_articles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      help_categories: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lead_attachments: {
         Row: {
           created_at: string
@@ -280,6 +367,84 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_message_attachments: {
+        Row: {
+          created_at: string
+          file_id: string
+          id: string
+          message_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_id: string
+          id?: string
+          message_id: string
+        }
+        Update: {
+          created_at?: string
+          file_id?: string
+          id?: string
+          message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_message_attachments_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "lead_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          lead_id: string
+          read_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          lead_id: string
+          read_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          lead_id?: string
+          read_at?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_messages_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1212,6 +1377,8 @@ export type Database = {
         | "lead_attachment"
         | "avatar"
         | "review_photo"
+        | "lead_message_attachment"
+      help_article_type: "faq" | "notice" | "guide"
       lead_status:
         | "submitted"
         | "in_progress"
@@ -1228,6 +1395,7 @@ export type Database = {
         | "lead_received"
         | "lead_responded"
         | "review_received"
+        | "lead_message_received"
       profile_role: "doctor" | "vendor" | "admin"
       profile_status: "active" | "inactive" | "banned"
       report_reason:
@@ -1384,7 +1552,9 @@ export const Constants = {
         "lead_attachment",
         "avatar",
         "review_photo",
+        "lead_message_attachment",
       ],
+      help_article_type: ["faq", "notice", "guide"],
       lead_status: [
         "submitted",
         "in_progress",
@@ -1402,6 +1572,7 @@ export const Constants = {
         "lead_received",
         "lead_responded",
         "review_received",
+        "lead_message_received",
       ],
       profile_role: ["doctor", "vendor", "admin"],
       profile_status: ["active", "inactive", "banned"],

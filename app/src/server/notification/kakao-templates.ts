@@ -104,3 +104,19 @@ export function getKakaoVerificationTemplate(
 		? getKakaoVendorApprovedTemplate(data)
 		: getKakaoVendorRejectedTemplate(data);
 }
+
+/**
+ * 리드 메시지 수신 카카오 알림톡 템플릿
+ */
+export function getLeadMessageReceivedKakaoTemplate(data: {
+	senderName: string;
+	messagePreview: string;
+}): KakaoTemplate {
+	return {
+		templateId: "MEDIHUB_LEAD_MESSAGE_RECEIVED",
+		variables: {
+			"#{발신자명}": data.senderName,
+			"#{메시지미리보기}": data.messagePreview,
+		},
+	};
+}
