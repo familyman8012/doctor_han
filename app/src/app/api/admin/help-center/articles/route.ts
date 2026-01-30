@@ -39,7 +39,9 @@ export const GET = withApi(
 
         // Search by title or content
         if (query.q) {
-            queryBuilder = queryBuilder.or(`title.ilike.%${query.q}%,content.ilike.%${query.q}%`);
+            // Escape special characters for LIKE pattern
+            const escaped = query.q.replace(/[%_\\]/g, "\\$&");
+            queryBuilder = queryBuilder.or(`title.ilike.%${escaped}%,content.ilike.%${escaped}%`);
         }
 
         // Sorting: notice -> is_pinned DESC, created_at DESC / faq, guide -> display_order ASC, created_at DESC

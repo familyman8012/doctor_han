@@ -81,29 +81,15 @@ export function ArticleFormModal({
         }
     }, [mode, article, reset]);
 
-    // Escape key handler
-    const handleKeyDown = useCallback(
-        (e: KeyboardEvent) => {
-            if (e.key === "Escape") {
-                onClose();
-            }
-        },
-        [onClose]
-    );
-
-    useEffect(() => {
-        if (isOpen) {
-            document.addEventListener("keydown", handleKeyDown);
-            return () => document.removeEventListener("keydown", handleKeyDown);
-        }
-    }, [isOpen, handleKeyDown]);
-
     const createMutation = useMutation({
         mutationFn: (data: HelpArticleCreateBody) => helpCenterApi.createArticle(data),
         onSuccess: () => {
             toast.success(type === "faq" ? "FAQ가 생성되었습니다." : "공지사항이 생성되었습니다.");
             queryClient.invalidateQueries({ queryKey: ["admin-help-articles"] });
             onClose();
+        },
+        onError: () => {
+            toast.error(type === "faq" ? "FAQ 생성에 실패했습니다." : "공지사항 생성에 실패했습니다.");
         },
     });
 
@@ -114,6 +100,9 @@ export function ArticleFormModal({
             toast.success(type === "faq" ? "FAQ가 수정되었습니다." : "공지사항이 수정되었습니다.");
             queryClient.invalidateQueries({ queryKey: ["admin-help-articles"] });
             onClose();
+        },
+        onError: () => {
+            toast.error(type === "faq" ? "FAQ 수정에 실패했습니다." : "공지사항 수정에 실패했습니다.");
         },
     });
 
@@ -145,6 +134,23 @@ export function ArticleFormModal({
 
     const isLoading = createMutation.isPending || updateMutation.isPending;
 
+    // Escape key handler
+    const handleKeyDown = useCallback(
+        (e: KeyboardEvent) => {
+            if (e.key === "Escape" && !isLoading) {
+                onClose();
+            }
+        },
+        [onClose, isLoading]
+    );
+
+    useEffect(() => {
+        if (isOpen) {
+            document.addEventListener("keydown", handleKeyDown);
+            return () => document.removeEventListener("keydown", handleKeyDown);
+        }
+    }, [isOpen, handleKeyDown]);
+
     if (!isOpen) return null;
 
     const categoryOptions: IOption[] = [
@@ -162,7 +168,7 @@ export function ArticleFormModal({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+            <div className="absolute inset-0 bg-black/50" onClick={isLoading ? undefined : onClose} />
 
             {/* Modal */}
             <div className="relative z-10 w-full max-w-lg bg-white rounded-xl shadow-xl mx-4 max-h-[90vh] overflow-y-auto">

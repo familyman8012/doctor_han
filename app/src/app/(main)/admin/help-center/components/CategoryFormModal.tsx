@@ -85,29 +85,15 @@ export function CategoryFormModal({
         }
     }, [mode, category, reset]);
 
-    // Escape key handler
-    const handleKeyDown = useCallback(
-        (e: KeyboardEvent) => {
-            if (e.key === "Escape") {
-                onClose();
-            }
-        },
-        [onClose]
-    );
-
-    useEffect(() => {
-        if (isOpen) {
-            document.addEventListener("keydown", handleKeyDown);
-            return () => document.removeEventListener("keydown", handleKeyDown);
-        }
-    }, [isOpen, handleKeyDown]);
-
     const createMutation = useMutation({
         mutationFn: (data: HelpCategoryCreateBody) => helpCenterApi.createCategory(data),
         onSuccess: () => {
             toast.success("카테고리가 생성되었습니다.");
             queryClient.invalidateQueries({ queryKey: ["admin-help-categories"] });
             onClose();
+        },
+        onError: () => {
+            toast.error("카테고리 생성에 실패했습니다.");
         },
     });
 
@@ -118,6 +104,9 @@ export function CategoryFormModal({
             toast.success("카테고리가 수정되었습니다.");
             queryClient.invalidateQueries({ queryKey: ["admin-help-categories"] });
             onClose();
+        },
+        onError: () => {
+            toast.error("카테고리 수정에 실패했습니다.");
         },
     });
 
@@ -144,12 +133,29 @@ export function CategoryFormModal({
 
     const isLoading = createMutation.isPending || updateMutation.isPending;
 
+    // Escape key handler
+    const handleKeyDown = useCallback(
+        (e: KeyboardEvent) => {
+            if (e.key === "Escape" && !isLoading) {
+                onClose();
+            }
+        },
+        [onClose, isLoading]
+    );
+
+    useEffect(() => {
+        if (isOpen) {
+            document.addEventListener("keydown", handleKeyDown);
+            return () => document.removeEventListener("keydown", handleKeyDown);
+        }
+    }, [isOpen, handleKeyDown]);
+
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+            <div className="absolute inset-0 bg-black/50" onClick={isLoading ? undefined : onClose} />
 
             {/* Modal */}
             <div className="relative z-10 w-full max-w-md bg-white rounded-xl shadow-xl mx-4">
