@@ -238,6 +238,93 @@ export type Database = {
           },
         ]
       }
+      help_articles: {
+        Row: {
+          category_id: string | null
+          content: string
+          created_at: string
+          created_by: string
+          display_order: number
+          id: string
+          is_pinned: boolean
+          is_published: boolean
+          title: string
+          type: Database["public"]["Enums"]["help_article_type"]
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          content: string
+          created_at?: string
+          created_by: string
+          display_order?: number
+          id?: string
+          is_pinned?: boolean
+          is_published?: boolean
+          title: string
+          type: Database["public"]["Enums"]["help_article_type"]
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string
+          display_order?: number
+          id?: string
+          is_pinned?: boolean
+          is_published?: boolean
+          title?: string
+          type?: Database["public"]["Enums"]["help_article_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "help_articles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "help_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "help_articles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      help_categories: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lead_attachments: {
         Row: {
           created_at: string
@@ -1139,6 +1226,7 @@ export type Database = {
         | "avatar"
         | "review_photo"
         | "lead_message_attachment"
+      help_article_type: "faq" | "notice" | "guide"
       lead_status:
         | "submitted"
         | "in_progress"
@@ -1304,6 +1392,7 @@ export const Constants = {
         "review_photo",
         "lead_message_attachment",
       ],
+      help_article_type: ["faq", "notice", "guide"],
       lead_status: [
         "submitted",
         "in_progress",

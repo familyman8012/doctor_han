@@ -12,6 +12,12 @@ export function Footer() {
                     </span>
                     <div className="flex gap-6 text-sm">
                         <Link
+                            href="/help"
+                            className="text-gray-500 hover:text-[#0a3b41] transition-colors"
+                        >
+                            헬프센터
+                        </Link>
+                        <Link
                             href="/legal/terms"
                             className="text-gray-500 hover:text-[#0a3b41] transition-colors"
                         >
