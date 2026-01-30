@@ -181,7 +181,7 @@ export const SanctionViewSchema = z.object({
     durationDays: z.number().int().nullable(),
     startsAt: z.string(),
     endsAt: z.string().nullable(),
-    createdBy: AdminUserSummarySchema,
+    createdBy: AdminUserSummarySchema.nullable(),
     revokedBy: AdminUserSummarySchema.nullable(),
     revokedAt: z.string().nullable(),
     revokeReason: z.string().nullable(),

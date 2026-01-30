@@ -20,7 +20,7 @@ type ReportRowWithRelations = ReportRow & {
 };
 
 type SanctionRowWithRelations = SanctionRow & {
-    created_by_user: Pick<ProfileRow, "id" | "display_name">;
+    created_by_user: Pick<ProfileRow, "id" | "display_name"> | null;
     revoked_by_user?: Pick<ProfileRow, "id" | "display_name"> | null;
 };
 
@@ -110,10 +110,12 @@ export function mapSanctionToView(row: SanctionRowWithRelations): SanctionView {
         durationDays: row.duration_days,
         startsAt: row.starts_at,
         endsAt: row.ends_at,
-        createdBy: {
-            id: row.created_by_user.id,
-            displayName: row.created_by_user.display_name ?? "",
-        },
+        createdBy: row.created_by_user
+            ? {
+                  id: row.created_by_user.id,
+                  displayName: row.created_by_user.display_name ?? "",
+              }
+            : null,
         revokedBy: mapAdminUserSummary(row.revoked_by_user),
         revokedAt: row.revoked_at,
         revokeReason: row.revoke_reason,

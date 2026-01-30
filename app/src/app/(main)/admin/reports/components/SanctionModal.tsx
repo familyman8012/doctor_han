@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { X, AlertTriangle } from "lucide-react";
@@ -32,6 +32,15 @@ export function SanctionModal({ isOpen, onClose, reportId }: SanctionModalProps)
     const [durationDays, setDurationDays] = useState<number>(7);
     const [reason, setReason] = useState("");
     const [showConfirm, setShowConfirm] = useState(false);
+    const textareaId = useId();
+
+    const handleClose = () => {
+        setSanctionType("warning");
+        setDurationDays(7);
+        setReason("");
+        setShowConfirm(false);
+        onClose();
+    };
 
     const resolveMutation = useMutation({
         mutationFn: () =>
@@ -44,7 +53,10 @@ export function SanctionModal({ isOpen, onClose, reportId }: SanctionModalProps)
             toast.success("신고가 처리되었습니다.");
             queryClient.invalidateQueries({ queryKey: ["admin", "reports"] });
             queryClient.invalidateQueries({ queryKey: ["admin", "report", reportId] });
-            onClose();
+            handleClose();
+        },
+        onError: () => {
+            toast.error("신고 처리에 실패했습니다.");
         },
     });
 
@@ -66,22 +78,47 @@ export function SanctionModal({ isOpen, onClose, reportId }: SanctionModalProps)
 
     if (!isOpen) return null;
 
+    const handleBackdropKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Escape") {
+            handleClose();
+        }
+    };
+
+    const handleConfirmBackdropKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Escape") {
+            setShowConfirm(false);
+        }
+    };
+
     if (showConfirm) {
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
                 {/* Backdrop */}
-                <div className="absolute inset-0 bg-black/50" onClick={() => setShowConfirm(false)} />
+                <div
+                    className="absolute inset-0 bg-black/50"
+                    onClick={() => setShowConfirm(false)}
+                    onKeyDown={handleConfirmBackdropKeyDown}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="모달 닫기"
+                />
 
                 {/* Confirm Modal */}
-                <div className="relative z-10 w-full max-w-md bg-white rounded-xl shadow-xl mx-4">
+                <div
+                    className="relative z-10 w-full max-w-md bg-white rounded-xl shadow-xl mx-4"
+                    role="alertdialog"
+                    aria-modal="true"
+                    aria-labelledby="confirm-modal-title"
+                    aria-describedby="confirm-modal-description"
+                >
                     <div className="p-5">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
                                 <AlertTriangle className="w-5 h-5 text-red-600" />
                             </div>
-                            <h2 className="text-lg font-semibold text-[#0a3b41]">영구정지 확인</h2>
+                            <h2 id="confirm-modal-title" className="text-lg font-semibold text-[#0a3b41]">영구정지 확인</h2>
                         </div>
-                        <p className="text-sm text-gray-600 mb-4">
+                        <p id="confirm-modal-description" className="text-sm text-gray-600 mb-4">
                             영구정지는 대상의 모든 활동을 영구적으로 제한합니다.
                             <br />
                             이 작업은 되돌릴 수 있지만, 신중하게 결정해주세요.
@@ -91,7 +128,7 @@ export function SanctionModal({ isOpen, onClose, reportId }: SanctionModalProps)
                         </p>
                     </div>
                     <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-100">
-                        <Button variant="secondary" onClick={() => setShowConfirm(false)}>
+                        <Button variant="secondary" onClick={() => setShowConfirm(false)} disabled={resolveMutation.isPending}>
                             취소
                         </Button>
                         <Button
@@ -110,17 +147,30 @@ export function SanctionModal({ isOpen, onClose, reportId }: SanctionModalProps)
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+            <div
+                className="absolute inset-0 bg-black/50"
+                onClick={handleClose}
+                onKeyDown={handleBackdropKeyDown}
+                role="button"
+                tabIndex={0}
+                aria-label="모달 닫기"
+            />
 
             {/* Modal */}
-            <div className="relative z-10 w-full max-w-md bg-white rounded-xl shadow-xl mx-4">
+            <div
+                className="relative z-10 w-full max-w-md bg-white rounded-xl shadow-xl mx-4"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="sanction-modal-title"
+            >
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                    <h2 className="text-lg font-semibold text-[#0a3b41]">제재 부과</h2>
+                    <h2 id="sanction-modal-title" className="text-lg font-semibold text-[#0a3b41]">제재 부과</h2>
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                        aria-label="닫기"
                     >
                         <X className="w-5 h-5 text-gray-500" />
                     </button>
@@ -131,7 +181,7 @@ export function SanctionModal({ isOpen, onClose, reportId }: SanctionModalProps)
                     <div className="p-5 space-y-5">
                         {/* Sanction Type Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-3">제재 유형</label>
+                            <span className="block text-sm font-medium text-gray-700 mb-3">제재 유형</span>
                             <div className="space-y-2">
                                 {SANCTION_OPTIONS.map((opt) => (
                                     <label
@@ -181,8 +231,9 @@ export function SanctionModal({ isOpen, onClose, reportId }: SanctionModalProps)
 
                         {/* Reason */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">처리 사유</label>
+                            <label htmlFor={textareaId} className="block text-sm font-medium text-gray-700 mb-2">처리 사유</label>
                             <textarea
+                                id={textareaId}
                                 value={reason}
                                 onChange={(e) => setReason(e.target.value)}
                                 placeholder="처리 사유를 입력해주세요"
@@ -197,7 +248,7 @@ export function SanctionModal({ isOpen, onClose, reportId }: SanctionModalProps)
 
                     {/* Footer */}
                     <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-100">
-                        <Button type="button" variant="secondary" onClick={onClose}>
+                        <Button type="button" variant="secondary" onClick={handleClose} disabled={resolveMutation.isPending}>
                             취소
                         </Button>
                         <Button

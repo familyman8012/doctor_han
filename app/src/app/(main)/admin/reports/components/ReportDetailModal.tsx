@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { X, Clock, Eye, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
@@ -10,6 +11,7 @@ import { Badge } from "@/components/ui/Badge/Badge";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import type { ReportTargetType, ReportStatus } from "@/lib/schema/report";
 import { SanctionHistoryPanel } from "./SanctionHistoryPanel";
+import { ConfirmModal } from "./ConfirmModal";
 
 interface ReportDetailModalProps {
     isOpen: boolean;
@@ -35,6 +37,7 @@ const TARGET_TYPE_LABELS: Record<ReportTargetType, string> = {
 
 export function ReportDetailModal({ isOpen, onClose, reportId, onSanction, onDismiss }: ReportDetailModalProps) {
     const queryClient = useQueryClient();
+    const [showReviewConfirm, setShowReviewConfirm] = useState(false);
 
     const { data, isLoading } = useQuery({
         queryKey: ["admin", "report", reportId],
@@ -48,12 +51,24 @@ export function ReportDetailModal({ isOpen, onClose, reportId, onSanction, onDis
             toast.success("심사가 시작되었습니다.");
             queryClient.invalidateQueries({ queryKey: ["admin", "reports"] });
             queryClient.invalidateQueries({ queryKey: ["admin", "report", reportId] });
+            setShowReviewConfirm(false);
+        },
+        onError: () => {
+            toast.error("심사 시작에 실패했습니다.");
         },
     });
 
     const handleStartReview = () => {
-        if (confirm("심사를 시작하시겠습니까?")) {
-            reviewMutation.mutate();
+        setShowReviewConfirm(true);
+    };
+
+    const handleConfirmReview = () => {
+        reviewMutation.mutate();
+    };
+
+    const handleBackdropKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Escape") {
+            onClose();
         }
     };
 
@@ -103,17 +118,30 @@ export function ReportDetailModal({ isOpen, onClose, reportId, onSanction, onDis
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+            <div
+                className="absolute inset-0 bg-black/50"
+                onClick={onClose}
+                onKeyDown={handleBackdropKeyDown}
+                role="button"
+                tabIndex={0}
+                aria-label="모달 닫기"
+            />
 
             {/* Modal */}
-            <div className="relative z-10 w-full max-w-2xl bg-white rounded-xl shadow-xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div
+                className="relative z-10 w-full max-w-2xl bg-white rounded-xl shadow-xl mx-4 max-h-[90vh] overflow-y-auto"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="report-detail-modal-title"
+            >
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 sticky top-0 bg-white">
-                    <h2 className="text-lg font-semibold text-[#0a3b41]">신고 상세</h2>
+                    <h2 id="report-detail-modal-title" className="text-lg font-semibold text-[#0a3b41]">신고 상세</h2>
                     <button
                         type="button"
                         onClick={onClose}
                         className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                        aria-label="닫기"
                     >
                         <X className="w-5 h-5 text-gray-500" />
                     </button>
@@ -285,6 +313,17 @@ export function ReportDetailModal({ isOpen, onClose, reportId, onSanction, onDis
                     </Button>
                 </div>
             </div>
+
+            {/* Review Confirm Modal */}
+            <ConfirmModal
+                isOpen={showReviewConfirm}
+                onClose={() => setShowReviewConfirm(false)}
+                onConfirm={handleConfirmReview}
+                title="심사 시작"
+                message="심사를 시작하시겠습니까?"
+                confirmText="심사 시작"
+                isLoading={reviewMutation.isPending}
+            />
         </div>
     );
 }

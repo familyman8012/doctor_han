@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import dayjs from "dayjs";
@@ -36,6 +36,7 @@ export function SanctionHistoryPanel({ sanctions }: SanctionHistoryPanelProps) {
     const queryClient = useQueryClient();
     const [revokeTarget, setRevokeTarget] = useState<string | null>(null);
     const [revokeReason, setRevokeReason] = useState("");
+    const textareaId = useId();
 
     const revokeMutation = useMutation({
         mutationFn: (sanctionId: string) => adminApi.revokeSanction(sanctionId, { reason: revokeReason }),
@@ -46,6 +47,9 @@ export function SanctionHistoryPanel({ sanctions }: SanctionHistoryPanelProps) {
             queryClient.invalidateQueries({ queryKey: ["admin", "sanctions"] });
             setRevokeTarget(null);
             setRevokeReason("");
+        },
+        onError: () => {
+            toast.error("제재 해제에 실패했습니다.");
         },
     });
 
@@ -116,7 +120,9 @@ export function SanctionHistoryPanel({ sanctions }: SanctionHistoryPanelProps) {
                                                 만료: {dayjs(sanction.endsAt).format("YYYY.MM.DD")}
                                             </span>
                                         )}
-                                        <span className="ml-2">by {sanction.createdBy.displayName}</span>
+                                        {sanction.createdBy && (
+                                            <span className="ml-2">by {sanction.createdBy.displayName}</span>
+                                        )}
                                     </div>
                                     {sanction.status === "revoked" && sanction.revokedBy && (
                                         <div className="text-xs text-blue-600 mt-1">
@@ -146,22 +152,36 @@ export function SanctionHistoryPanel({ sanctions }: SanctionHistoryPanelProps) {
             {/* Revoke Modal */}
             {revokeTarget && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-black/50" onClick={() => setRevokeTarget(null)} />
-                    <div className="relative z-10 w-full max-w-md bg-white rounded-xl shadow-xl mx-4">
+                    <div
+                        className="absolute inset-0 bg-black/50"
+                        onClick={() => setRevokeTarget(null)}
+                        onKeyDown={(e) => e.key === "Escape" && setRevokeTarget(null)}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="모달 닫기"
+                    />
+                    <div
+                        className="relative z-10 w-full max-w-md bg-white rounded-xl shadow-xl mx-4"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="revoke-modal-title"
+                    >
                         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                            <h2 className="text-lg font-semibold text-[#0a3b41]">제재 해제</h2>
+                            <h2 id="revoke-modal-title" className="text-lg font-semibold text-[#0a3b41]">제재 해제</h2>
                             <button
                                 type="button"
                                 onClick={() => setRevokeTarget(null)}
                                 className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                                aria-label="닫기"
                             >
                                 <XCircle className="w-5 h-5 text-gray-500" />
                             </button>
                         </div>
                         <form onSubmit={handleRevoke}>
                             <div className="p-5">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">해제 사유</label>
+                                <label htmlFor={textareaId} className="block text-sm font-medium text-gray-700 mb-2">해제 사유</label>
                                 <textarea
+                                    id={textareaId}
                                     value={revokeReason}
                                     onChange={(e) => setRevokeReason(e.target.value)}
                                     placeholder="제재 해제 사유를 입력해주세요"
@@ -170,7 +190,7 @@ export function SanctionHistoryPanel({ sanctions }: SanctionHistoryPanelProps) {
                                 />
                             </div>
                             <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-100">
-                                <Button type="button" variant="secondary" onClick={() => setRevokeTarget(null)}>
+                                <Button type="button" variant="secondary" onClick={() => setRevokeTarget(null)} disabled={revokeMutation.isPending}>
                                     취소
                                 </Button>
                                 <Button

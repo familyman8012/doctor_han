@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Database, Tables, TablesInsert } from "@/lib/database.types";
+import type { Database, Tables } from "@/lib/database.types";
 import type {
     AdminReportListItem,
     AdminReportListQuery,
@@ -19,7 +19,10 @@ type ReportRow = Tables<"reports">;
 const AUTO_BLIND_THRESHOLD = 5;
 
 function escapeLike(value: string): string {
-    return value.replaceAll("%", "\\%").replaceAll("_", "\\_");
+    return value
+        .replaceAll("\\", "\\\\")
+        .replaceAll("%", "\\%")
+        .replaceAll("_", "\\_");
 }
 
 /**
@@ -65,6 +68,94 @@ async function getTargetSummary(
 }
 
 /**
+ * Batch get target summaries to avoid N+1 queries
+ */
+async function getTargetSummariesBatch(
+    supabase: SupabaseClient<Database>,
+    targets: { targetType: ReportRow["target_type"]; targetId: string }[],
+): Promise<Map<string, string>> {
+    const summaries = new Map<string, string>();
+
+    // Group by target type
+    const reviewIds: string[] = [];
+    const vendorIds: string[] = [];
+    const profileIds: string[] = [];
+
+    for (const { targetType, targetId } of targets) {
+        switch (targetType) {
+            case "review":
+                reviewIds.push(targetId);
+                break;
+            case "vendor":
+                vendorIds.push(targetId);
+                break;
+            case "profile":
+                profileIds.push(targetId);
+                break;
+        }
+    }
+
+    // Batch fetch reviews
+    if (reviewIds.length > 0) {
+        const { data: reviews } = await supabase
+            .from("reviews")
+            .select("id, content, vendor:vendors!reviews_vendor_id_fkey(name)")
+            .in("id", reviewIds);
+
+        for (const review of reviews ?? []) {
+            const vendorName = (review.vendor as { name: string } | null)?.name ?? "업체";
+            const content = review.content;
+            summaries.set(
+                `review:${review.id}`,
+                `${vendorName}: ${content.slice(0, 50)}${content.length > 50 ? "..." : ""}`
+            );
+        }
+        // Mark missing reviews
+        for (const id of reviewIds) {
+            if (!summaries.has(`review:${id}`)) {
+                summaries.set(`review:${id}`, `[삭제된 리뷰] ${id}`);
+            }
+        }
+    }
+
+    // Batch fetch vendors
+    if (vendorIds.length > 0) {
+        const { data: vendors } = await supabase
+            .from("vendors")
+            .select("id, name")
+            .in("id", vendorIds);
+
+        for (const vendor of vendors ?? []) {
+            summaries.set(`vendor:${vendor.id}`, vendor.name);
+        }
+        for (const id of vendorIds) {
+            if (!summaries.has(`vendor:${id}`)) {
+                summaries.set(`vendor:${id}`, `[삭제된 업체] ${id}`);
+            }
+        }
+    }
+
+    // Batch fetch profiles
+    if (profileIds.length > 0) {
+        const { data: profiles } = await supabase
+            .from("profiles")
+            .select("id, display_name, email")
+            .in("id", profileIds);
+
+        for (const profile of profiles ?? []) {
+            summaries.set(`profile:${profile.id}`, profile.display_name ?? profile.email ?? profile.id);
+        }
+        for (const id of profileIds) {
+            if (!summaries.has(`profile:${id}`)) {
+                summaries.set(`profile:${id}`, `[삭제된 사용자] ${id}`);
+            }
+        }
+    }
+
+    return summaries;
+}
+
+/**
  * Get report list for admin
  */
 export async function getReportList(
@@ -90,11 +181,11 @@ export async function getReportList(
         qb = qb.eq("status", query.status);
     }
 
+    // Note: Supabase doesn't support or() with joined table columns
+    // Search only on the main table's target_id for now
     if (query.q) {
         const escaped = escapeLike(query.q);
-        qb = qb.or(
-            `target_id.ilike.%${escaped}%,reporter_user.display_name.ilike.%${escaped}%`,
-        );
+        qb = qb.ilike("target_id", `%${escaped}%`);
     }
 
     qb = qb.order("created_at", { ascending: false });
@@ -108,12 +199,18 @@ export async function getReportList(
         });
     }
 
-    // Get target summaries for each report
-    const items: AdminReportListItem[] = [];
-    for (const row of data ?? []) {
-        const targetSummary = await getTargetSummary(supabase, row.target_type, row.target_id);
-        items.push(mapReportToListItem(row as any, targetSummary));
-    }
+    // Batch fetch target summaries to avoid N+1 queries
+    const targets = (data ?? []).map((row) => ({
+        targetType: row.target_type,
+        targetId: row.target_id,
+    }));
+    const summaries = await getTargetSummariesBatch(supabase, targets);
+
+    const items: AdminReportListItem[] = (data ?? []).map((row) => {
+        const key = `${row.target_type}:${row.target_id}`;
+        const targetSummary = summaries.get(key) ?? row.target_id;
+        return mapReportToListItem(row as any, targetSummary);
+    });
 
     return {
         items,
@@ -235,6 +332,7 @@ export async function startReview(
 
 /**
  * Resolve report with optional sanction
+ * Uses RPC function for atomic transaction
  */
 export async function resolveReport(
     supabase: SupabaseClient<Database>,
@@ -242,123 +340,39 @@ export async function resolveReport(
     adminUserId: string,
     body: AdminReportResolveBody,
 ): Promise<{ report: AdminReportView; sanction?: SanctionView }> {
-    // Get report
-    const { data: reportData, error: reportError } = await supabase
+    // Use RPC for atomic transaction (report update + sanction creation + target status update)
+    // Note: Using type assertion as the RPC function types are generated after migration
+    const { data: rpcResult, error: rpcError } = await (supabase.rpc as any)("resolve_report", {
+        p_report_id: reportId,
+        p_admin_user_id: adminUserId,
+        p_reason: body.reason,
+        p_sanction_type: body.sanctionType ?? null,
+        p_duration_days: body.durationDays ?? null,
+    }) as { data: { reportId: string; sanctionId: string | null } | null; error: any };
+
+    if (rpcError) {
+        if (rpcError.message?.includes("not found")) {
+            throw notFound("신고를 찾을 수 없습니다.");
+        }
+        if (rpcError.message?.includes("already processed")) {
+            throw badRequest("이미 처리된 신고입니다.");
+        }
+        throw internalServerError("신고를 처리할 수 없습니다.", {
+            message: rpcError.message,
+            code: rpcError.code,
+        });
+    }
+
+    const sanctionId = rpcResult?.sanctionId;
+
+    // Check auto-blind for reviews (separate from main transaction)
+    const { data: reportData } = await supabase
         .from("reports")
-        .select("*")
+        .select("target_type, target_id")
         .eq("id", reportId)
         .single();
 
-    if (reportError || !reportData) {
-        throw notFound("신고를 찾을 수 없습니다.");
-    }
-
-    if (reportData.status === "resolved" || reportData.status === "dismissed") {
-        throw badRequest("이미 처리된 신고입니다.");
-    }
-
-    const now = new Date().toISOString();
-    let sanction: SanctionView | undefined;
-
-    // Update report status
-    const { error: updateError } = await supabase
-        .from("reports")
-        .update({
-            status: "resolved",
-            resolved_by: adminUserId,
-            resolved_at: now,
-            resolution_note: body.reason,
-            updated_at: now,
-        })
-        .eq("id", reportId);
-
-    if (updateError) {
-        throw internalServerError("신고를 처리할 수 없습니다.", {
-            message: updateError.message,
-            code: updateError.code,
-        });
-    }
-
-    // Create sanction if sanctionType is provided
-    if (body.sanctionType) {
-        const startsAt = now;
-        let endsAt: string | null = null;
-
-        if (body.sanctionType === "suspension" && body.durationDays) {
-            const endDate = new Date();
-            endDate.setDate(endDate.getDate() + body.durationDays);
-            endsAt = endDate.toISOString();
-        }
-
-        const sanctionInsert: TablesInsert<"sanctions"> = {
-            target_type: reportData.target_type,
-            target_id: reportData.target_id,
-            report_id: reportId,
-            sanction_type: body.sanctionType,
-            status: "active",
-            reason: body.reason,
-            duration_days: body.durationDays ?? null,
-            starts_at: startsAt,
-            ends_at: endsAt,
-            created_by: adminUserId,
-        };
-
-        const { data: sanctionData, error: sanctionError } = await supabase
-            .from("sanctions")
-            .insert(sanctionInsert)
-            .select(
-                `
-                *,
-                created_by_user:profiles!sanctions_created_by_fkey(id, display_name),
-                revoked_by_user:profiles!sanctions_revoked_by_fkey(id, display_name)
-            `,
-            )
-            .single();
-
-        if (sanctionError) {
-            throw internalServerError("제재를 생성할 수 없습니다.", {
-                message: sanctionError.message,
-                code: sanctionError.code,
-            });
-        }
-
-        sanction = mapSanctionToView(sanctionData as any);
-
-        // Update target status based on sanction type
-        if (body.sanctionType === "permanent_ban" || body.sanctionType === "suspension") {
-            const newStatus = body.sanctionType === "permanent_ban" ? "banned" : "inactive";
-
-            if (reportData.target_type === "profile") {
-                await supabase
-                    .from("profiles")
-                    .update({ status: newStatus, updated_at: now })
-                    .eq("id", reportData.target_id);
-            } else if (reportData.target_type === "vendor") {
-                await supabase
-                    .from("vendors")
-                    .update({ status: newStatus, updated_at: now })
-                    .eq("id", reportData.target_id);
-            }
-        }
-
-        // Log sanction creation
-        await supabase.from("audit_logs").insert({
-            actor_user_id: adminUserId,
-            action: "sanction.create",
-            target_type: "sanction",
-            target_id: sanctionData.id,
-            metadata: {
-                sanctionId: sanctionData.id,
-                targetType: reportData.target_type,
-                targetId: reportData.target_id,
-                sanctionType: body.sanctionType,
-                durationDays: body.durationDays,
-            },
-        });
-    }
-
-    // Check auto-blind for reviews
-    if (reportData.target_type === "review") {
+    if (reportData?.target_type === "review") {
         const { count } = await supabase
             .from("reports")
             .select("*", { count: "exact", head: true })
@@ -366,7 +380,6 @@ export async function resolveReport(
             .eq("target_id", reportData.target_id);
 
         if (count && count >= AUTO_BLIND_THRESHOLD) {
-            // Check if review is not already hidden
             const { data: reviewData } = await supabase
                 .from("reviews")
                 .select("status")
@@ -374,12 +387,12 @@ export async function resolveReport(
                 .single();
 
             if (reviewData && reviewData.status !== "hidden") {
+                const now = new Date().toISOString();
                 await supabase
                     .from("reviews")
                     .update({ status: "hidden", updated_at: now })
                     .eq("id", reportData.target_id);
 
-                // Log auto-blind
                 await supabase.from("audit_logs").insert({
                     actor_user_id: adminUserId,
                     action: "report.auto_blind",
@@ -395,21 +408,28 @@ export async function resolveReport(
         }
     }
 
-    // Log report resolution
-    await supabase.from("audit_logs").insert({
-        actor_user_id: adminUserId,
-        action: "report.resolve",
-        target_type: "report",
-        target_id: reportId,
-        metadata: {
-            reportId,
-            sanctionType: body.sanctionType,
-            reason: body.reason,
-        },
-    });
-
-    // Get updated report
+    // Get updated report and sanction
     const result = await getReportDetail(supabase, reportId);
+    let sanction: SanctionView | undefined;
+
+    if (sanctionId) {
+        const { data: sanctionData } = await supabase
+            .from("sanctions")
+            .select(
+                `
+                *,
+                created_by_user:profiles!sanctions_created_by_fkey(id, display_name),
+                revoked_by_user:profiles!sanctions_revoked_by_fkey(id, display_name)
+            `,
+            )
+            .eq("id", sanctionId)
+            .single();
+
+        if (sanctionData) {
+            sanction = mapSanctionToView(sanctionData as any);
+        }
+    }
+
     return { report: result.report, sanction };
 }
 
@@ -568,18 +588,30 @@ export async function revokeSanction(
         });
     }
 
-    // Restore target status if it was permanent_ban or suspension
+    // Restore target status only if no other active sanctions exist
     if (sanctionData.sanction_type === "permanent_ban" || sanctionData.sanction_type === "suspension") {
-        if (sanctionData.target_type === "profile") {
-            await supabase
-                .from("profiles")
-                .update({ status: "active", updated_at: now })
-                .eq("id", sanctionData.target_id);
-        } else if (sanctionData.target_type === "vendor") {
-            await supabase
-                .from("vendors")
-                .update({ status: "active", updated_at: now })
-                .eq("id", sanctionData.target_id);
+        // Check for other active sanctions on the same target
+        const { count: otherActiveSanctions } = await supabase
+            .from("sanctions")
+            .select("*", { count: "exact", head: true })
+            .eq("target_type", sanctionData.target_type)
+            .eq("target_id", sanctionData.target_id)
+            .eq("status", "active")
+            .neq("id", sanctionId);
+
+        // Only restore status if no other active sanctions exist
+        if ((otherActiveSanctions ?? 0) === 0) {
+            if (sanctionData.target_type === "profile") {
+                await supabase
+                    .from("profiles")
+                    .update({ status: "active", updated_at: now })
+                    .eq("id", sanctionData.target_id);
+            } else if (sanctionData.target_type === "vendor") {
+                await supabase
+                    .from("vendors")
+                    .update({ status: "active", updated_at: now })
+                    .eq("id", sanctionData.target_id);
+            }
         }
     }
 

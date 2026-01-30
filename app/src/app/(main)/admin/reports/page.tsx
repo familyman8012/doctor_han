@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
 import { Search, Clock, CheckCircle, XCircle, Eye, FileText, Building2, User } from "lucide-react";
 import dayjs from "dayjs";
@@ -16,6 +17,7 @@ import type { ReportTargetType, ReportStatus, AdminReportListItem } from "@/lib/
 import { ReportDetailModal } from "./components/ReportDetailModal";
 import { SanctionModal } from "./components/SanctionModal";
 import { DismissModal } from "./components/DismissModal";
+import { ConfirmModal } from "./components/ConfirmModal";
 
 const PAGE_SIZE = 20;
 
@@ -50,23 +52,24 @@ const TARGET_TYPE_LABELS: Record<ReportTargetType, string> = {
 
 export default function AdminReportsPage() {
     const queryClient = useQueryClient();
-    const [targetType, setTargetType] = useState<ReportTargetType | "all">("all");
-    const [status, setStatus] = useState<ReportStatus | "all">("pending");
-    const [search, setSearch] = useState("");
-    const [searchInput, setSearchInput] = useState("");
-    const [page, setPage] = useState(1);
+    const [targetType, setTargetType] = useQueryState("type", parseAsString.withDefault("all"));
+    const [status, setStatus] = useQueryState("status", parseAsString.withDefault("pending"));
+    const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
+    const [searchInput, setSearchInput] = useState(search);
+    const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
 
     // Modal states
     const [detailTarget, setDetailTarget] = useState<AdminReportListItem | null>(null);
     const [sanctionTarget, setSanctionTarget] = useState<AdminReportListItem | null>(null);
     const [dismissTarget, setDismissTarget] = useState<AdminReportListItem | null>(null);
+    const [reviewConfirmId, setReviewConfirmId] = useState<string | null>(null);
 
     const { data, isLoading } = useQuery({
         queryKey: ["admin", "reports", targetType, status, search, page],
         queryFn: () =>
             adminApi.getReports({
-                targetType: targetType === "all" ? undefined : targetType,
-                status: status === "all" ? undefined : status,
+                targetType: targetType === "all" ? undefined : (targetType as ReportTargetType),
+                status: status === "all" ? undefined : (status as ReportStatus),
                 q: search || undefined,
                 page,
                 pageSize: PAGE_SIZE,
@@ -78,6 +81,10 @@ export default function AdminReportsPage() {
         onSuccess: () => {
             toast.success("심사가 시작되었습니다.");
             queryClient.invalidateQueries({ queryKey: ["admin", "reports"] });
+            setReviewConfirmId(null);
+        },
+        onError: () => {
+            toast.error("심사 시작에 실패했습니다.");
         },
     });
 
@@ -88,8 +95,12 @@ export default function AdminReportsPage() {
     };
 
     const handleStartReview = (id: string) => {
-        if (confirm("심사를 시작하시겠습니까?")) {
-            reviewMutation.mutate(id);
+        setReviewConfirmId(id);
+    };
+
+    const handleConfirmReview = () => {
+        if (reviewConfirmId) {
+            reviewMutation.mutate(reviewConfirmId);
         }
     };
 
@@ -213,74 +224,70 @@ export default function AdminReportsPage() {
                 ) : items.length === 0 ? (
                     <Empty title="신고 내역이 없습니다" description="조건에 맞는 신고가 없습니다." />
                 ) : (
-                    <div className="divide-y divide-gray-100">
+                    <ul className="divide-y divide-gray-100">
                         {items.map((item) => {
                             const isPending = item.status === "pending";
                             const isReviewing = item.status === "reviewing";
                             const canProcess = isPending || isReviewing;
 
                             return (
-                                <div
-                                    key={item.id}
-                                    className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                                    onClick={() => setDetailTarget(item)}
-                                >
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                {getStatusBadge(item.status)}
-                                                {getTargetTypeBadge(item.targetType)}
-                                                <span className="text-xs text-gray-400">
-                                                    {dayjs(item.createdAt).format("YYYY.MM.DD HH:mm")}
-                                                </span>
-                                            </div>
-                                            <p className="font-medium text-[#0a3b41] truncate">
-                                                {item.targetSummary}
-                                            </p>
-                                            <p className="text-sm text-gray-500 mt-0.5">
-                                                신고자: {item.reporterUser.displayName} ({item.reporterUser.email ?? "-"}) |
-                                                사유: {REASON_LABELS[item.reason] ?? item.reason}
-                                            </p>
+                                <li key={item.id} className="flex items-start justify-between gap-4 p-4">
+                                    <button
+                                        type="button"
+                                        className="flex-1 min-w-0 text-left hover:bg-gray-50 -m-4 p-4 transition-colors"
+                                        onClick={() => setDetailTarget(item)}
+                                        aria-label={`${item.targetSummary} - ${item.status === "pending" ? "접수" : item.status === "reviewing" ? "심사중" : item.status === "resolved" ? "처리완료" : "기각"}`}
+                                    >
+                                        <div className="flex items-center gap-2 mb-1">
+                                            {getStatusBadge(item.status)}
+                                            {getTargetTypeBadge(item.targetType)}
+                                            <span className="text-xs text-gray-400">
+                                                {dayjs(item.createdAt).format("YYYY.MM.DD HH:mm")}
+                                            </span>
                                         </div>
-                                        {canProcess && (
-                                            <div
-                                                className="flex gap-2 shrink-0"
-                                                onClick={(e) => e.stopPropagation()}
+                                        <p className="font-medium text-[#0a3b41] truncate">
+                                            {item.targetSummary}
+                                        </p>
+                                        <p className="text-sm text-gray-500 mt-0.5">
+                                            신고자: {item.reporterUser.displayName} ({item.reporterUser.email ?? "-"}) |
+                                            사유: {REASON_LABELS[item.reason] ?? item.reason}
+                                        </p>
+                                    </button>
+                                    {canProcess && (
+                                        <div className="flex gap-2 shrink-0">
+                                            {isPending && (
+                                                <Button
+                                                    variant="secondary"
+                                                    size="xs"
+                                                    onClick={() => handleStartReview(item.id)}
+                                                    isLoading={reviewMutation.isPending}
+                                                    LeadingIcon={<Eye />}
+                                                >
+                                                    심사 시작
+                                                </Button>
+                                            )}
+                                            <Button
+                                                variant="primary"
+                                                size="xs"
+                                                onClick={() => setSanctionTarget(item)}
+                                                LeadingIcon={<CheckCircle />}
                                             >
-                                                {isPending && (
-                                                    <Button
-                                                        variant="secondary"
-                                                        size="xs"
-                                                        onClick={() => handleStartReview(item.id)}
-                                                        isLoading={reviewMutation.isPending}
-                                                        LeadingIcon={<Eye />}
-                                                    >
-                                                        심사 시작
-                                                    </Button>
-                                                )}
-                                                <Button
-                                                    variant="primary"
-                                                    size="xs"
-                                                    onClick={() => setSanctionTarget(item)}
-                                                    LeadingIcon={<CheckCircle />}
-                                                >
-                                                    제재
-                                                </Button>
-                                                <Button
-                                                    variant="danger"
-                                                    size="xs"
-                                                    onClick={() => setDismissTarget(item)}
-                                                    LeadingIcon={<XCircle />}
-                                                >
-                                                    기각
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                                                제재
+                                            </Button>
+                                            <Button
+                                                variant="danger"
+                                                size="xs"
+                                                onClick={() => setDismissTarget(item)}
+                                                LeadingIcon={<XCircle />}
+                                            >
+                                                기각
+                                            </Button>
+                                        </div>
+                                    )}
+                                </li>
                             );
                         })}
-                    </div>
+                    </ul>
                 )}
 
                 {/* Pagination */}
@@ -329,6 +336,17 @@ export default function AdminReportsPage() {
                     reportId={dismissTarget.id}
                 />
             )}
+
+            {/* Review Confirm Modal */}
+            <ConfirmModal
+                isOpen={!!reviewConfirmId}
+                onClose={() => setReviewConfirmId(null)}
+                onConfirm={handleConfirmReview}
+                title="심사 시작"
+                message="심사를 시작하시겠습니까?"
+                confirmText="심사 시작"
+                isLoading={reviewMutation.isPending}
+            />
         </div>
     );
 }
