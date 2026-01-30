@@ -11,6 +11,7 @@ import {
     fetchLeadParticipants,
     fetchMessages,
     fetchUserProfile,
+    getUnreadCount,
     insertMessage,
     insertMessageAttachments,
     isVendorOwner,
@@ -26,6 +27,7 @@ interface GetMessagesResult {
     page: number;
     pageSize: number;
     total: number;
+    unreadCount: number;
 }
 
 /**
@@ -56,19 +58,17 @@ export async function getMessages(
     }
 
     const { page, pageSize } = query;
-    const { rows, attachmentsByMessageId, total } = await fetchMessages(
-        supabase,
-        leadId,
-        page,
-        pageSize,
-    );
+    const [{ rows, attachmentsByMessageId, total }, unreadCount] = await Promise.all([
+        fetchMessages(supabase, leadId, page, pageSize),
+        getUnreadCount(supabase, leadId, userId),
+    ]);
 
     const items = rows.map((row) => {
         const attachments = attachmentsByMessageId.get(row.id) ?? [];
         return mapMessageRow(row, attachments);
     });
 
-    return { items, page, pageSize, total };
+    return { items, page, pageSize, total, unreadCount };
 }
 
 /**
@@ -124,7 +124,7 @@ export async function sendMessage(
         : [];
 
     // 알림 발송 (비동기, 실패해도 메시지는 저장됨)
-    const recipientUserId = isDoctor ? await getVendorOwnerUserId(supabase, lead.vendorId) : lead.doctorUserId;
+    const recipientUserId = isDoctor ? await getVendorOwnerUserId(lead.vendorId) : lead.doctorUserId;
     if (recipientUserId) {
         sendMessageNotification({
             recipientUserId,
@@ -166,18 +166,18 @@ export async function markAsRead(
     }
 
     // RLS에서 sender_id != auth.uid() 조건으로 자신이 보낸 메시지는 업데이트 불가
-    await markMessagesAsRead(supabase, messageIds);
+    // leadId 조건으로 다른 리드의 메시지가 처리되지 않도록 방지
+    await markMessagesAsRead(supabase, leadId, messageIds);
 }
 
 // ============================================
 // Private helpers
 // ============================================
 
-async function getVendorOwnerUserId(
-    supabase: SupabaseClient<Database>,
-    vendorId: string,
-): Promise<string | null> {
-    const { data, error } = await supabase
+async function getVendorOwnerUserId(vendorId: string): Promise<string | null> {
+    // admin client를 사용하여 RLS 제한 없이 조회
+    const adminSupabase = createSupabaseAdminClient();
+    const { data, error } = await adminSupabase
         .from("vendors")
         .select("owner_user_id")
         .eq("id", vendorId)
@@ -312,7 +312,7 @@ ${senderName}님이 리드 문의에 메시지를 보냈습니다.
             status: "sent",
         });
 
-        console.log(`[Notification] Message email sent to ${recipientEmail}`);
+        console.log(`[Notification] Message email sent to user ${recipientUserId}`);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
 
@@ -327,7 +327,7 @@ ${senderName}님이 리드 문의에 메시지를 보냈습니다.
             status: "failed",
         });
 
-        console.error(`[Notification] Message email failed for ${recipientEmail}`, error);
+        console.error(`[Notification] Message email failed for user ${recipientUserId}`, error);
     }
 }
 
@@ -369,9 +369,9 @@ async function sendMessageKakaoNotification(params: SendMessageKakaoNotification
         });
 
         if (result.success) {
-            console.log(`[Notification] Message kakao sent to ${recipientPhone}`);
+            console.log(`[Notification] Message kakao sent to user ${recipientUserId}`);
         } else {
-            console.error(`[Notification] Message kakao failed for ${recipientPhone}`, result.error);
+            console.error(`[Notification] Message kakao failed for user ${recipientUserId}`, result.error);
         }
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -387,6 +387,6 @@ async function sendMessageKakaoNotification(params: SendMessageKakaoNotification
             status: "failed",
         });
 
-        console.error(`[Notification] Message kakao failed for ${recipientPhone}`, error);
+        console.error(`[Notification] Message kakao failed for user ${recipientUserId}`, error);
     }
 }

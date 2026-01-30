@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { leadsApi } from "@/api-client/leads";
 import { MessageList } from "@/app/(main)/mypage/leads/[id]/components/MessageList";
 import { MessageInput } from "@/app/(main)/mypage/leads/[id]/components/MessageInput";
@@ -14,6 +13,7 @@ interface MessagesTabProps {
 
 export function MessagesTab({ leadId, currentUserId }: MessagesTabProps) {
     const queryClient = useQueryClient();
+    const lastAttemptedIdsRef = useRef<string>("");
 
     // 메시지 목록 조회
     const {
@@ -23,13 +23,12 @@ export function MessagesTab({ leadId, currentUserId }: MessagesTabProps) {
     } = useQuery({
         queryKey: ["lead-messages", leadId],
         queryFn: () => leadsApi.getMessages(leadId, { pageSize: 50 }),
-        staleTime: 30000, // 30초
-        refetchInterval: 30000, // 30초마다 폴링
+        staleTime: 30000,
+        refetchInterval: 30000,
     });
 
     const messages = useMemo(() => {
         if (!data?.data?.items) return [];
-        // API는 created_at ASC 정렬, 이미 정렬되어 있음
         return data.data.items;
     }, [data]);
 
@@ -44,7 +43,9 @@ export function MessagesTab({ leadId, currentUserId }: MessagesTabProps) {
     const markAsReadMutation = useMutation({
         mutationFn: (messageIds: string[]) =>
             leadsApi.markMessagesAsRead(leadId, { messageIds }),
-        onSuccess: () => {
+        onSuccess: (_, variables) => {
+            // 성공 시에만 attempted로 기록
+            lastAttemptedIdsRef.current = variables.join(",");
             queryClient.invalidateQueries({ queryKey: ["lead-messages", leadId] });
         },
     });
@@ -52,9 +53,10 @@ export function MessagesTab({ leadId, currentUserId }: MessagesTabProps) {
     const isPending = markAsReadMutation.isPending;
     const markAsRead = markAsReadMutation.mutate;
 
-    // 탭 진입 시 읽지 않은 메시지 자동 읽음 처리
+    // 탭 진입 시 읽지 않은 메시지 자동 읽음 처리 (실패 시 재시도 가능)
     useEffect(() => {
-        if (unreadMessageIds.length > 0 && !isPending) {
+        const idsKey = unreadMessageIds.join(",");
+        if (unreadMessageIds.length > 0 && !isPending && lastAttemptedIdsRef.current !== idsKey) {
             markAsRead(unreadMessageIds);
         }
     }, [unreadMessageIds, isPending, markAsRead]);
@@ -74,9 +76,6 @@ export function MessagesTab({ leadId, currentUserId }: MessagesTabProps) {
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["lead-messages", leadId] });
-        },
-        onError: () => {
-            toast.error("메시지 전송에 실패했습니다");
         },
     });
 

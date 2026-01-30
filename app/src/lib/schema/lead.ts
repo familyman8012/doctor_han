@@ -175,6 +175,7 @@ export const LeadMessagesListResponseSchema = z.object({
         page: z.number().int(),
         pageSize: z.number().int(),
         total: z.number().int(),
+        unreadCount: z.number().int(),
     }),
     message: z.string().optional(),
 });
@@ -202,4 +203,3 @@ export const LeadMessageReadPatchBodySchema = z
 export type LeadMessageReadPatchBody = z.infer<
     typeof LeadMessageReadPatchBodySchema
 >;
-

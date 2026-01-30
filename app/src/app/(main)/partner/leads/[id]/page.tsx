@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -64,21 +64,16 @@ export default function PartnerLeadDetailPage() {
         enabled: isAuthenticated,
     });
 
-    // 안 읽은 메시지 수 조회
+    // 메시지 목록 (unreadCount 포함)
     const { data: messagesData } = useQuery({
         queryKey: ["lead-messages", leadId],
         queryFn: () => leadsApi.getMessages(leadId, { pageSize: 50 }),
         enabled: isAuthenticated && !!leadId,
         staleTime: 30000,
+        refetchInterval: 30000,
     });
 
-    const userId = user?.id;
-    const unreadCount = useMemo(() => {
-        if (!messagesData?.data?.items || !userId) return 0;
-        return messagesData.data.items.filter(
-            (m) => m.senderId !== userId && !m.readAt,
-        ).length;
-    }, [messagesData, userId]);
+    const unreadCount = messagesData?.data?.unreadCount ?? 0;
 
     // 상태 변경 mutation
     const updateStatusMutation = useMutation({
