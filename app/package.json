@@ -38,6 +38,7 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
     "framer-motion": "^12.23.26",
+    "import-in-the-middle": "^2.0.6",
     "lodash": "^4.17.21",
     "lucide-react": "^0.561.0",
     "next": "16.0.10",

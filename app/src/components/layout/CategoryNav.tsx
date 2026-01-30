@@ -30,7 +30,7 @@ export function CategoryNav({ className }: CategoryNavProps) {
         queryKey: ["categories"],
         queryFn: async (): Promise<Category[]> => {
             const response = await api.get<{ data: { items: Category[] } }>("/api/categories");
-            return response.data.data.items;
+            return response.data?.data?.items ?? [];
         },
         staleTime: 5 * 60 * 1000, // 5분
     });
