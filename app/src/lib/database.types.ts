@@ -371,6 +371,84 @@ export type Database = {
           },
         ]
       }
+      lead_message_attachments: {
+        Row: {
+          created_at: string
+          file_id: string
+          id: string
+          message_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_id: string
+          id?: string
+          message_id: string
+        }
+        Update: {
+          created_at?: string
+          file_id?: string
+          id?: string
+          message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_message_attachments_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "lead_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          lead_id: string
+          read_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          lead_id: string
+          read_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          lead_id?: string
+          read_at?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_messages_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_status_history: {
         Row: {
           changed_by: string | null
@@ -1147,6 +1225,7 @@ export type Database = {
         | "lead_attachment"
         | "avatar"
         | "review_photo"
+        | "lead_message_attachment"
       help_article_type: "faq" | "notice" | "guide"
       lead_status:
         | "submitted"
@@ -1164,6 +1243,7 @@ export type Database = {
         | "lead_received"
         | "lead_responded"
         | "review_received"
+        | "lead_message_received"
       profile_role: "doctor" | "vendor" | "admin"
       profile_status: "active" | "inactive" | "banned"
       review_report_reason:
@@ -1310,6 +1390,7 @@ export const Constants = {
         "lead_attachment",
         "avatar",
         "review_photo",
+        "lead_message_attachment",
       ],
       help_article_type: ["faq", "notice", "guide"],
       lead_status: [
@@ -1329,6 +1410,7 @@ export const Constants = {
         "lead_received",
         "lead_responded",
         "review_received",
+        "lead_message_received",
       ],
       profile_role: ["doctor", "vendor", "admin"],
       profile_status: ["active", "inactive", "banned"],

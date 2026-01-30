@@ -125,3 +125,81 @@ export const LeadDetailResponseSchema = z.object({
 
 export type LeadDetailResponse = z.infer<typeof LeadDetailResponseSchema>;
 
+// ============================================
+// Lead Messages
+// ============================================
+
+export const LeadMessageAttachmentSchema = z.object({
+    id: zUuid,
+    messageId: zUuid,
+    fileId: zUuid,
+    createdAt: z.string(),
+});
+
+export type LeadMessageAttachment = z.infer<typeof LeadMessageAttachmentSchema>;
+
+export const LeadMessageSchema = z.object({
+    id: zUuid,
+    leadId: zUuid,
+    senderId: zUuid,
+    content: z.string(),
+    readAt: z.string().nullable(),
+    createdAt: z.string(),
+    attachments: z.array(LeadMessageAttachmentSchema),
+});
+
+export type LeadMessage = z.infer<typeof LeadMessageSchema>;
+
+export const LeadMessageCreateBodySchema = z
+    .object({
+        content: z.string().trim().min(1).max(5000),
+        attachmentFileIds: z.array(zUuid).max(5).optional(),
+    })
+    .strict();
+
+export type LeadMessageCreateBody = z.infer<typeof LeadMessageCreateBodySchema>;
+
+export const LeadMessagesListQuerySchema = z
+    .object({
+        page: z.coerce.number().int().min(1).default(1),
+        pageSize: z.coerce.number().int().min(1).max(50).default(20),
+    })
+    .strict();
+
+export type LeadMessagesListQuery = z.infer<typeof LeadMessagesListQuerySchema>;
+
+export const LeadMessagesListResponseSchema = z.object({
+    code: z.literal(API_SUCCESS_CODE),
+    data: z.object({
+        items: z.array(LeadMessageSchema),
+        page: z.number().int(),
+        pageSize: z.number().int(),
+        total: z.number().int(),
+        unreadCount: z.number().int(),
+    }),
+    message: z.string().optional(),
+});
+
+export type LeadMessagesListResponse = z.infer<
+    typeof LeadMessagesListResponseSchema
+>;
+
+export const LeadMessageResponseSchema = z.object({
+    code: z.literal(API_SUCCESS_CODE),
+    data: z.object({
+        message: LeadMessageSchema,
+    }),
+    message: z.string().optional(),
+});
+
+export type LeadMessageResponse = z.infer<typeof LeadMessageResponseSchema>;
+
+export const LeadMessageReadPatchBodySchema = z
+    .object({
+        messageIds: z.array(zUuid).min(1),
+    })
+    .strict();
+
+export type LeadMessageReadPatchBody = z.infer<
+    typeof LeadMessageReadPatchBodySchema
+>;
