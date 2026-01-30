@@ -3,13 +3,14 @@
 import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Shield, Users, Building2, FolderTree, CheckCircle, ChevronRight, HelpCircle } from "lucide-react";
+import { Shield, Users, Building2, FolderTree, CheckCircle, ChevronRight, Flag, HelpCircle } from "lucide-react";
 import { useIsAuthenticated, useUserRole, useAuthStore } from "@/stores/auth";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { cn } from "@/components/utils";
 
 const NAV_ITEMS = [
     { href: "/admin/verifications", label: "인증 승인 관리", icon: CheckCircle },
+    { href: "/admin/reports", label: "신고 관리", icon: Flag },
     { href: "/admin/users", label: "사용자 관리", icon: Users },
     { href: "/admin/vendors", label: "업체 관리", icon: Building2 },
     { href: "/admin/categories", label: "카테고리 관리", icon: FolderTree },

@@ -788,6 +788,79 @@ export type Database = {
           },
         ]
       }
+      reports: {
+        Row: {
+          created_at: string
+          detail: string | null
+          id: string
+          reason: Database["public"]["Enums"]["report_reason"]
+          reporter_user_id: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["report_status"]
+          target_id: string
+          target_type: Database["public"]["Enums"]["report_target_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          reason: Database["public"]["Enums"]["report_reason"]
+          reporter_user_id: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          target_id: string
+          target_type: Database["public"]["Enums"]["report_target_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          reason?: Database["public"]["Enums"]["report_reason"]
+          reporter_user_id?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["report_target_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_reporter_user_id_fkey"
+            columns: ["reporter_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       review_reports: {
         Row: {
           created_at: string
@@ -912,6 +985,85 @@ export type Database = {
             columns: ["vendor_id"]
             isOneToOne: false
             referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sanctions: {
+        Row: {
+          created_at: string
+          created_by: string
+          duration_days: number | null
+          ends_at: string | null
+          id: string
+          reason: string
+          report_id: string | null
+          revoke_reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          sanction_type: Database["public"]["Enums"]["sanction_type"]
+          starts_at: string
+          status: Database["public"]["Enums"]["sanction_status"]
+          target_id: string
+          target_type: Database["public"]["Enums"]["report_target_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          duration_days?: number | null
+          ends_at?: string | null
+          id?: string
+          reason: string
+          report_id?: string | null
+          revoke_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          sanction_type: Database["public"]["Enums"]["sanction_type"]
+          starts_at?: string
+          status?: Database["public"]["Enums"]["sanction_status"]
+          target_id: string
+          target_type: Database["public"]["Enums"]["report_target_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          duration_days?: number | null
+          ends_at?: string | null
+          id?: string
+          reason?: string
+          report_id?: string | null
+          revoke_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          sanction_type?: Database["public"]["Enums"]["sanction_type"]
+          starts_at?: string
+          status?: Database["public"]["Enums"]["sanction_status"]
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["report_target_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sanctions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sanctions_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sanctions_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1246,6 +1398,14 @@ export type Database = {
         | "lead_message_received"
       profile_role: "doctor" | "vendor" | "admin"
       profile_status: "active" | "inactive" | "banned"
+      report_reason:
+        | "spam"
+        | "inappropriate"
+        | "false_info"
+        | "privacy"
+        | "other"
+      report_status: "pending" | "reviewing" | "resolved" | "dismissed"
+      report_target_type: "review" | "vendor" | "profile"
       review_report_reason:
         | "spam"
         | "inappropriate"
@@ -1254,6 +1414,8 @@ export type Database = {
         | "other"
       review_report_status: "pending" | "reviewed" | "dismissed"
       review_status: "published" | "hidden"
+      sanction_status: "active" | "expired" | "revoked"
+      sanction_type: "warning" | "suspension" | "permanent_ban"
       vendor_status: "draft" | "active" | "inactive" | "banned"
       verification_status: "pending" | "approved" | "rejected"
     }
@@ -1414,6 +1576,15 @@ export const Constants = {
       ],
       profile_role: ["doctor", "vendor", "admin"],
       profile_status: ["active", "inactive", "banned"],
+      report_reason: [
+        "spam",
+        "inappropriate",
+        "false_info",
+        "privacy",
+        "other",
+      ],
+      report_status: ["pending", "reviewing", "resolved", "dismissed"],
+      report_target_type: ["review", "vendor", "profile"],
       review_report_reason: [
         "spam",
         "inappropriate",
@@ -1423,6 +1594,8 @@ export const Constants = {
       ],
       review_report_status: ["pending", "reviewed", "dismissed"],
       review_status: ["published", "hidden"],
+      sanction_status: ["active", "expired", "revoked"],
+      sanction_type: ["warning", "suspension", "permanent_ban"],
       vendor_status: ["draft", "active", "inactive", "banned"],
       verification_status: ["pending", "approved", "rejected"],
     },
