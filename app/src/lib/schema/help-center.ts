@@ -19,8 +19,8 @@ export const HelpCategoryViewSchema = z.object({
     slug: z.string(),
     displayOrder: z.number().int(),
     isActive: z.boolean(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
 });
 
 export type HelpCategoryView = z.infer<typeof HelpCategoryViewSchema>;
@@ -35,8 +35,8 @@ export const HelpArticleViewSchema = z.object({
     isPublished: z.boolean(),
     isPinned: z.boolean(),
     displayOrder: z.number().int(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
 });
 
 export type HelpArticleView = z.infer<typeof HelpArticleViewSchema>;

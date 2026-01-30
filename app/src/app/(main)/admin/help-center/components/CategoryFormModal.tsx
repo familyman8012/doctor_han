@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -85,6 +85,23 @@ export function CategoryFormModal({
         }
     }, [mode, category, reset]);
 
+    // Escape key handler
+    const handleKeyDown = useCallback(
+        (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                onClose();
+            }
+        },
+        [onClose]
+    );
+
+    useEffect(() => {
+        if (isOpen) {
+            document.addEventListener("keydown", handleKeyDown);
+            return () => document.removeEventListener("keydown", handleKeyDown);
+        }
+    }, [isOpen, handleKeyDown]);
+
     const createMutation = useMutation({
         mutationFn: (data: HelpCategoryCreateBody) => helpCenterApi.createCategory(data),
         onSuccess: () => {
@@ -144,6 +161,7 @@ export function CategoryFormModal({
                     <button
                         type="button"
                         onClick={onClose}
+                        aria-label="닫기"
                         className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
                     >
                         <X className="w-5 h-5 text-gray-500" />
@@ -155,10 +173,11 @@ export function CategoryFormModal({
                     <div className="p-5 space-y-4">
                         {/* Name */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            <label htmlFor="category-name" className="block text-sm font-medium text-gray-700 mb-1.5">
                                 카테고리명 <span className="text-red-500">*</span>
                             </label>
                             <Input
+                                id="category-name"
                                 {...register("name", { required: "카테고리명을 입력해주세요." })}
                                 placeholder="카테고리명"
                             />
@@ -169,10 +188,11 @@ export function CategoryFormModal({
 
                         {/* Slug */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            <label htmlFor="category-slug" className="block text-sm font-medium text-gray-700 mb-1.5">
                                 슬러그 <span className="text-red-500">*</span>
                             </label>
                             <Input
+                                id="category-slug"
                                 {...register("slug", {
                                     required: "슬러그를 입력해주세요.",
                                     pattern: {

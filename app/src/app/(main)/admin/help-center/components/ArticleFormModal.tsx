@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -81,6 +81,23 @@ export function ArticleFormModal({
         }
     }, [mode, article, reset]);
 
+    // Escape key handler
+    const handleKeyDown = useCallback(
+        (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                onClose();
+            }
+        },
+        [onClose]
+    );
+
+    useEffect(() => {
+        if (isOpen) {
+            document.addEventListener("keydown", handleKeyDown);
+            return () => document.removeEventListener("keydown", handleKeyDown);
+        }
+    }, [isOpen, handleKeyDown]);
+
     const createMutation = useMutation({
         mutationFn: (data: HelpArticleCreateBody) => helpCenterApi.createArticle(data),
         onSuccess: () => {
@@ -155,6 +172,7 @@ export function ArticleFormModal({
                     <button
                         type="button"
                         onClick={onClose}
+                        aria-label="닫기"
                         className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
                     >
                         <X className="w-5 h-5 text-gray-500" />
@@ -166,10 +184,11 @@ export function ArticleFormModal({
                     <div className="p-5 space-y-4">
                         {/* Title */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            <label htmlFor="article-title" className="block text-sm font-medium text-gray-700 mb-1.5">
                                 {type === "faq" ? "질문" : "제목"} <span className="text-red-500">*</span>
                             </label>
                             <Input
+                                id="article-title"
                                 {...register("title", { required: type === "faq" ? "질문을 입력해주세요." : "제목을 입력해주세요." })}
                                 placeholder={type === "faq" ? "자주 묻는 질문을 입력하세요" : "공지사항 제목을 입력하세요"}
                             />
@@ -180,10 +199,11 @@ export function ArticleFormModal({
 
                         {/* Content */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            <label htmlFor="article-content" className="block text-sm font-medium text-gray-700 mb-1.5">
                                 {type === "faq" ? "답변" : "내용"} <span className="text-red-500">*</span>
                             </label>
                             <textarea
+                                id="article-content"
                                 {...register("content", { required: type === "faq" ? "답변을 입력해주세요." : "내용을 입력해주세요." })}
                                 className="plain"
                                 placeholder={type === "faq" ? "답변을 입력하세요" : "공지사항 내용을 입력하세요"}

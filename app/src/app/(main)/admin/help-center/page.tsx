@@ -13,6 +13,7 @@ import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
 import Pagination from "@/components/widgets/Pagination/Pagination";
 import { cn } from "@/components/utils";
+import { formatDateKoShort } from "@/lib/utils/date";
 import type { HelpArticleView, HelpCategoryView, HelpArticleType } from "@/lib/schema/help-center";
 import { ArticleFormModal } from "./components/ArticleFormModal";
 import { CategoryFormModal } from "./components/CategoryFormModal";
@@ -113,15 +114,6 @@ export default function AdminHelpCenterPage() {
         } else {
             deleteCategoryMutation.mutate(deleteModal.id);
         }
-    };
-
-    const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString("ko-KR", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-        });
     };
 
     const isLoading = currentTab === "categories" ? categoriesLoading : articlesLoading;
@@ -320,7 +312,7 @@ export default function AdminHelpCenterPage() {
                                             {article.displayOrder}
                                         </td>
                                         <td className="px-4 py-3 text-sm text-gray-500">
-                                            {formatDate(article.createdAt)}
+                                            {formatDateKoShort(article.createdAt)}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex justify-end gap-1">

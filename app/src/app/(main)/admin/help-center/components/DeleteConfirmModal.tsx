@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 
@@ -20,6 +21,23 @@ export function DeleteConfirmModal({
     onConfirm,
     onClose,
 }: DeleteConfirmModalProps) {
+    // Escape key handler
+    const handleKeyDown = useCallback(
+        (e: KeyboardEvent) => {
+            if (e.key === "Escape" && !isLoading) {
+                onClose();
+            }
+        },
+        [onClose, isLoading]
+    );
+
+    useEffect(() => {
+        if (isOpen) {
+            document.addEventListener("keydown", handleKeyDown);
+            return () => document.removeEventListener("keydown", handleKeyDown);
+        }
+    }, [isOpen, handleKeyDown]);
+
     if (!isOpen) return null;
 
     return (
@@ -38,6 +56,7 @@ export function DeleteConfirmModal({
                     <button
                         type="button"
                         onClick={onClose}
+                        aria-label="닫기"
                         className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
                     >
                         <X className="w-5 h-5 text-gray-500" />

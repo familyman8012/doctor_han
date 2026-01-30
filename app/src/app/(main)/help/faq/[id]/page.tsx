@@ -11,11 +11,12 @@ import { Spinner } from "@/components/ui/Spinner/Spinner";
 export default function FaqDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const id = params.id as string;
+    const rawId = params.id;
+    const id = typeof rawId === "string" ? rawId : undefined;
 
     const { data, isLoading, error } = useQuery({
         queryKey: ["help-article", id],
-        queryFn: () => helpCenterApi.getPublicArticle(id),
+        queryFn: () => helpCenterApi.getPublicArticle(id!),
         enabled: !!id,
     });
 

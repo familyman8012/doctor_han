@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";
 import { Search, ChevronDown, ChevronUp, Pin, Clock } from "lucide-react";
@@ -13,6 +13,7 @@ import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
 import Pagination from "@/components/widgets/Pagination/Pagination";
 import { cn } from "@/components/utils";
+import { formatDateKo } from "@/lib/utils/date";
 import type { HelpArticleView, HelpCategoryView } from "@/lib/schema/help-center";
 
 type TabType = "faq" | "notice";
@@ -57,6 +58,11 @@ export default function HelpCenterPage() {
     const total = articlesData?.data?.total ?? 0;
     const pageSize = articlesData?.data?.pageSize ?? 10;
 
+    // Sync searchInput with q param when URL changes (e.g., browser back/forward)
+    useEffect(() => {
+        setSearchInput(q);
+    }, [q]);
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         setQ(searchInput);
@@ -79,15 +85,6 @@ export default function HelpCenterPage() {
 
     const toggleFaq = (id: string) => {
         setExpandedId((prev) => (prev === id ? null : id));
-    };
-
-    const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString("ko-KR", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-        });
     };
 
     return (
@@ -194,43 +191,56 @@ export default function HelpCenterPage() {
                 ) : currentTab === "faq" ? (
                     // FAQ Accordion
                     <div className="divide-y divide-gray-100">
-                        {articles.map((article: HelpArticleView) => (
-                            <div key={article.id}>
-                                <button
-                                    type="button"
-                                    onClick={() => toggleFaq(article.id)}
-                                    className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
-                                >
-                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                        <span className="text-[#62e3d5] font-semibold shrink-0">Q.</span>
-                                        <span className="font-medium text-[#0a3b41] truncate">{article.title}</span>
-                                        {article.category && (
-                                            <Badge color="neutral" size="xs" className="shrink-0">
-                                                {article.category.name}
-                                            </Badge>
-                                        )}
-                                    </div>
-                                    {expandedId === article.id ? (
-                                        <ChevronUp className="w-5 h-5 text-gray-400 shrink-0" />
-                                    ) : (
-                                        <ChevronDown className="w-5 h-5 text-gray-400 shrink-0" />
-                                    )}
-                                </button>
-                                {expandedId === article.id && (
-                                    <div className="px-5 pb-4">
-                                        <div className="pl-8 text-gray-600 whitespace-pre-wrap">{article.content}</div>
-                                        <div className="pl-8 mt-3">
-                                            <Link
-                                                href={`/help/faq/${article.id}`}
-                                                className="text-sm text-[#62e3d5] hover:underline"
-                                            >
-                                                상세 페이지 보기
-                                            </Link>
+                        {articles.map((article: HelpArticleView) => {
+                            const isExpanded = expandedId === article.id;
+                            const headingId = `faq-heading-${article.id}`;
+                            const panelId = `faq-panel-${article.id}`;
+                            return (
+                                <div key={article.id}>
+                                    <button
+                                        id={headingId}
+                                        type="button"
+                                        onClick={() => toggleFaq(article.id)}
+                                        aria-expanded={isExpanded}
+                                        aria-controls={panelId}
+                                        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                            <span className="text-[#62e3d5] font-semibold shrink-0">Q.</span>
+                                            <span className="font-medium text-[#0a3b41] truncate">{article.title}</span>
+                                            {article.category && (
+                                                <Badge color="neutral" size="xs" className="shrink-0">
+                                                    {article.category.name}
+                                                </Badge>
+                                            )}
                                         </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                                        {isExpanded ? (
+                                            <ChevronUp className="w-5 h-5 text-gray-400 shrink-0" />
+                                        ) : (
+                                            <ChevronDown className="w-5 h-5 text-gray-400 shrink-0" />
+                                        )}
+                                    </button>
+                                    {isExpanded && (
+                                        <div
+                                            id={panelId}
+                                            role="region"
+                                            aria-labelledby={headingId}
+                                            className="px-5 pb-4"
+                                        >
+                                            <div className="pl-8 text-gray-600 whitespace-pre-wrap">{article.content}</div>
+                                            <div className="pl-8 mt-3">
+                                                <Link
+                                                    href={`/help/faq/${article.id}`}
+                                                    className="text-sm text-[#62e3d5] hover:underline"
+                                                >
+                                                    상세 페이지 보기
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 ) : (
                     // Notice List
@@ -259,7 +269,7 @@ export default function HelpCenterPage() {
                                 </div>
                                 <div className="flex items-center gap-1 text-sm text-gray-400 shrink-0">
                                     <Clock className="w-4 h-4" />
-                                    {formatDate(article.createdAt)}
+                                    {formatDateKo(article.createdAt)}
                                 </div>
                             </Link>
                         ))}

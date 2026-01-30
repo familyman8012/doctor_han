@@ -7,28 +7,21 @@ import { helpCenterApi } from "@/api-client/help-center";
 import { Button } from "@/components/ui/Button/button";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
+import { formatDateKo } from "@/lib/utils/date";
 
 export default function NoticeDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const id = params.id as string;
+    const rawId = params.id;
+    const id = typeof rawId === "string" ? rawId : undefined;
 
     const { data, isLoading, error } = useQuery({
         queryKey: ["help-article", id],
-        queryFn: () => helpCenterApi.getPublicArticle(id),
+        queryFn: () => helpCenterApi.getPublicArticle(id!),
         enabled: !!id,
     });
 
     const article = data?.data?.article;
-
-    const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString("ko-KR", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-        });
-    };
 
     if (isLoading) {
         return (
@@ -82,7 +75,7 @@ export default function NoticeDetailPage() {
                     <h1 className="text-xl font-bold text-[#0a3b41] mb-3">{article.title}</h1>
                     <div className="flex items-center gap-1 text-sm text-gray-500">
                         <Clock className="w-4 h-4" />
-                        <span>{formatDate(article.createdAt)}</span>
+                        <span>{formatDateKo(article.createdAt)}</span>
                     </div>
                 </div>
 
