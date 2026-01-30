@@ -1,18 +1,27 @@
-# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# yaml-language-server: $schema=./.vscode/coderabbit-schema.json
 language: "ko-KR"
 
 tone_instructions: |
-  간결하고 핵심적인 피드백을 제공하세요.
-  코드 품질, 보안, 성능 이슈에 집중하세요.
+  보안, 버그, 성능 이슈에만 집중하세요.
+  사소한 스타일 제안은 하지 마세요.
   프로젝트 컨벤션 위반 시 명확하게 지적하세요.
 
 reviews:
-  profile: "assertive"
+  profile: "chill"
   high_level_summary: true
+  high_level_summary_in_walkthrough: true
+  collapse_walkthrough: true
   poem: false
+  review_status: false
+  request_changes_workflow: false
   auto_review:
     enabled: true
     drafts: false
+    ignore_title_keywords:
+      - "WIP"
+      - "wip"
+      - "DO NOT MERGE"
+  auto_incremental_review: true
   tools:
     markdownlint:
       enabled: false

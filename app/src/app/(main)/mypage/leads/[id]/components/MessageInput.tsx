@@ -106,14 +106,20 @@ export function MessageInput({ onSend, isSending, disabled }: MessageInputProps)
 
                 const { file: fileData, upload } = signedUploadResponse.data.data;
 
-                // Step 2: Upload file to signed URL
+                // Step 2: Upload file to signed URL (30초 타임아웃)
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+
                 const uploadResponse = await fetch(upload.signedUrl, {
                     method: "PUT",
                     headers: {
                         "Content-Type": file.type || "application/octet-stream",
                     },
                     body: file,
+                    signal: controller.signal,
                 });
+
+                clearTimeout(timeoutId);
 
                 if (!uploadResponse.ok) {
                     throw new Error(`파일 업로드에 실패했습니다. (${uploadResponse.status})`);
@@ -127,7 +133,14 @@ export function MessageInput({ onSend, isSending, disabled }: MessageInputProps)
                     ),
                 );
             } catch (error) {
-                errorHandler(error);
+                if (error instanceof Error) {
+                    errorHandler({
+                        code: "UPLOAD_FAILED",
+                        message: error.message,
+                    });
+                } else {
+                    errorHandler(error);
+                }
                 setFiles((prev) => prev.filter((f) => f.id !== tempId));
             }
         }

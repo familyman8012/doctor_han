@@ -208,9 +208,10 @@ export async function checkMessageRateLimit(
         .gte("created_at", oneMinuteAgo);
 
     if (error) {
-        // Rate limit 확인 실패 시 요청 허용 (fail-open)
-        console.error("[Rate Limit] Failed to check rate limit", error);
-        return false;
+        throw internalServerError("메시지 전송 제한을 확인할 수 없습니다.", {
+            message: error.message,
+            code: error.code,
+        });
     }
 
     return (count ?? 0) >= MESSAGE_RATE_LIMIT_PER_MINUTE;
@@ -260,7 +261,14 @@ export async function isVendorOwner(
         .eq("id", vendorId)
         .maybeSingle();
 
-    if (error || !data) {
+    if (error) {
+        throw internalServerError("업체 소유자 정보를 조회할 수 없습니다.", {
+            message: error.message,
+            code: error.code,
+        });
+    }
+
+    if (!data) {
         return false;
     }
 
@@ -281,8 +289,10 @@ export async function fetchUserProfile(
         .maybeSingle();
 
     if (error) {
-        console.error("[Message] Failed to fetch user profile", error);
-        return null;
+        throw internalServerError("사용자 프로필을 조회할 수 없습니다.", {
+            message: error.message,
+            code: error.code,
+        });
     }
 
     if (!data) {

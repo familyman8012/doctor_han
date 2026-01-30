@@ -14,6 +14,8 @@ interface MessagesTabProps {
 export function MessagesTab({ leadId, currentUserId }: MessagesTabProps) {
     const queryClient = useQueryClient();
     const lastAttemptedIdsRef = useRef<string>("");
+    const lastAttemptedAtRef = useRef<number>(0);
+    const RETRY_WINDOW_MS = 30000; // 30초 내 같은 배치 재시도 방지
 
     // 메시지 목록 조회
     const {
@@ -43,9 +45,7 @@ export function MessagesTab({ leadId, currentUserId }: MessagesTabProps) {
     const markAsReadMutation = useMutation({
         mutationFn: (messageIds: string[]) =>
             leadsApi.markMessagesAsRead(leadId, { messageIds }),
-        onSuccess: (_, variables) => {
-            // 성공 시에만 attempted로 기록
-            lastAttemptedIdsRef.current = variables.join(",");
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["lead-messages", leadId] });
         },
     });
@@ -56,9 +56,15 @@ export function MessagesTab({ leadId, currentUserId }: MessagesTabProps) {
     // 탭 진입 시 읽지 않은 메시지 자동 읽음 처리 (실패 시 재시도 가능)
     useEffect(() => {
         const idsKey = unreadMessageIds.join(",");
-        if (unreadMessageIds.length > 0 && !isPending && lastAttemptedIdsRef.current !== idsKey) {
-            markAsRead(unreadMessageIds);
-        }
+        if (!idsKey || isPending) return;
+
+        const now = Date.now();
+        const sameBatch = lastAttemptedIdsRef.current === idsKey;
+        if (sameBatch && now - lastAttemptedAtRef.current < RETRY_WINDOW_MS) return;
+
+        lastAttemptedIdsRef.current = idsKey;
+        lastAttemptedAtRef.current = now;
+        markAsRead(unreadMessageIds);
     }, [unreadMessageIds, isPending, markAsRead]);
 
     // 메시지 발송 mutation
