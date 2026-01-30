@@ -138,9 +138,11 @@ export async function insertMessageAttachments(
 /**
  * 메시지 읽음 표시 (bulk)
  * RLS가 sender_id != auth.uid() 조건을 검증함
+ * leadId 조건으로 다른 리드의 메시지가 처리되지 않도록 방지
  */
 export async function markMessagesAsRead(
     supabase: SupabaseClient<Database>,
+    leadId: string,
     messageIds: string[],
 ): Promise<void> {
     if (messageIds.length === 0) {
@@ -150,8 +152,9 @@ export async function markMessagesAsRead(
     const { error } = await supabase
         .from("lead_messages")
         .update({ read_at: new Date().toISOString() })
+        .eq("lead_id", leadId)
         .in("id", messageIds)
-        .is("read_at", null); // 아직 안 읽은 메시지만 업데이트
+        .is("read_at", null);
 
     if (error) {
         throw internalServerError("메시지 읽음 상태를 업데이트할 수 없습니다.", {

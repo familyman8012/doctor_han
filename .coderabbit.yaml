@@ -13,6 +13,9 @@ reviews:
   auto_review:
     enabled: true
     drafts: false
+  tools:
+    markdownlint:
+      enabled: false
   path_filters:
     - "app/src/**"
     - "app/supabase/migrations/**"

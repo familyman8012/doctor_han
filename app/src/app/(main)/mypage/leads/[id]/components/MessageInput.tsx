@@ -77,6 +77,7 @@ export function MessageInput({ onSend, isSending, disabled }: MessageInputProps)
         for (const file of filesToUpload) {
             if (file.size > MAX_FILE_SIZE) {
                 errorHandler({
+                    code: "FILE_TOO_LARGE",
                     message: `${file.name}: 파일 크기는 10MB 이하여야 합니다.`,
                 });
                 continue;
@@ -106,13 +107,17 @@ export function MessageInput({ onSend, isSending, disabled }: MessageInputProps)
                 const { file: fileData, upload } = signedUploadResponse.data.data;
 
                 // Step 2: Upload file to signed URL
-                await fetch(upload.signedUrl, {
+                const uploadResponse = await fetch(upload.signedUrl, {
                     method: "PUT",
                     headers: {
                         "Content-Type": file.type || "application/octet-stream",
                     },
                     body: file,
                 });
+
+                if (!uploadResponse.ok) {
+                    throw new Error(`파일 업로드에 실패했습니다. (${uploadResponse.status})`);
+                }
 
                 setFiles((prev) =>
                     prev.map((f) =>
