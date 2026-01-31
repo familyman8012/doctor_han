@@ -341,19 +341,192 @@
 - [x] 리드 상태 자동화: 타임아웃/리마인드/만료 전 안내, 종료 사유 수집
 - [x] 신고/제재: 신고 접수 → 임시 블라인드 → 심사 → 제재 단계 → 이력 관리
 - [x] FAQ/공지: 헬프센터 문서 CRUD + 검색(로그 기반 추천은 후순위)
-- [ ] 고객지원(헬프데스크): 1:1 문의 티켓 + SLA + FAQ 연동
-- [ ] 감사 로그/변경 기록: 가입/수정/삭제/다운로드/승인, 요금/제재/환불 변경 로그
+- [x] 고객지원(헬프데스크): 1:1 문의 티켓 + SLA + FAQ 연동
+- [x] 감사 로그/변경 기록: 가입/수정/삭제/다운로드/승인, 요금/제재/환불 변경 로그
 
-## 7) P3 — 수익화(결제/정산/광고) / TossPayments
-- [ ] 수익모델 확정: 정액형(티어) → 광고/우선노출 → 리드 과금(CPL) 순서로 확장
-- [ ] TossPayments 결제 연동: 결제 생성/승인, 웹훅 처리, 결제 상태 동기화
-- [ ] 티어/요금제: 기간/예산/옵션별 단가, 자동 과금, 영수증/세금계산서 발행 범위 결정
-- [ ] 크레딧/정산: 크레딧 잔액, 충전/차감/환불 내역, 월별 청구/입금/미수 리포트
-- [ ] 환불/보상: SLA/무응답/허위 리드 기준, 자동 환불/크레딧 반환, 예외 심사 큐
-- [ ] 광고/우선노출: 슬롯 관리(위치별), 표시 정책(광고/유기 혼합, AD 표기), UTM 추적
-- [ ] 데이터 내보내기: 결제/정산/리드 CSV Export
+---
 
-## 8) P4 — 데이터/성장(통계/외부연동)
+## Post-P2: 수익화 모델 Roadmap
+
+> 참조: `app/doc/domains/monetization/prd.md`
+
+## 7) P3 — 수익화 기반 (결제/크레딧)
+
+### 7-1. 크레딧 시스템
+- [ ] 정책: 선불 크레딧, 12개월 유효, 자동충전 2% 보너스
+- [ ] DB: `credit_accounts`, `credit_transactions`, `credit_packages`
+  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_credit_system.sql`
+  - [ ] RLS 정책 설정 (업체별 본인 계정만 접근)
+- [ ] Schema: `app/src/lib/schema/credit.ts`
+- [ ] Server: `app/src/server/credit/{repository,service,mapper}.ts`
+- [ ] API:
+  - [ ] `GET /api/credits` - 잔액 조회
+  - [ ] `GET /api/credits/transactions` - 거래 내역 조회
+  - [ ] `POST /api/credits/charge` - 충전 준비
+  - [ ] `PATCH /api/credits/auto-charge` - 자동 충전 설정
+- [ ] UI:
+  - [ ] 파트너센터 헤더에 크레딧 잔액 표시
+  - [ ] `/partner/credits` - 크레딧 관리 페이지
+  - [ ] 충전 페이지 (패키지 선택 → 결제)
+  - [ ] 거래 내역 페이지
+
+### 7-2. TossPayments 연동
+- [ ] 가맹점 등록 + 환경변수 설정
+  - [ ] `TOSS_CLIENT_KEY`, `TOSS_SECRET_KEY`
+- [ ] DB: `payments`, `payment_webhooks`
+  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_payments.sql`
+- [ ] Schema: `app/src/lib/schema/payment.ts`
+- [ ] Server: `app/src/server/payment/{repository,service}.ts`
+- [ ] API:
+  - [ ] `POST /api/payments/prepare` - 결제 준비
+  - [ ] `POST /api/payments/confirm` - 결제 승인
+  - [ ] `POST /api/payments/webhook` - 웹훅 수신
+  - [ ] `GET /api/payments/[id]` - 결제 상세 조회
+- [ ] UI:
+  - [ ] TossPayments 결제 위젯 통합
+  - [ ] 결제 완료 페이지
+  - [ ] 결제 실패 페이지
+
+### 7-3. 업체 가격 정책
+- [ ] DB: `vendor_service_prices`
+  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_vendor_prices.sql`
+- [ ] Schema: `app/src/lib/schema/vendor-pricing.ts`
+- [ ] Server: `app/src/server/vendor/pricing-{repository,service}.ts`
+- [ ] API:
+  - [ ] `GET /api/vendors/me/prices` - 단가 조회
+  - [ ] `POST /api/vendors/me/prices` - 단가 설정
+  - [ ] `PATCH /api/vendors/me/prices/[id]` - 단가 수정
+  - [ ] `DELETE /api/vendors/me/prices/[id]` - 단가 삭제
+- [ ] UI:
+  - [ ] `/partner/settings/pricing` - 가격 설정 페이지
+
+## 8) P3.5 — CPL 과금 (리드 기반)
+
+### 8-1. 건별 리드 과금
+- [ ] 정책 구현:
+  - [ ] 서비스별 단가 (1만~20만원)
+  - [ ] 복수 서비스 선택 시 합산
+  - [ ] 30일 중복 리드 무효 처리
+  - [ ] 크레딧 부족 시 소프트 거절 + 충전 요청 알림
+- [ ] DB: `lead_charges`
+  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_lead_charges.sql`
+- [ ] Schema: `app/src/lib/schema/lead.ts` 확장
+- [ ] Server 수정:
+  - [ ] `app/src/server/lead/repository.ts` - 크레딧 차감 로직 통합
+  - [ ] `app/src/server/lead/charge-service.ts` - 과금 서비스 신규
+- [ ] 중복 리드 체크 + 크레딧 복구 로직
+- [ ] 72시간 무응답 자동 환불 (Cron)
+- [ ] 알림 추가:
+  - [ ] `lead_charged` - 리드 과금 완료
+  - [ ] `lead_refunded` - 리드 환불 완료
+  - [ ] `credit_low` - 잔액 부족
+
+### 8-2. 기간제 상품
+- [ ] 정책: 30/60/90/180/365일 무제한
+- [ ] DB: `vendor_subscriptions`
+  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_subscriptions.sql`
+- [ ] Schema: `app/src/lib/schema/subscription.ts`
+- [ ] Server: `app/src/server/subscription/{repository,service}.ts`
+- [ ] API:
+  - [ ] `GET /api/vendors/me/subscriptions` - 구독 목록
+  - [ ] `POST /api/vendors/me/subscriptions` - 구독 구매
+  - [ ] `GET /api/vendors/me/subscriptions/[id]` - 구독 상세
+- [ ] 구독 중 해당 카테고리 리드 무료 처리 로직
+- [ ] 만료 7일/1일 전 알림 (Cron)
+- [ ] UI:
+  - [ ] `/partner/subscriptions` - 구독 관리 페이지
+  - [ ] 구독 구매 페이지
+
+## 9) P4 — CPA/비딩/쇼핑몰
+
+### 9-1. CPA (회원가입형)
+- [ ] 정책: 리퍼럴 코드 기반, 트래킹 불가 시 미운영
+- [ ] DB: `referral_codes`, `referral_signups`, `referral_payouts`
+  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_referrals.sql`
+- [ ] Schema: `app/src/lib/schema/referral.ts`
+- [ ] Server: `app/src/server/referral/{repository,service}.ts`
+- [ ] API:
+  - [ ] `GET /api/vendors/me/referrals` - 리퍼럴 코드 목록
+  - [ ] `POST /api/vendors/me/referrals` - 코드 생성
+  - [ ] `GET /api/vendors/me/referrals/stats` - 통계
+- [ ] 회원가입 시 리퍼럴 트래킹 로직 (`?ref=CODE`)
+- [ ] UI:
+  - [ ] `/partner/referrals` - 리퍼럴 관리 페이지
+  - [ ] 통계 대시보드
+
+### 9-2. 비딩 시스템 (인테리어)
+- [ ] 정책: 매니저 배정, 5% 수수료, 추천업체 3개
+- [ ] DB: `bid_projects`, `bid_responses`, `bid_managers`, `bid_contracts`
+  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_bidding.sql`
+- [ ] Schema: `app/src/lib/schema/bidding.ts`
+- [ ] Server: `app/src/server/bidding/{repository,service}.ts`
+- [ ] API:
+  - [ ] `POST /api/bid/projects` - 프로젝트 등록 (의사)
+  - [ ] `GET /api/bid/projects` - 프로젝트 목록
+  - [ ] `GET /api/bid/projects/[id]` - 프로젝트 상세
+  - [ ] `POST /api/bid/projects/[id]/responses` - 입찰 제출 (업체)
+  - [ ] `PATCH /api/bid/projects/[id]/select` - 업체 선정 (의사)
+- [ ] 매니저 배정 로직 (24시간 내)
+- [ ] UI:
+  - [ ] `/interior` - 인테리어 프로젝트 등록 (의사)
+  - [ ] `/partner/bids` - 입찰 관리 (업체)
+  - [ ] `/admin/bid-projects` - 매니저 대시보드
+
+### 9-3. 쇼핑몰
+- [ ] DB: `shop_products`, `shop_orders`, `shop_order_items`
+  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_shop.sql`
+- [ ] Schema: `app/src/lib/schema/shop.ts`
+- [ ] Server: `app/src/server/shop/{repository,service}.ts`
+- [ ] API:
+  - [ ] `GET /api/shop/products` - 상품 목록
+  - [ ] `GET /api/shop/products/[id]` - 상품 상세
+  - [ ] `POST /api/shop/orders` - 주문 생성
+  - [ ] `GET /api/shop/orders` - 주문 목록
+- [ ] UI:
+  - [ ] `/shop` - 상품 리스트
+  - [ ] `/shop/[id]` - 상품 상세
+  - [ ] `/shop/cart` - 장바구니
+  - [ ] `/shop/checkout` - 결제
+
+## 10) P5 — 정산/환불/리포트
+
+### 10-1. 정산 관리
+- [ ] DB: `settlements`, `settlement_items`
+  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_settlements.sql`
+- [ ] Schema: `app/src/lib/schema/settlement.ts`
+- [ ] Server: `app/src/server/settlement/{repository,service}.ts`
+- [ ] 월별 정산 자동 생성 (Cron)
+- [ ] API:
+  - [ ] `GET /api/admin/settlements` - 정산 목록
+  - [ ] `GET /api/admin/settlements/[id]` - 정산 상세
+  - [ ] `POST /api/admin/settlements/[id]/approve` - 정산 승인
+  - [ ] `POST /api/admin/settlements/[id]/payout` - 지급 처리
+- [ ] UI:
+  - [ ] `/admin/settlements` - 정산 관리 페이지
+
+### 10-2. 환불/보상
+- [ ] 정책: SLA/무응답/허위 리드 기준
+- [ ] DB: `refund_requests`
+  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_refunds.sql`
+- [ ] Schema: `app/src/lib/schema/refund.ts`
+- [ ] Server: `app/src/server/refund/{repository,service}.ts`
+- [ ] API:
+  - [ ] `POST /api/refunds` - 환불 요청 (업체)
+  - [ ] `GET /api/refunds` - 환불 요청 목록
+  - [ ] `GET /api/admin/refunds` - 관리자 환불 목록
+  - [ ] `PATCH /api/admin/refunds/[id]` - 환불 심사/처리
+- [ ] UI:
+  - [ ] `/partner/refunds` - 환불 요청 페이지
+  - [ ] `/admin/refunds` - 환불 관리 페이지
+
+### 10-3. 데이터 내보내기
+- [ ] 결제/정산/리드 CSV Export 기능
+- [ ] API:
+  - [ ] `GET /api/exports/payments` - 결제 내역 CSV
+  - [ ] `GET /api/exports/settlements` - 정산 내역 CSV
+  - [ ] `GET /api/exports/leads` - 리드 내역 CSV
+
+## 11) P6 — 데이터/성장(통계/외부연동)
 - [ ] 관리자 대시보드/통계 고도화: DAU/MAU, 신규회원, 리드/응답률/SLA, 퍼널/이탈, 광고 성과
 - [ ] 분석/태그: GA4/Tag Manager 이벤트 설계(가입/문의/결제) + 전환 목표
 - [ ] UTM 규칙: 캠페인별 UTM 자동 생성/검수
@@ -362,7 +535,7 @@
 - [ ] 백업 포인트: 정책/카테고리 설정 스냅샷 백업/복원
 - [ ] 챗봇/실시간 채팅상담(AI 상담)(필요 시)
 
-## 9) Future — 임상 케이스 DB
+## 12) Future — 임상 케이스 DB
 - [ ] 케이스 업로드 템플릿(증상/진단/치료/경과/부작용 메타데이터)
 - [ ] 유사도 검색/태그 검색
 - [ ] 통계/인사이트 리포트
