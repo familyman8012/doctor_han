@@ -86,7 +86,10 @@ export const POST = withApi(
                 action: "profile.create",
                 target_type: "profile",
                 target_id: profileRow.id,
-                metadata: { role: profileRow.role },
+                metadata: {
+                    role: profileRow.role,
+                    name: profileRow.display_name ?? null,
+                },
             },
             "profile/POST",
         );
@@ -157,8 +160,8 @@ export const PATCH = withApi(
         }
 
         // Audit log: profile.update
-        const changedFields = Object.keys(update);
-        if (changedFields.length > 0) {
+        const updatedFields = Object.keys(update);
+        if (updatedFields.length > 0) {
             await safeInsertAuditLog(
                 ctx.supabase,
                 {
@@ -166,7 +169,7 @@ export const PATCH = withApi(
                     action: "profile.update",
                     target_type: "profile",
                     target_id: profileRow.id,
-                    metadata: { changedFields },
+                    metadata: { updatedFields },
                 },
                 "profile/PATCH",
             );

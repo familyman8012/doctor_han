@@ -40,8 +40,10 @@ const ACTION_LABELS: Record<string, string> = {
     "profile.update": "프로필 수정",
     "vendor.create": "업체 생성",
     "vendor.update": "업체 수정",
-    "verification.approve": "인증 승인",
-    "verification.reject": "인증 반려",
+    "doctor_verification.approve": "의사 인증 승인",
+    "doctor_verification.reject": "의사 인증 반려",
+    "vendor_verification.approve": "업체 인증 승인",
+    "vendor_verification.reject": "업체 인증 반려",
     "report.create": "신고 생성",
     "report.review": "신고 심사",
     "report.resolve": "신고 처리",
@@ -54,6 +56,9 @@ const TARGET_TYPE_LABELS: Record<string, string> = {
     vendor: "업체",
     review: "리뷰",
     verification: "인증",
+    doctor_verification: "의사 인증",
+    vendor_verification: "업체 인증",
+    verification_file: "파일",
     file: "파일",
 };
 
@@ -101,7 +106,7 @@ export default function AdminAuditLogsPage() {
 
         if (actionValue.startsWith("profile.")) color = "purple";
         else if (actionValue.startsWith("vendor.")) color = "teal";
-        else if (actionValue.startsWith("verification.")) color = "success";
+        else if (actionValue.includes("verification.")) color = "success";
         else if (actionValue.startsWith("report.")) color = "warning";
         else if (actionValue.startsWith("file.")) color = "info";
 
@@ -119,6 +124,9 @@ export default function AdminAuditLogsPage() {
             vendor: "teal",
             review: "orange",
             verification: "success",
+            doctor_verification: "success",
+            vendor_verification: "success",
+            verification_file: "info",
             file: "info",
         };
 

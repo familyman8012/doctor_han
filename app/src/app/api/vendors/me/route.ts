@@ -159,7 +159,10 @@ export const POST = withApi(
                 action: "vendor.create",
                 target_type: "vendor",
                 target_id: vendor.id,
-                metadata: { name: vendor.name },
+                metadata: {
+                    vendorId: vendor.id,
+                    name: vendor.name,
+                },
             },
             "vendors/me/POST",
         );
@@ -225,11 +228,11 @@ export const PATCH = withApi(
         ]);
 
         // Audit log: vendor.update
-        const changedFields = Object.keys(update);
+        const updatedFields = Object.keys(update);
         if (typeof body.categoryIds !== "undefined") {
-            changedFields.push("categoryIds");
+            updatedFields.push("categoryIds");
         }
-        if (changedFields.length > 0) {
+        if (updatedFields.length > 0) {
             await safeInsertAuditLog(
                 ctx.supabase,
                 {
@@ -237,7 +240,7 @@ export const PATCH = withApi(
                     action: "vendor.update",
                     target_type: "vendor",
                     target_id: vendor.id,
-                    metadata: { changedFields },
+                    metadata: { updatedFields },
                 },
                 "vendors/me/PATCH",
             );
