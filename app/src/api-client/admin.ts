@@ -13,6 +13,7 @@ import type {
     AdminCategoryResponse,
     AdminCategoryDeleteResponse,
 } from "@/lib/schema/admin";
+import type { AdminAuditLogListQuery, AdminAuditLogListResponse } from "@/lib/schema/audit";
 import type { CategoryListResponse } from "@/lib/schema/category";
 import type {
     AdminReportListQuery,
@@ -142,6 +143,16 @@ export const adminApi = {
     // 제재 해제
     revokeSanction: async (id: string, body: AdminSanctionRevokeBody): Promise<AdminSanctionActionResponse> => {
         const response = await api.post<AdminSanctionActionResponse>(`/api/admin/sanctions/${id}/revoke`, body);
+        return response.data;
+    },
+
+    // ===========================
+    // 감사 로그
+    // ===========================
+
+    // 감사 로그 목록 조회
+    getAuditLogs: async (params: AdminAuditLogListQuery): Promise<AdminAuditLogListResponse> => {
+        const response = await api.get<AdminAuditLogListResponse>("/api/admin/audit-logs", { params });
         return response.data;
     },
 };

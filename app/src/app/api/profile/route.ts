@@ -4,6 +4,7 @@ import { ProfileCreateBodySchema, ProfilePatchBodySchema } from "@/lib/schema/pr
 import { badRequest, conflict, internalServerError, notFound } from "@/server/api/errors";
 import { created, ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
+import { safeInsertAuditLog } from "@/server/audit/utils";
 import { withAuth, withUser } from "@/server/auth/guards";
 import { mapProfileRow } from "@/server/profile/mapper";
 
@@ -77,6 +78,19 @@ export const POST = withApi(
             }
         }
 
+        // Audit log: profile.create
+        await safeInsertAuditLog(
+            ctx.supabase,
+            {
+                actor_user_id: ctx.user.id,
+                action: "profile.create",
+                target_type: "profile",
+                target_id: profileRow.id,
+                metadata: { role: profileRow.role },
+            },
+            "profile/POST",
+        );
+
         return created({ profile: mapProfileRow(profileRow) });
     }),
 );
@@ -140,6 +154,22 @@ export const PATCH = withApi(
                 message: updateError.message,
                 code: updateError.code,
             });
+        }
+
+        // Audit log: profile.update
+        const changedFields = Object.keys(update);
+        if (changedFields.length > 0) {
+            await safeInsertAuditLog(
+                ctx.supabase,
+                {
+                    actor_user_id: ctx.user.id,
+                    action: "profile.update",
+                    target_type: "profile",
+                    target_id: profileRow.id,
+                    metadata: { changedFields },
+                },
+                "profile/PATCH",
+            );
         }
 
         return ok({ profile: mapProfileRow(profileRow) });

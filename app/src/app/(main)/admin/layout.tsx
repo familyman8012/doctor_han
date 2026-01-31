@@ -3,7 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Shield, Users, Building2, FolderTree, CheckCircle, ChevronRight, Flag, HelpCircle, Megaphone, Crown, Gavel } from "lucide-react";
+import { Shield, Users, Building2, FolderTree, CheckCircle, ChevronRight, Flag, HelpCircle, Megaphone, Crown, Gavel, FileText } from "lucide-react";
 import { useIsAuthenticated, useUserRole, useAuthStore } from "@/stores/auth";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { cn } from "@/components/utils";
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
     { href: "/admin/vendors", label: "업체 관리", icon: Building2 },
     { href: "/admin/categories", label: "카테고리 관리", icon: FolderTree },
     { href: "/admin/help-center", label: "헬프센터 관리", icon: HelpCircle },
+    { href: "/admin/audit-logs", label: "감사 로그", icon: FileText },
     { href: "/admin/ads", label: "광고 관리", icon: Megaphone },
     { href: "/admin/memberships", label: "입점 멤버십", icon: Crown },
     { href: "/admin/bid-projects", label: "비딩 프로젝트", icon: Gavel },
