@@ -33,40 +33,25 @@ export const POST = withApi(
             throw badRequest("본인이 작성한 리뷰는 신고할 수 없습니다.");
         }
 
-        // 중복 신고 확인 (review_reports 테이블)
-        const { data: existingReport, error: existingError } = await ctx.supabase
-            .from("review_reports")
-            .select("id")
-            .eq("review_id", reviewId)
-            .eq("reporter_user_id", ctx.user.id)
-            .maybeSingle();
-
-        if (existingError) {
-            throw internalServerError("신고 이력을 확인할 수 없습니다.", {
-                message: existingError.message,
-                code: existingError.code,
-            });
-        }
-
-        if (existingReport) {
-            throw conflict("이미 신고한 리뷰입니다.");
-        }
-
         // 신고 저장
         const insertData = {
-            review_id: reviewId,
+            target_type: "review" as const,
+            target_id: reviewId,
             reporter_user_id: ctx.user.id,
             reason: body.reason,
             detail: body.detail ?? null,
         };
 
         const { data: report, error: insertError } = await ctx.supabase
-            .from("review_reports")
+            .from("reports")
             .insert(insertData)
             .select("id")
             .single();
 
         if (insertError) {
+            if (insertError.code === "23505") {
+                throw conflict("이미 신고한 리뷰입니다.");
+            }
             throw internalServerError("리뷰 신고에 실패했습니다.", {
                 message: insertError.message,
                 code: insertError.code,

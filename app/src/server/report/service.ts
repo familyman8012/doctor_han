@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Database, Tables } from "@/lib/database.types";
+import type { Database, Tables, TablesInsert } from "@/lib/database.types";
 import type {
     AdminReportListItem,
     AdminReportListQuery,
@@ -17,6 +17,23 @@ import { mapReportToListItem, mapReportToView, mapSanctionToView } from "./mappe
 type ReportRow = Tables<"reports">;
 
 const AUTO_BLIND_THRESHOLD = 5;
+
+function isUuid(value: string): boolean {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        value,
+    );
+}
+
+async function safeInsertAuditLog(
+    supabase: SupabaseClient<Database>,
+    payload: TablesInsert<"audit_logs">,
+    context: string,
+): Promise<void> {
+    const { error } = await supabase.from("audit_logs").insert(payload);
+    if (error) {
+        console.error(`[${context}] audit_logs insert failed`, error);
+    }
+}
 
 function escapeLike(value: string): string {
     return value
@@ -181,11 +198,43 @@ export async function getReportList(
         qb = qb.eq("status", query.status);
     }
 
-    // Note: Supabase doesn't support or() with joined table columns
-    // Search only on the main table's target_id for now
     if (query.q) {
-        const escaped = escapeLike(query.q);
-        qb = qb.ilike("target_id", `%${escaped}%`);
+        const q = query.q.trim();
+
+        // UUID는 target_id "정확 일치" 검색만 지원 (UUID 컬럼에 ilike 금지)
+        if (isUuid(q)) {
+            qb = qb.eq("target_id", q);
+        } else {
+            // UI 기준(신고자 이름/이메일)으로 검색: profiles -> reporter_user_id IN 필터
+            const escaped = escapeLike(q);
+            const pattern = `%${escaped}%`;
+
+            const [
+                { data: profilesByName, error: nameError },
+                { data: profilesByEmail, error: emailError },
+            ] = await Promise.all([
+                supabase.from("profiles").select("id").ilike("display_name", pattern).limit(200),
+                supabase.from("profiles").select("id").ilike("email", pattern).limit(200),
+            ]);
+
+            if (nameError || emailError) {
+                const error = nameError ?? emailError;
+                throw internalServerError("신고자 검색에 실패했습니다.", {
+                    message: error?.message,
+                    code: error?.code,
+                });
+            }
+
+            const reporterIds = new Set<string>();
+            for (const profile of profilesByName ?? []) reporterIds.add(profile.id);
+            for (const profile of profilesByEmail ?? []) reporterIds.add(profile.id);
+
+            if (reporterIds.size === 0) {
+                return { items: [], total: 0 };
+            }
+
+            qb = qb.in("reporter_user_id", Array.from(reporterIds));
+        }
     }
 
     qb = qb.order("created_at", { ascending: false });
@@ -308,21 +357,28 @@ export async function startReview(
     }
 
     // Update report status
-    const { error: updateError } = await supabase
+    const now = new Date().toISOString();
+    const { data: updatedRows, error: updateError } = await supabase
         .from("reports")
         .update({
             status: "reviewing",
             reviewed_by: adminUserId,
-            reviewed_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+            reviewed_at: now,
+            updated_at: now,
         })
-        .eq("id", reportId);
+        .eq("id", reportId)
+        .eq("status", "pending")
+        .select("id");
 
     if (updateError) {
         throw internalServerError("신고 상태를 변경할 수 없습니다.", {
             message: updateError.message,
             code: updateError.code,
         });
+    }
+
+    if (!updatedRows || updatedRows.length === 0) {
+        throw badRequest("이미 심사 중이거나 처리된 신고입니다.");
     }
 
     // Get updated report
@@ -366,34 +422,28 @@ export async function resolveReport(
     const sanctionId = rpcResult?.sanctionId;
 
     // Check auto-blind for reviews (separate from main transaction)
-    const { data: reportData } = await supabase
+    const { data: reportData, error: reportFetchError } = await supabase
         .from("reports")
         .select("target_type, target_id")
         .eq("id", reportId)
         .single();
 
+    if (reportFetchError) {
+        console.error("[resolveReport] report fetch for auto-blind failed", reportFetchError);
+    }
+
     if (reportData?.target_type === "review") {
-        const { count } = await supabase
+        const { count, error: reportCountError } = await supabase
             .from("reports")
             .select("*", { count: "exact", head: true })
             .eq("target_type", "review")
             .eq("target_id", reportData.target_id);
 
-        if (count && count >= AUTO_BLIND_THRESHOLD) {
-            const { data: reviewData } = await supabase
-                .from("reviews")
-                .select("status")
-                .eq("id", reportData.target_id)
-                .single();
-
-            if (reviewData && reviewData.status !== "hidden") {
-                const now = new Date().toISOString();
-                await supabase
-                    .from("reviews")
-                    .update({ status: "hidden", updated_at: now })
-                    .eq("id", reportData.target_id);
-
-                await supabase.from("audit_logs").insert({
+        if (reportCountError) {
+            console.error("[resolveReport] auto-blind report count failed", reportCountError);
+            await safeInsertAuditLog(
+                supabase,
+                {
                     actor_user_id: adminUserId,
                     action: "report.auto_blind",
                     target_type: "review",
@@ -401,9 +451,130 @@ export async function resolveReport(
                     metadata: {
                         reportId,
                         reviewId: reportData.target_id,
-                        reportCount: count,
+                        result: "failed",
+                        step: "count_reports",
+                        error: {
+                            message: reportCountError.message,
+                            code: reportCountError.code,
+                        },
                     },
-                });
+                },
+                "resolveReport/auto-blind",
+            );
+        } else if (count !== null && count >= AUTO_BLIND_THRESHOLD) {
+            const { data: reviewData, error: reviewFetchError } = await supabase
+                .from("reviews")
+                .select("status")
+                .eq("id", reportData.target_id)
+                .maybeSingle();
+
+            if (reviewFetchError) {
+                console.error("[resolveReport] auto-blind review fetch failed", reviewFetchError);
+                await safeInsertAuditLog(
+                    supabase,
+                    {
+                        actor_user_id: adminUserId,
+                        action: "report.auto_blind",
+                        target_type: "review",
+                        target_id: reportData.target_id,
+                        metadata: {
+                            reportId,
+                            reviewId: reportData.target_id,
+                            reportCount: count,
+                            result: "failed",
+                            step: "fetch_review",
+                            error: {
+                                message: reviewFetchError.message,
+                                code: reviewFetchError.code,
+                            },
+                        },
+                    },
+                    "resolveReport/auto-blind",
+                );
+            } else if (!reviewData) {
+                await safeInsertAuditLog(
+                    supabase,
+                    {
+                        actor_user_id: adminUserId,
+                        action: "report.auto_blind",
+                        target_type: "review",
+                        target_id: reportData.target_id,
+                        metadata: {
+                            reportId,
+                            reviewId: reportData.target_id,
+                            reportCount: count,
+                            result: "skipped",
+                            reason: "review_not_found",
+                        },
+                    },
+                    "resolveReport/auto-blind",
+                );
+            } else if (reviewData.status === "hidden") {
+                await safeInsertAuditLog(
+                    supabase,
+                    {
+                        actor_user_id: adminUserId,
+                        action: "report.auto_blind",
+                        target_type: "review",
+                        target_id: reportData.target_id,
+                        metadata: {
+                            reportId,
+                            reviewId: reportData.target_id,
+                            reportCount: count,
+                            result: "skipped",
+                            reason: "already_hidden",
+                        },
+                    },
+                    "resolveReport/auto-blind",
+                );
+            } else {
+                const now = new Date().toISOString();
+                const { error: hideError } = await supabase
+                    .from("reviews")
+                    .update({ status: "hidden", updated_at: now })
+                    .eq("id", reportData.target_id);
+
+                if (hideError) {
+                    console.error("[resolveReport] auto-blind review update failed", hideError);
+                    await safeInsertAuditLog(
+                        supabase,
+                        {
+                            actor_user_id: adminUserId,
+                            action: "report.auto_blind",
+                            target_type: "review",
+                            target_id: reportData.target_id,
+                            metadata: {
+                                reportId,
+                                reviewId: reportData.target_id,
+                                reportCount: count,
+                                result: "failed",
+                                step: "hide_review",
+                                error: {
+                                    message: hideError.message,
+                                    code: hideError.code,
+                                },
+                            },
+                        },
+                        "resolveReport/auto-blind",
+                    );
+                } else {
+                    await safeInsertAuditLog(
+                        supabase,
+                        {
+                            actor_user_id: adminUserId,
+                            action: "report.auto_blind",
+                            target_type: "review",
+                            target_id: reportData.target_id,
+                            metadata: {
+                                reportId,
+                                reviewId: reportData.target_id,
+                                reportCount: count,
+                                result: "success",
+                            },
+                        },
+                        "resolveReport/auto-blind",
+                    );
+                }
             }
         }
     }
@@ -479,16 +650,20 @@ export async function dismissReport(
     }
 
     // Log dismissal
-    await supabase.from("audit_logs").insert({
-        actor_user_id: adminUserId,
-        action: "report.dismiss",
-        target_type: "report",
-        target_id: reportId,
-        metadata: {
-            reportId,
-            reason,
+    await safeInsertAuditLog(
+        supabase,
+        {
+            actor_user_id: adminUserId,
+            action: "report.dismiss",
+            target_type: "report",
+            target_id: reportId,
+            metadata: {
+                reportId,
+                reason,
+            },
         },
-    });
+        "dismissReport",
+    );
 
     // Get updated report
     const result = await getReportDetail(supabase, reportId);
@@ -591,7 +766,7 @@ export async function revokeSanction(
     // Restore target status only if no other active sanctions exist
     if (sanctionData.sanction_type === "permanent_ban" || sanctionData.sanction_type === "suspension") {
         // Check for other active sanctions on the same target
-        const { count: otherActiveSanctions } = await supabase
+        const { count: otherActiveSanctions, error: otherActiveSanctionsError } = await supabase
             .from("sanctions")
             .select("*", { count: "exact", head: true })
             .eq("target_type", sanctionData.target_type)
@@ -599,33 +774,110 @@ export async function revokeSanction(
             .eq("status", "active")
             .neq("id", sanctionId);
 
-        // Only restore status if no other active sanctions exist
-        if ((otherActiveSanctions ?? 0) === 0) {
+        if (otherActiveSanctionsError) {
+            console.error(
+                "[revokeSanction] check other active sanctions failed",
+                otherActiveSanctionsError,
+            );
+            await safeInsertAuditLog(
+                supabase,
+                {
+                    actor_user_id: adminUserId,
+                    action: "sanction.restore_target_failed",
+                    target_type: sanctionData.target_type,
+                    target_id: sanctionData.target_id,
+                    metadata: {
+                        sanctionId,
+                        targetType: sanctionData.target_type,
+                        targetId: sanctionData.target_id,
+                        step: "check_other_active_sanctions",
+                        error: {
+                            message: otherActiveSanctionsError.message,
+                            code: otherActiveSanctionsError.code,
+                        },
+                    },
+                },
+                "revokeSanction/restore",
+            );
+        } else if ((otherActiveSanctions ?? 0) === 0) {
+            // Only restore status if no other active sanctions exist
             if (sanctionData.target_type === "profile") {
-                await supabase
+                const { data: restoredProfiles, error: restoreError } = await supabase
                     .from("profiles")
                     .update({ status: "active", updated_at: now })
-                    .eq("id", sanctionData.target_id);
+                    .eq("id", sanctionData.target_id)
+                    .select("id");
+
+                if (restoreError || !restoredProfiles || restoredProfiles.length === 0) {
+                    console.error("[revokeSanction] restore profile status failed", restoreError);
+                    await safeInsertAuditLog(
+                        supabase,
+                        {
+                            actor_user_id: adminUserId,
+                            action: "sanction.restore_target_failed",
+                            target_type: sanctionData.target_type,
+                            target_id: sanctionData.target_id,
+                            metadata: {
+                                sanctionId,
+                                targetType: sanctionData.target_type,
+                                targetId: sanctionData.target_id,
+                                step: "restore_target_status",
+                                error: restoreError
+                                    ? { message: restoreError.message, code: restoreError.code }
+                                    : { message: "Target not found" },
+                            },
+                        },
+                        "revokeSanction/restore",
+                    );
+                }
             } else if (sanctionData.target_type === "vendor") {
-                await supabase
+                const { data: restoredVendors, error: restoreError } = await supabase
                     .from("vendors")
                     .update({ status: "active", updated_at: now })
-                    .eq("id", sanctionData.target_id);
+                    .eq("id", sanctionData.target_id)
+                    .select("id");
+
+                if (restoreError || !restoredVendors || restoredVendors.length === 0) {
+                    console.error("[revokeSanction] restore vendor status failed", restoreError);
+                    await safeInsertAuditLog(
+                        supabase,
+                        {
+                            actor_user_id: adminUserId,
+                            action: "sanction.restore_target_failed",
+                            target_type: sanctionData.target_type,
+                            target_id: sanctionData.target_id,
+                            metadata: {
+                                sanctionId,
+                                targetType: sanctionData.target_type,
+                                targetId: sanctionData.target_id,
+                                step: "restore_target_status",
+                                error: restoreError
+                                    ? { message: restoreError.message, code: restoreError.code }
+                                    : { message: "Target not found" },
+                            },
+                        },
+                        "revokeSanction/restore",
+                    );
+                }
             }
         }
     }
 
     // Log revocation
-    await supabase.from("audit_logs").insert({
-        actor_user_id: adminUserId,
-        action: "sanction.revoke",
-        target_type: "sanction",
-        target_id: sanctionId,
-        metadata: {
-            sanctionId,
-            reason,
+    await safeInsertAuditLog(
+        supabase,
+        {
+            actor_user_id: adminUserId,
+            action: "sanction.revoke",
+            target_type: "sanction",
+            target_id: sanctionId,
+            metadata: {
+                sanctionId,
+                reason,
+            },
         },
-    });
+        "revokeSanction",
+    );
 
     // Get updated sanction
     const { data: updatedSanction, error: fetchError } = await supabase

@@ -992,7 +992,7 @@ export type Database = {
       sanctions: {
         Row: {
           created_at: string
-          created_by: string
+          created_by: string | null
           duration_days: number | null
           ends_at: string | null
           id: string
@@ -1010,7 +1010,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          created_by: string
+          created_by?: string | null
           duration_days?: number | null
           ends_at?: string | null
           id?: string
@@ -1028,7 +1028,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           duration_days?: number | null
           ends_at?: string | null
           id?: string
