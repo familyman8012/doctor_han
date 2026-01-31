@@ -27,7 +27,7 @@ export async function listAuditLogs(
 
     // Apply filters
     if (query.action) {
-        qb = qb.eq("action", query.action);
+        qb = qb.ilike("action", `${query.action}.%`);
     }
 
     if (query.targetType) {
