@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Database, Tables, TablesInsert } from "@/lib/database.types";
+import type { Database, Tables } from "@/lib/database.types";
 import type {
     AdminReportListItem,
     AdminReportListQuery,
@@ -10,6 +10,7 @@ import type {
     SanctionView,
 } from "@/lib/schema/report";
 import { badRequest, internalServerError, notFound } from "@/server/api/errors";
+import { safeInsertAuditLog } from "@/server/audit/utils";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { mapReportToListItem, mapReportToView, mapSanctionToView, type ReportRowWithRelations, type SanctionRowWithRelations } from "./mapper";
@@ -22,17 +23,6 @@ function isUuid(value: string): boolean {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
         value,
     );
-}
-
-async function safeInsertAuditLog(
-    supabase: SupabaseClient<Database>,
-    payload: TablesInsert<"audit_logs">,
-    context: string,
-): Promise<void> {
-    const { error } = await supabase.from("audit_logs").insert(payload);
-    if (error) {
-        console.error(`[${context}] audit_logs insert failed`, error);
-    }
 }
 
 function escapeLike(value: string): string {

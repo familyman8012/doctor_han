@@ -3,6 +3,7 @@ import { VendorPatchBodySchema, VendorUpsertBodySchema } from "@/lib/schema/vend
 import { badRequest, conflict, internalServerError, notFound } from "@/server/api/errors";
 import { created, ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
+import { safeInsertAuditLog } from "@/server/audit/utils";
 import type { AuthedContext } from "@/server/auth/guards";
 import { withRole } from "@/server/auth/guards";
 import { mapVendorDetail } from "@/server/vendor/mapper";
@@ -150,6 +151,19 @@ export const POST = withApi(
             fetchVendorPortfolios(ctx.supabase, vendor.id),
         ]);
 
+        // Audit log: vendor.create
+        await safeInsertAuditLog(
+            ctx.supabase,
+            {
+                actor_user_id: ctx.user.id,
+                action: "vendor.create",
+                target_type: "vendor",
+                target_id: vendor.id,
+                metadata: { name: vendor.name },
+            },
+            "vendors/me/POST",
+        );
+
         return created({
             vendor: mapVendorDetail({
                 vendor,
@@ -209,6 +223,25 @@ export const PATCH = withApi(
             fetchVendorCategories(ctx.supabase, vendor.id),
             fetchVendorPortfolios(ctx.supabase, vendor.id),
         ]);
+
+        // Audit log: vendor.update
+        const changedFields = Object.keys(update);
+        if (typeof body.categoryIds !== "undefined") {
+            changedFields.push("categoryIds");
+        }
+        if (changedFields.length > 0) {
+            await safeInsertAuditLog(
+                ctx.supabase,
+                {
+                    actor_user_id: ctx.user.id,
+                    action: "vendor.update",
+                    target_type: "vendor",
+                    target_id: vendor.id,
+                    metadata: { changedFields },
+                },
+                "vendors/me/PATCH",
+            );
+        }
 
         return ok({
             vendor: mapVendorDetail({
