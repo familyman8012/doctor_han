@@ -27,11 +27,23 @@ export async function listAuditLogs(
 
     // Apply filters
     if (query.action) {
-        qb = qb.ilike("action", `${query.action}.%`);
+        if (query.action === "verification") {
+            qb = qb.or(
+                "action.ilike.doctor_verification.%,action.ilike.vendor_verification.%",
+            );
+        } else {
+            qb = qb.ilike("action", `${query.action}.%`);
+        }
     }
 
     if (query.targetType) {
-        qb = qb.eq("target_type", query.targetType);
+        if (query.targetType === "verification") {
+            qb = qb.in("target_type", ["doctor_verification", "vendor_verification"]);
+        } else if (query.targetType === "file") {
+            qb = qb.eq("target_type", "verification_file");
+        } else {
+            qb = qb.eq("target_type", query.targetType);
+        }
     }
 
     if (query.actorId) {

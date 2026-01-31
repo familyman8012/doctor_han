@@ -36,6 +36,7 @@ export const GET = withApi(async (req: NextRequest) => {
     // Audit log: file.download (verification files only)
     const purpose = (file as unknown as { purpose: string }).purpose;
     if (user && VERIFICATION_FILE_PURPOSES.includes(purpose)) {
+        const fileName = file.path.split("/").pop() ?? file.id;
         await safeInsertAuditLog(
             supabase,
             {
@@ -43,7 +44,11 @@ export const GET = withApi(async (req: NextRequest) => {
                 action: "file.download",
                 target_type: "verification_file",
                 target_id: file.id,
-                metadata: { purpose, filePath: file.path },
+                metadata: {
+                    fileType: purpose,
+                    fileName,
+                    targetUserId: file.owner_user_id,
+                },
             },
             "files/signed-download/GET",
         );
