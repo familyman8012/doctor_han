@@ -43,7 +43,7 @@ export const AuditLogViewSchema = z.object({
     action: z.string(),
     targetType: z.string(),
     targetId: z.string().nullable(),
-    metadata: z.object({}).passthrough(),
+    metadata: z.record(z.string(), z.unknown()),
     createdAt: z.string(),
     actor: AuditLogActorSchema,
 });

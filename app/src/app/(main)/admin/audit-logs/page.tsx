@@ -11,7 +11,9 @@ import { Input } from "@/components/ui/Input/Input";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
+import { Modal } from "@/components/Modal";
 import Pagination from "@/components/widgets/Pagination/Pagination";
+import type { AuditLogView } from "@/lib/schema/audit";
 
 const PAGE_SIZE = 20;
 
@@ -66,6 +68,7 @@ export default function AdminAuditLogsPage() {
     const [searchInput, setSearchInput] = useState(search);
     const [startDateInput, setStartDateInput] = useState(startDate);
     const [endDateInput, setEndDateInput] = useState(endDate);
+    const [selectedLog, setSelectedLog] = useState<AuditLogView | null>(null);
 
     const { data, isLoading } = useQuery({
         queryKey: ["admin", "audit-logs", action, targetType, search, startDate, endDate, page],
@@ -111,7 +114,7 @@ export default function AdminAuditLogsPage() {
 
     const getTargetTypeBadge = (type: string) => {
         const label = TARGET_TYPE_LABELS[type] ?? type;
-        const colors: Record<string, "purple" | "teal" | "orange" | "info" | "success"> = {
+        const colors: Record<string, "purple" | "teal" | "orange" | "info" | "success" | "neutral"> = {
             profile: "purple",
             vendor: "teal",
             review: "orange",
@@ -242,7 +245,11 @@ export default function AdminAuditLogsPage() {
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {items.map((item) => (
-                                    <tr key={item.id} className="hover:bg-gray-50">
+                                    <tr
+                                        key={item.id}
+                                        onClick={() => setSelectedLog(item)}
+                                        className="hover:bg-gray-50 cursor-pointer"
+                                    >
                                         <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
                                             {dayjs(item.createdAt).format("YYYY.MM.DD HH:mm:ss")}
                                         </td>
@@ -278,6 +285,56 @@ export default function AdminAuditLogsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Detail Modal */}
+            <Modal
+                isOpen={!!selectedLog}
+                onClose={() => setSelectedLog(null)}
+                title="감사 로그 상세"
+                showButtons={false}
+                showCloseButton
+                className="max-w-lg"
+            >
+                {selectedLog && (
+                    <div className="space-y-4">
+                        <div>
+                            <p className="text-sm text-gray-500">일시</p>
+                            <p className="text-[#0a3b41]">
+                                {dayjs(selectedLog.createdAt).format("YYYY.MM.DD HH:mm:ss")}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500">액션</p>
+                            <div className="mt-1">{getActionBadge(selectedLog.action)}</div>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500">대상유형</p>
+                            <div className="mt-1">{getTargetTypeBadge(selectedLog.targetType)}</div>
+                        </div>
+                        {selectedLog.targetId && (
+                            <div>
+                                <p className="text-sm text-gray-500">대상 ID</p>
+                                <p className="text-[#0a3b41] font-mono text-sm">{selectedLog.targetId}</p>
+                            </div>
+                        )}
+                        <div>
+                            <p className="text-sm text-gray-500">행위자</p>
+                            <p className="text-[#0a3b41]">
+                                {selectedLog.actor.displayName ?? "-"}
+                                {selectedLog.actor.email && (
+                                    <span className="text-gray-400 ml-1">({selectedLog.actor.email})</span>
+                                )}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500 mb-2">메타데이터</p>
+                            <pre className="bg-gray-100 p-3 rounded text-sm overflow-auto max-h-60 text-[#0a3b41]">
+                                {JSON.stringify(selectedLog.metadata, null, 2)}
+                            </pre>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 }
