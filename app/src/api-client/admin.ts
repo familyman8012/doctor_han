@@ -31,6 +31,7 @@ import type {
     AdminSupportTicketListResponse,
     AdminSupportTicketDetailResponse,
     AdminTicketStatusChangeBody,
+    AdminTicketStatusChangeResponse,
     SupportMessageCreateBody,
     SupportMessageCreateResponse,
 } from "@/lib/schema/support";
@@ -173,11 +174,8 @@ export const adminApi = {
     changeSupportTicketStatus: async (
         id: string,
         body: AdminTicketStatusChangeBody,
-    ): Promise<AdminSupportTicketDetailResponse> => {
-        const response = await api.patch<AdminSupportTicketDetailResponse>(
-            `/api/admin/support/tickets/${id}/status`,
-            body,
-        );
+    ): Promise<AdminTicketStatusChangeResponse> => {
+        const response = await api.patch<AdminTicketStatusChangeResponse>(`/api/admin/support/tickets/${id}/status`, body);
         return response.data;
     },
 

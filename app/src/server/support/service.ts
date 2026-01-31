@@ -84,7 +84,9 @@ export async function createTicket(
 	});
 
 	// Record initial status history
-	await insertStatusHistory(supabase, {
+	// status_history는 admin만 INSERT 가능 (RLS). service role로 기록한다.
+	const adminSupabase = createSupabaseAdminClient();
+	await insertStatusHistory(adminSupabase, {
 		ticket_id: ticketRow.id,
 		from_status: null,
 		to_status: "open",
@@ -198,6 +200,11 @@ export async function sendUserMessage(
 	// Check if ticket is closed
 	if (ticketRow.status === "closed") {
 		throw badRequest("종료된 티켓에는 메시지를 보낼 수 없습니다.");
+	}
+
+	// resolved 상태는 재오픈 후 메시지 작성 (PRD 엣지 케이스)
+	if (ticketRow.status === "resolved") {
+		throw badRequest("해결된 티켓에는 메시지를 보낼 수 없습니다. 티켓을 재오픈 후 다시 시도해주세요.");
 	}
 
 	// Insert message
@@ -428,6 +435,10 @@ export async function sendAdminMessage(
 	const ticketRow = await fetchTicketById(supabase, ticketId);
 	if (!ticketRow) {
 		throw notFound("티켓을 찾을 수 없습니다.");
+	}
+
+	if (ticketRow.status === "closed") {
+		throw badRequest("종료된 티켓에는 메시지를 보낼 수 없습니다.");
 	}
 
 	const now = new Date().toISOString();

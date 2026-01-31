@@ -113,6 +113,12 @@ export default function MypageSupportDetailPage() {
 
     const isClosed = ticket.status === "closed";
     const canReopen = ticket.status === "resolved";
+    const isInputDisabled = ticket.status === "closed" || ticket.status === "resolved";
+    const inputPlaceholder = isClosed
+        ? "종료된 문의입니다"
+        : canReopen
+            ? "해결된 문의입니다. 재오픈 후 메시지를 입력하세요."
+            : "메시지를 입력하세요...";
 
     return (
         <div className="space-y-4">
@@ -165,7 +171,12 @@ export default function MypageSupportDetailPage() {
             {/* Message Thread */}
             <div className="flex flex-col h-[500px] bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <MessageList messages={messages} currentUserId={currentUserId} isLoading={false} />
-                <MessageInput onSend={handleSend} isSending={sendMessageMutation.isPending} disabled={isClosed} />
+                <MessageInput
+                    onSend={handleSend}
+                    isSending={sendMessageMutation.isPending}
+                    disabled={isInputDisabled}
+                    placeholder={inputPlaceholder}
+                />
             </div>
         </div>
     );
