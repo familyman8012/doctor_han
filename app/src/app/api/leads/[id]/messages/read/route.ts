@@ -1,9 +1,9 @@
 import { zUuid } from "@/lib/schema/common";
 import { LeadMessageReadPatchBodySchema } from "@/lib/schema/lead";
+import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withAuth } from "@/server/auth/guards";
 import { markAsRead } from "@/server/lead/message-service";
-import { NextResponse } from "next/server";
 
 /**
  * PATCH /api/leads/[id]/messages/read
@@ -23,6 +23,6 @@ export const PATCH = withApi(
             ctx.profile.role,
         );
 
-        return new NextResponse(null, { status: 204 });
+        return ok(null);
     }),
 );

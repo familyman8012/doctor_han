@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { leadsApi } from "@/api-client/leads";
 import { MessageList } from "@/app/(main)/mypage/leads/[id]/components/MessageList";
 import { MessageInput } from "@/app/(main)/mypage/leads/[id]/components/MessageInput";
@@ -10,6 +10,8 @@ interface MessagesTabProps {
     leadId: string;
     currentUserId: string;
 }
+
+const PAGE_SIZE = 50;
 
 export function MessagesTab({ leadId, currentUserId }: MessagesTabProps) {
     const queryClient = useQueryClient();
@@ -22,16 +24,27 @@ export function MessagesTab({ leadId, currentUserId }: MessagesTabProps) {
         data,
         isLoading,
         isFetching,
-    } = useQuery({
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useInfiniteQuery({
         queryKey: ["lead-messages", leadId],
-        queryFn: () => leadsApi.getMessages(leadId, { pageSize: 50 }),
+        queryFn: ({ pageParam }) => leadsApi.getMessages(leadId, { page: pageParam, pageSize: PAGE_SIZE }),
+        initialPageParam: 1,
+        getNextPageParam: (lastPage) => {
+            const { page, pageSize, total } = lastPage.data;
+            return page * pageSize < total ? page + 1 : undefined;
+        },
         staleTime: 30000,
         refetchInterval: 30000,
     });
 
     const messages = useMemo(() => {
-        if (!data?.data?.items) return [];
-        return data.data.items;
+        const pages = data?.pages ?? [];
+        return pages
+            .slice()
+            .reverse()
+            .flatMap((page) => page.data.items ?? []);
     }, [data]);
 
     // 읽지 않은 메시지 ID 추출 (상대방이 보낸 것만)
@@ -47,6 +60,7 @@ export function MessagesTab({ leadId, currentUserId }: MessagesTabProps) {
             leadsApi.markMessagesAsRead(leadId, { messageIds }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["lead-messages", leadId] });
+            queryClient.invalidateQueries({ queryKey: ["lead-messages-unread", leadId] });
         },
     });
 
@@ -82,6 +96,7 @@ export function MessagesTab({ leadId, currentUserId }: MessagesTabProps) {
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["lead-messages", leadId] });
+            queryClient.invalidateQueries({ queryKey: ["lead-messages-unread", leadId] });
         },
     });
 
@@ -89,13 +104,18 @@ export function MessagesTab({ leadId, currentUserId }: MessagesTabProps) {
         sendMessageMutation.mutate({ content, attachmentFileIds });
     };
 
+    const isRefreshing = isFetching && !isFetchingNextPage;
+
     return (
         <div className="flex flex-col h-[500px] bg-white rounded-xl border border-gray-100 overflow-hidden">
             <MessageList
                 messages={messages}
                 currentUserId={currentUserId}
                 isLoading={isLoading}
-                isFetching={isFetching}
+                isFetching={isRefreshing}
+                hasMore={hasNextPage}
+                isLoadingMore={isFetchingNextPage}
+                onLoadMore={() => fetchNextPage()}
             />
             <MessageInput
                 onSend={handleSend}

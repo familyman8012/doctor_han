@@ -7,6 +7,7 @@ import { Spinner } from "@/components/ui/Spinner/Spinner";
 import api from "@/api-client/client";
 import { errorHandler } from "@/api-client/error-handler";
 import type { FileSignedUploadResponse } from "@/lib/schema/file";
+import { getSupabaseBrowserClient } from "@/server/supabase/browser";
 
 interface UploadedFile {
     id: string;
@@ -40,7 +41,15 @@ export function MessageInput({ onSend, isSending, disabled }: MessageInputProps)
 
     const handleSend = () => {
         const trimmedContent = content.trim();
-        if (!trimmedContent && files.length === 0) return;
+        if (!trimmedContent) {
+            if (files.length > 0) {
+                errorHandler({
+                    code: "MESSAGE_CONTENT_REQUIRED",
+                    message: "메시지 내용을 입력해주세요.",
+                });
+            }
+            return;
+        }
         if (isSending || disabled) return;
         if (files.some((f) => f.isUploading)) return;
 
@@ -106,23 +115,17 @@ export function MessageInput({ onSend, isSending, disabled }: MessageInputProps)
 
                 const { file: fileData, upload } = signedUploadResponse.data.data;
 
-                // Step 2: Upload file to signed URL (30초 타임아웃)
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000);
+                // Step 2: Upload file to signed URL
+                // 다른 업로드 플로우와 동일하게 supabase client를 사용해 업로드
+                const supabase = getSupabaseBrowserClient();
+                const { error: uploadError } = await supabase.storage
+                    .from(upload.bucket)
+                    .uploadToSignedUrl(upload.path, upload.token, file, {
+                        cacheControl: "3600",
+                    });
 
-                const uploadResponse = await fetch(upload.signedUrl, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": file.type || "application/octet-stream",
-                    },
-                    body: file,
-                    signal: controller.signal,
-                });
-
-                clearTimeout(timeoutId);
-
-                if (!uploadResponse.ok) {
-                    throw new Error(`파일 업로드에 실패했습니다. (${uploadResponse.status})`);
+                if (uploadError) {
+                    throw uploadError;
                 }
 
                 setFiles((prev) =>
@@ -157,7 +160,7 @@ export function MessageInput({ onSend, isSending, disabled }: MessageInputProps)
 
     const isUploadingAny = files.some((f) => f.isUploading);
     const canSend =
-        (content.trim() || files.length > 0) &&
+        !!content.trim() &&
         !isSending &&
         !disabled &&
         !isUploadingAny;

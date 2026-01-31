@@ -64,10 +64,10 @@ export default function PartnerLeadDetailPage() {
         enabled: isAuthenticated,
     });
 
-    // 메시지 목록 (unreadCount 포함)
+    // 메시지 요약 (unreadCount 포함)
     const { data: messagesData } = useQuery({
-        queryKey: ["lead-messages", leadId],
-        queryFn: () => leadsApi.getMessages(leadId, { pageSize: 50 }),
+        queryKey: ["lead-messages-unread", leadId],
+        queryFn: () => leadsApi.getMessages(leadId, { page: 1, pageSize: 1 }),
         enabled: isAuthenticated && !!leadId,
         staleTime: 30000,
         refetchInterval: 30000,

@@ -2,13 +2,14 @@ import "server-only";
 
 import type { Database, Json } from "@/lib/database.types";
 import type { LeadMessage, LeadMessageCreateBody, LeadMessagesListQuery } from "@/lib/schema/lead";
-import { forbidden, notFound, tooManyRequests } from "@/server/api/errors";
+import { badRequest, forbidden, notFound, tooManyRequests } from "@/server/api/errors";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { mapMessageRow } from "./message-mapper";
 import {
     checkMessageRateLimit,
     fetchLeadParticipants,
+    fetchFilesForLeadMessageAttachments,
     fetchMessages,
     fetchUserProfile,
     getUnreadCount,
@@ -111,6 +112,25 @@ export async function sendMessage(
         });
     }
 
+    // 첨부파일 검증 (소유자/목적)
+    const attachmentFileIds = Array.from(new Set(body.attachmentFileIds ?? []));
+    if (attachmentFileIds.length > 0) {
+        const files = await fetchFilesForLeadMessageAttachments(supabase, attachmentFileIds);
+
+        if (files.length !== attachmentFileIds.length) {
+            throw badRequest("첨부파일을 찾을 수 없습니다.");
+        }
+
+        const invalidFiles = files.filter((file) => {
+            const purpose = (file as unknown as { purpose: string }).purpose;
+            return file.owner_user_id !== userId || purpose !== "lead_message_attachment";
+        });
+
+        if (invalidFiles.length > 0) {
+            throw badRequest("메시지 첨부파일만 전송할 수 있습니다.");
+        }
+    }
+
     // 메시지 저장
     const messageRow = await insertMessage(supabase, {
         leadId,
@@ -119,9 +139,22 @@ export async function sendMessage(
     });
 
     // 첨부파일 저장
-    const attachments = body.attachmentFileIds?.length
-        ? await insertMessageAttachments(supabase, messageRow.id, body.attachmentFileIds)
-        : [];
+    let attachments: Awaited<ReturnType<typeof insertMessageAttachments>> = [];
+
+    try {
+        attachments = attachmentFileIds.length
+            ? await insertMessageAttachments(supabase, messageRow.id, attachmentFileIds)
+            : [];
+    } catch (error) {
+        const adminSupabase = createSupabaseAdminClient();
+        const cleanup = await adminSupabase.from("lead_messages").delete().eq("id", messageRow.id);
+
+        if (cleanup.error) {
+            console.error("[Message] cleanup failed after attachment insert error", cleanup.error);
+        }
+
+        throw error;
+    }
 
     // 알림 발송 (비동기, 실패해도 메시지는 저장됨)
     const recipientUserId = isDoctor ? await getVendorOwnerUserId(lead.vendorId) : lead.doctorUserId;

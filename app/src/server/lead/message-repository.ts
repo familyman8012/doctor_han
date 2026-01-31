@@ -1,14 +1,18 @@
 import "server-only";
 
-import type { Database } from "@/lib/database.types";
+import type { Database, Tables } from "@/lib/database.types";
 import { internalServerError } from "@/server/api/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { LeadMessageAttachmentRow, LeadMessageRow } from "./message-mapper";
 
 const MESSAGE_RATE_LIMIT_PER_MINUTE = 10;
 
+type FileRow = Pick<Tables<"files">, "id" | "owner_user_id" | "purpose">;
+
 /**
- * 메시지 목록 조회 (페이지네이션, 오래된 순 정렬)
+ * 메시지 목록 조회 (페이지네이션)
+ * - page=1은 "최신" 페이지
+ * - 각 페이지 응답은 오래된 -> 최신 순으로 정렬됨
  */
 export async function fetchMessages(
     supabase: SupabaseClient<Database>,
@@ -31,13 +35,15 @@ export async function fetchMessages(
 
     const total = count ?? 0;
 
-    // 메시지 목록 조회 (오래된 순)
+    // 메시지 목록 조회
+    // - DB는 최신순으로 페이지네이션 (page=1이 최신)
+    // - 응답은 UI에 맞게 오래된 -> 최신으로 정렬
     const offset = (page - 1) * pageSize;
     const { data: messages, error: messagesError } = await supabase
         .from("lead_messages")
         .select("*")
         .eq("lead_id", leadId)
-        .order("created_at", { ascending: true })
+        .order("created_at", { ascending: false })
         .range(offset, offset + pageSize - 1);
 
     if (messagesError) {
@@ -47,7 +53,7 @@ export async function fetchMessages(
         });
     }
 
-    const rows = messages ?? [];
+    const rows = (messages ?? []).slice().reverse();
 
     // 첨부파일 조회 (메시지가 있는 경우에만)
     const attachmentsByMessageId = new Map<string, LeadMessageAttachmentRow[]>();
@@ -74,6 +80,32 @@ export async function fetchMessages(
     }
 
     return { rows, attachmentsByMessageId, total };
+}
+
+/**
+ * 메시지 첨부파일로 사용 가능한 파일 메타 조회
+ */
+export async function fetchFilesForLeadMessageAttachments(
+    supabase: SupabaseClient<Database>,
+    fileIds: string[],
+): Promise<FileRow[]> {
+    if (fileIds.length === 0) {
+        return [];
+    }
+
+    const { data, error } = await supabase
+        .from("files")
+        .select("id, owner_user_id, purpose")
+        .in("id", fileIds);
+
+    if (error) {
+        throw internalServerError("첨부파일을 조회할 수 없습니다.", {
+            message: error.message,
+            code: error.code,
+        });
+    }
+
+    return data ?? [];
 }
 
 /**

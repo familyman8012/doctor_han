@@ -13,6 +13,9 @@ interface MessageListProps {
     currentUserId: string;
     isLoading: boolean;
     isFetching: boolean;
+    hasMore?: boolean;
+    isLoadingMore?: boolean;
+    onLoadMore?: () => void;
 }
 
 export function MessageList({
@@ -20,25 +23,34 @@ export function MessageList({
     currentUserId,
     isLoading,
     isFetching,
+    hasMore,
+    isLoadingMore,
+    onLoadMore,
 }: MessageListProps) {
     const bottomRef = useRef<HTMLDivElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const prevMessagesLengthRef = useRef(0);
+    const prevLastMessageIdRef = useRef<string | null>(null);
+    const didInitialScrollRef = useRef(false);
 
-    // 새 메시지가 추가되면 스크롤을 아래로 이동
+    // 새 메시지가 추가되면 스크롤을 아래로 이동 (이전 메시지 로드는 제외)
     useEffect(() => {
-        if (messages.length > prevMessagesLengthRef.current) {
+        const lastMessageId = messages[messages.length - 1]?.id ?? null;
+        const prevLastMessageId = prevLastMessageIdRef.current;
+
+        if (prevLastMessageId && lastMessageId && prevLastMessageId !== lastMessageId) {
             bottomRef.current?.scrollIntoView({ behavior: "smooth" });
         }
-        prevMessagesLengthRef.current = messages.length;
-    }, [messages.length]);
+        prevLastMessageIdRef.current = lastMessageId;
+    }, [messages]);
 
     // 초기 로드 시 스크롤을 맨 아래로
     useEffect(() => {
+        if (didInitialScrollRef.current) return;
         if (!isLoading && messages.length > 0) {
             bottomRef.current?.scrollIntoView({ behavior: "instant" });
+            prevLastMessageIdRef.current = messages[messages.length - 1]?.id ?? null;
+            didInitialScrollRef.current = true;
         }
-    }, [isLoading, messages.length]);
+    }, [isLoading, messages]);
 
     if (isLoading) {
         return (
@@ -74,10 +86,22 @@ export function MessageList({
     );
 
     return (
-        <div
-            ref={containerRef}
-            className="flex-1 overflow-y-auto p-4 space-y-4"
-        >
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* 이전 메시지 로드 */}
+            {hasMore && onLoadMore && (
+                <div className="flex justify-center py-1">
+                    <button
+                        type="button"
+                        onClick={onLoadMore}
+                        disabled={isLoadingMore}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 text-xs text-[#0a3b41] bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                    >
+                        {isLoadingMore && <Spinner size="xs" />}
+                        이전 메시지 더 보기
+                    </button>
+                </div>
+            )}
+
             {/* 새로고침 인디케이터 */}
             {isFetching && !isLoading && (
                 <div className="flex justify-center py-2">

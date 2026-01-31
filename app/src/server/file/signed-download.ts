@@ -144,6 +144,28 @@ export async function createAuthorizedSignedDownloadUrl(input: {
             if (!attachment) {
                 throw notFound("파일을 찾을 수 없습니다.");
             }
+        } else if (purpose === "lead_message_attachment") {
+            if (!input.user) {
+                throw notFound("파일을 찾을 수 없습니다.");
+            }
+
+            const { data: attachment, error: attachmentError } = await input.supabase
+                .from("lead_message_attachments")
+                .select("id")
+                .eq("file_id", fileRow.id)
+                .limit(1)
+                .maybeSingle();
+
+            if (attachmentError) {
+                throw internalServerError("파일 권한을 확인할 수 없습니다.", {
+                    message: attachmentError.message,
+                    code: attachmentError.code,
+                });
+            }
+
+            if (!attachment) {
+                throw notFound("파일을 찾을 수 없습니다.");
+            }
         } else if (purpose === "review_photo") {
             const { data: review, error: reviewError } = await input.supabase
                 .from("reviews")
