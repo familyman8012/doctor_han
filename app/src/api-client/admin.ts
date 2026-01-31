@@ -26,6 +26,15 @@ import type {
     AdminSanctionActionResponse,
     AdminSanctionRevokeBody,
 } from "@/lib/schema/report";
+import type {
+    AdminSupportTicketListQuery,
+    AdminSupportTicketListResponse,
+    AdminSupportTicketDetailResponse,
+    AdminTicketStatusChangeBody,
+    AdminTicketStatusChangeResponse,
+    SupportMessageCreateBody,
+    SupportMessageCreateResponse,
+} from "@/lib/schema/support";
 import api from "./client";
 
 export const adminApi = {
@@ -142,6 +151,40 @@ export const adminApi = {
     // 제재 해제
     revokeSanction: async (id: string, body: AdminSanctionRevokeBody): Promise<AdminSanctionActionResponse> => {
         const response = await api.post<AdminSanctionActionResponse>(`/api/admin/sanctions/${id}/revoke`, body);
+        return response.data;
+    },
+
+    // ===========================
+    // 고객지원 관리
+    // ===========================
+
+    // 고객지원 티켓 목록 조회
+    getSupportTickets: async (params: AdminSupportTicketListQuery): Promise<AdminSupportTicketListResponse> => {
+        const response = await api.get<AdminSupportTicketListResponse>("/api/admin/support/tickets", { params });
+        return response.data;
+    },
+
+    // 고객지원 티켓 상세 조회
+    getSupportTicket: async (id: string): Promise<AdminSupportTicketDetailResponse> => {
+        const response = await api.get<AdminSupportTicketDetailResponse>(`/api/admin/support/tickets/${id}`);
+        return response.data;
+    },
+
+    // 고객지원 티켓 상태 변경
+    changeSupportTicketStatus: async (
+        id: string,
+        body: AdminTicketStatusChangeBody,
+    ): Promise<AdminTicketStatusChangeResponse> => {
+        const response = await api.patch<AdminTicketStatusChangeResponse>(`/api/admin/support/tickets/${id}/status`, body);
+        return response.data;
+    },
+
+    // 고객지원 메시지 발송 (관리자)
+    sendSupportMessage: async (ticketId: string, body: SupportMessageCreateBody): Promise<SupportMessageCreateResponse> => {
+        const response = await api.post<SupportMessageCreateResponse>(
+            `/api/admin/support/tickets/${ticketId}/messages`,
+            body,
+        );
         return response.data;
     },
 };

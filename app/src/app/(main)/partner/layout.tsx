@@ -3,7 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Building2, Inbox, FolderOpen, Settings, ChevronRight, Bell } from "lucide-react";
+import { Building2, Inbox, FolderOpen, Settings, ChevronRight, Bell, MessageCircle } from "lucide-react";
 import { useIsAuthenticated, useUserRole, useAuthStore, useProfile } from "@/stores/auth";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { cn } from "@/components/utils";
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
     { href: "/partner", label: "업체 프로필", icon: Building2, exact: true },
     { href: "/partner/leads", label: "받은 리드함", icon: Inbox },
     { href: "/partner/portfolios", label: "포트폴리오", icon: FolderOpen },
+    { href: "/partner/support", label: "고객지원", icon: MessageCircle },
     { href: "/partner/notifications", label: "알림 설정", icon: Bell },
     { href: "/partner/settings", label: "계정 설정", icon: Settings },
 ];

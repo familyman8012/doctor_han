@@ -4,7 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { User, Heart, FileText, Star, Settings, ChevronRight, Bell } from "lucide-react";
+import { User, Heart, FileText, Star, Settings, ChevronRight, Bell, MessageCircle } from "lucide-react";
 import { useIsAuthenticated, useUserRole, useAuthStore, useProfile } from "@/stores/auth";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { cn } from "@/components/utils";
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
     { href: "/mypage/leads", label: "내 문의함", icon: FileText },
     { href: "/mypage/favorites", label: "찜 목록", icon: Heart },
     { href: "/mypage/reviews", label: "내 리뷰", icon: Star },
+    { href: "/mypage/support", label: "고객지원", icon: MessageCircle },
     { href: "/mypage/notifications", label: "알림 설정", icon: Bell },
     { href: "/mypage/settings", label: "계정 설정", icon: Settings },
 ];
