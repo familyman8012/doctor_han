@@ -122,25 +122,33 @@ export const POST = withApi(
                 .single();
 
             if (profile?.email || profile?.phone) {
-                const notificationResult = await sendVerificationResult({
-                    userId: data.user_id,
-                    email: profile.email ?? "",
-                    phone: profile.phone ?? undefined,
-                    recipientName: profile.display_name || "회원",
-                    type: "doctor",
-                    action: "rejected",
-                    rejectReason: body.reason,
-                });
+                try {
+                    const notificationResult = await sendVerificationResult({
+                        userId: data.user_id,
+                        email: profile.email ?? "",
+                        phone: profile.phone ?? undefined,
+                        recipientName: profile.display_name || "회원",
+                        type: "doctor",
+                        action: "rejected",
+                        rejectReason: body.reason,
+                    });
 
-                const warnings: string[] = [];
-                if (!notificationResult.email.success && !notificationResult.email.skipped) {
-                    warnings.push("이메일");
-                }
-                if (!notificationResult.kakao.success && !notificationResult.kakao.skipped) {
-                    warnings.push("카카오");
-                }
-                if (warnings.length > 0) {
-                    notificationWarning = `${warnings.join(", ")} 알림 발송에 실패했습니다.`;
+                    const warnings: string[] = [];
+                    if (!notificationResult.email.success && !notificationResult.email.skipped) {
+                        warnings.push("이메일");
+                    }
+                    if (!notificationResult.kakao.success && !notificationResult.kakao.skipped) {
+                        warnings.push("카카오");
+                    }
+                    if (warnings.length > 0) {
+                        notificationWarning = `${warnings.join(", ")} 알림 발송에 실패했습니다.`;
+                    }
+                } catch (error) {
+                    console.error("[POST /api/admin/verifications/:id/reject] notification send failed", {
+                        userId: data.user_id,
+                        error,
+                    });
+                    notificationWarning = "알림 발송에 실패했습니다.";
                 }
             }
 
@@ -188,29 +196,36 @@ export const POST = withApi(
             .single();
 
         if (profile?.email || profile?.phone) {
-            const notificationResult = await sendVerificationResult({
-                userId: data.user_id,
-                email: profile.email ?? "",
-                phone: profile.phone ?? undefined,
-                recipientName: profile.display_name || "회원",
-                type: "vendor",
-                action: "rejected",
-                rejectReason: body.reason,
-            });
+            try {
+                const notificationResult = await sendVerificationResult({
+                    userId: data.user_id,
+                    email: profile.email ?? "",
+                    phone: profile.phone ?? undefined,
+                    recipientName: profile.display_name || "회원",
+                    type: "vendor",
+                    action: "rejected",
+                    rejectReason: body.reason,
+                });
 
-            const warnings: string[] = [];
-            if (!notificationResult.email.success && !notificationResult.email.skipped) {
-                warnings.push("이메일");
-            }
-            if (!notificationResult.kakao.success && !notificationResult.kakao.skipped) {
-                warnings.push("카카오");
-            }
-            if (warnings.length > 0) {
-                notificationWarning = `${warnings.join(", ")} 알림 발송에 실패했습니다.`;
+                const warnings: string[] = [];
+                if (!notificationResult.email.success && !notificationResult.email.skipped) {
+                    warnings.push("이메일");
+                }
+                if (!notificationResult.kakao.success && !notificationResult.kakao.skipped) {
+                    warnings.push("카카오");
+                }
+                if (warnings.length > 0) {
+                    notificationWarning = `${warnings.join(", ")} 알림 발송에 실패했습니다.`;
+                }
+            } catch (error) {
+                console.error("[POST /api/admin/verifications/:id/reject] notification send failed", {
+                    userId: data.user_id,
+                    error,
+                });
+                notificationWarning = "알림 발송에 실패했습니다.";
             }
         }
 
         return ok({ type: "vendor" as const, verification: mapVendorVerificationRow(data), emailWarning: notificationWarning });
     }),
 );
-

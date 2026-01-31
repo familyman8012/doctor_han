@@ -102,7 +102,14 @@ export default function NotificationSettingsPage() {
 	}
 
 	const handleToggle = (key: ToggleableKey, value: boolean) => {
-		updateMutation.mutate({ [key]: value });
+		const updates: Partial<Record<ToggleableKey, boolean>> = { [key]: value };
+
+		// 현재 카카오는 "인증 결과"만 지원하므로, 카카오 ON 시 인증 결과 알림도 같이 ON 처리
+		if (key === "kakaoEnabled" && value === true && !data.verificationResultEnabled) {
+			updates.verificationResultEnabled = true;
+		}
+
+		updateMutation.mutate(updates);
 	};
 
 	return (
@@ -125,10 +132,10 @@ export default function NotificationSettingsPage() {
 				<ToggleItem
 					icon={<Shield className="w-5 h-5 text-[#62e3d5]" />}
 					label="인증 결과 알림"
-					description="한의사 인증 승인/반려 시 이메일을 받습니다"
+					description="인증 승인/반려 결과 알림을 받습니다"
 					checked={data.verificationResultEnabled}
 					onChange={(v) => handleToggle("verificationResultEnabled", v)}
-					disabled={updateMutation.isPending || !data.emailEnabled}
+					disabled={updateMutation.isPending}
 				/>
 
 				<ToggleItem
@@ -151,7 +158,7 @@ export default function NotificationSettingsPage() {
 			</div>
 
 			<p className="text-xs text-gray-400">
-				* 이메일 알림 전체를 끄면 하위 알림도 수신하지 않습니다.
+				* 이메일 알림 전체를 끄면 이메일 하위 알림도 수신하지 않습니다.
 			</p>
 
 			{/* 카카오 알림톡 섹션 */}

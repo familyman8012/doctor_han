@@ -3,7 +3,7 @@ import "server-only";
 import type { Json } from "@/lib/database.types";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import { getKakaoVerificationTemplate, type KakaoTemplate } from "./kakao-templates";
-import { fetchNotificationSettings, insertNotificationDelivery } from "./repository";
+import { fetchNotificationSettings, insertNotificationDelivery, type NotificationSettingsRow } from "./repository";
 import { resend, RESEND_FROM_EMAIL } from "./resend";
 import { SOLAPI_KAKAO_PFID, SOLAPI_SENDER_PHONE, solapiClient } from "./solapi";
 import {
@@ -13,6 +13,22 @@ import {
 	getVendorRejectedTemplate,
 	type VerificationEmailData,
 } from "./templates";
+
+function maskEmail(email: string): string {
+	const atIndex = email.indexOf("@");
+	if (atIndex <= 0) return "***";
+	const local = email.slice(0, atIndex);
+	const domain = email.slice(atIndex + 1);
+	const first = local[0] ?? "*";
+	if (local.length <= 1) return `${first}***@${domain}`;
+	const last = local[local.length - 1] ?? "*";
+	return `${first}***${last}@${domain}`;
+}
+
+function maskPhone(phone: string): string {
+	// keep last 4 digits (preserve formatting)
+	return phone.replace(/\d(?=\d{4})/g, "*");
+}
 
 interface SendVerificationEmailParams {
 	userId: string;
@@ -78,6 +94,7 @@ export async function sendVerificationResultEmail(
 		});
 
 		// 4. 성공 로그 기록
+		const sentAt = new Date().toISOString();
 		await insertNotificationDelivery(adminSupabase, {
 			userId,
 			type: notificationType,
@@ -87,10 +104,13 @@ export async function sendVerificationResultEmail(
 			subject: template.subject,
 			bodyPreview: template.body.slice(0, 200),
 			providerResponse: result as Json,
-			sentAt: new Date().toISOString(),
+			sentAt,
+			retryCount: 0,
+			maxRetries: 0,
+			status: "sent",
 		});
 
-		console.log(`[Notification] Email sent to ${email}`, result);
+		console.log(`[Notification] Email sent`, { userId, to: maskEmail(email), type: notificationType });
 		return { success: true };
 	} catch (error) {
 		// 5. 실패 로그 기록 (사용자에게는 에러 노출하지 않음)
@@ -109,6 +129,7 @@ export async function sendVerificationResultEmail(
 				template = action === "approved" ? getVendorApprovedTemplate(templateData) : getVendorRejectedTemplate(templateData);
 			}
 
+			const failedAt = new Date().toISOString();
 			await insertNotificationDelivery(adminSupabase, {
 				userId,
 				type: notificationType,
@@ -117,14 +138,17 @@ export async function sendVerificationResultEmail(
 				recipient: email,
 				subject: template.subject,
 				bodyPreview: template.body.slice(0, 200),
-				failedAt: new Date().toISOString(),
+				failedAt,
 				errorMessage,
+				retryCount: 0,
+				maxRetries: 0,
+				status: "failed",
 			});
 		} catch (logError) {
 			console.error(`[Notification] Failed to log delivery error`, logError);
 		}
 
-		console.error(`[Notification] Email failed for ${email}`, error);
+		console.error(`[Notification] Email failed`, { userId, to: maskEmail(email), errorMessage });
 		return { success: false, error: errorMessage };
 	}
 }
@@ -167,11 +191,14 @@ export async function sendKakaoAlimtalk(params: SendKakaoAlimtalkParams): Promis
 			},
 		});
 
-		console.log(`[Notification] Kakao alimtalk sent to ${phone}`, result);
+		console.log(`[Notification] Kakao alimtalk sent`, {
+			to: maskPhone(phone),
+			templateId: template.templateId,
+		});
 		return { success: true, providerResponse: result as Json };
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : "Unknown error";
-		console.error(`[Notification] Kakao alimtalk failed for ${phone}`, error);
+		console.error(`[Notification] Kakao alimtalk failed`, { to: maskPhone(phone), errorMessage });
 		return { success: false, error: errorMessage };
 	}
 }
@@ -267,7 +294,21 @@ export async function sendVerificationResult(
 	const adminSupabase = createSupabaseAdminClient();
 
 	// 1. 알림 설정 조회
-	const settings = await fetchNotificationSettings(adminSupabase, userId);
+	const hasEmail = Boolean(email);
+	const hasPhone = Boolean(phone);
+
+	let settings: NotificationSettingsRow | null = null;
+	try {
+		settings = await fetchNotificationSettings(adminSupabase, userId);
+	} catch (error) {
+		const errorMessage = error instanceof Error ? error.message : "Unknown error";
+		console.error("[Notification] Failed to fetch notification settings", { userId, errorMessage });
+
+		return {
+			email: hasEmail ? { success: false, error: "알림 설정을 조회할 수 없습니다.", skipped: false } : { success: true, skipped: true },
+			kakao: hasPhone ? { success: false, error: "알림 설정을 조회할 수 없습니다.", skipped: false } : { success: true, skipped: true },
+		};
+	}
 
 	const emailEnabled = settings?.email_enabled ?? true;
 	const kakaoEnabled = settings?.kakao_enabled ?? false;
@@ -291,7 +332,7 @@ export async function sendVerificationResult(
 	const sendTasks: Promise<void>[] = [];
 
 	// 이메일 발송
-	if (emailEnabled && email) {
+	if (emailEnabled && hasEmail) {
 		sendTasks.push(
 			(async () => {
 				const emailResult = await sendVerificationResultEmail({
@@ -311,6 +352,29 @@ export async function sendVerificationResult(
 	if (kakaoEnabled && phone) {
 		sendTasks.push(
 			(async () => {
+				if (!SOLAPI_SENDER_PHONE || !SOLAPI_KAKAO_PFID) {
+					const errorMessage = "Solapi is not configured";
+					const failedAt = new Date().toISOString();
+					const notificationType = action === "approved" ? "verification_approved" : "verification_rejected";
+
+					await insertNotificationDelivery(adminSupabase, {
+						userId,
+						type: notificationType,
+						channel: "kakao",
+						provider: "solapi",
+						recipient: phone,
+						bodyPreview: "알림톡: (solapi 미설정)",
+						failedAt,
+						errorMessage,
+						retryCount: 0,
+						maxRetries: 0,
+						status: "failed",
+					});
+
+					result.kakao = { success: false, error: errorMessage, skipped: false };
+					return;
+				}
+
 				const template = getKakaoVerificationTemplate(type, action, {
 					recipientName,
 					type,
