@@ -1,5 +1,6 @@
 import { AdminVerificationListQuerySchema } from "@/lib/schema/admin";
 import { internalServerError } from "@/server/api/errors";
+import { buildOrIlikeFilter } from "@/server/api/postgrest";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withRole } from "@/server/auth/guards";
@@ -7,10 +8,6 @@ import {
     mapAdminDoctorVerificationListItemRow,
     mapAdminVendorVerificationListItemRow,
 } from "@/server/admin/mapper";
-
-function escapeLike(value: string): string {
-    return value.replaceAll("%", "\\%").replaceAll("_", "\\_");
-}
 
 export const GET = withApi(
     withRole(["admin"], async (ctx) => {
@@ -42,10 +39,10 @@ export const GET = withApi(
             }
 
             if (query.q) {
-                const escaped = escapeLike(query.q);
-                qb = qb.or(
-                    `license_no.ilike.%${escaped}%,full_name.ilike.%${escaped}%,clinic_name.ilike.%${escaped}%`,
-                );
+                const orFilter = buildOrIlikeFilter(["license_no", "full_name", "clinic_name"], query.q);
+                if (orFilter) {
+                    qb = qb.or(orFilter);
+                }
             }
 
             qb = qb.order("created_at", { ascending: false });
@@ -83,10 +80,13 @@ export const GET = withApi(
         }
 
         if (query.q) {
-            const escaped = escapeLike(query.q);
-            qb = qb.or(
-                `business_no.ilike.%${escaped}%,company_name.ilike.%${escaped}%,contact_name.ilike.%${escaped}%,contact_phone.ilike.%${escaped}%,contact_email.ilike.%${escaped}%`,
+            const orFilter = buildOrIlikeFilter(
+                ["business_no", "company_name", "contact_name", "contact_phone", "contact_email"],
+                query.q,
             );
+            if (orFilter) {
+                qb = qb.or(orFilter);
+            }
         }
 
         qb = qb.order("created_at", { ascending: false });
@@ -109,4 +109,3 @@ export const GET = withApi(
         });
     }),
 );
-

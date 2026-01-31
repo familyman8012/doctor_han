@@ -1,5 +1,6 @@
 import { VendorListQuerySchema } from "@/lib/schema/vendor";
 import { internalServerError } from "@/server/api/errors";
+import { buildOrIlikeFilter } from "@/server/api/postgrest";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { mapVendorListItem } from "@/server/vendor/mapper";
@@ -31,8 +32,10 @@ export const GET = withApi(async (req: NextRequest) => {
     }
 
     if (query.q) {
-        const escaped = query.q.replaceAll("%", "\\%").replaceAll("_", "\\_");
-        qb = qb.or(`name.ilike.%${escaped}%,summary.ilike.%${escaped}%,description.ilike.%${escaped}%`);
+        const orFilter = buildOrIlikeFilter(["name", "summary", "description"], query.q);
+        if (orFilter) {
+            qb = qb.or(orFilter);
+        }
     }
 
     if (typeof query.priceMin !== "undefined") {
@@ -66,4 +69,3 @@ export const GET = withApi(async (req: NextRequest) => {
         total: count ?? 0,
     });
 });
-

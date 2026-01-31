@@ -1,4 +1,5 @@
 import { HelpArticleListQuerySchema } from "@/lib/schema/help-center";
+import { buildOrIlikeFilter } from "@/server/api/postgrest";
 import { internalServerError } from "@/server/api/errors";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
@@ -37,9 +38,10 @@ export const GET = withApi(async (req: NextRequest) => {
 
     // Search by title or content
     if (query.q) {
-        // Escape special characters for ilike pattern
-        const escapedQ = query.q.replace(/[%_\\]/g, (char) => `\\${char}`);
-        queryBuilder = queryBuilder.or(`title.ilike.%${escapedQ}%,content.ilike.%${escapedQ}%`);
+        const orFilter = buildOrIlikeFilter(["title", "content"], query.q);
+        if (orFilter) {
+            queryBuilder = queryBuilder.or(orFilter);
+        }
     }
 
     // Sorting: notice -> is_pinned DESC, created_at DESC / faq, guide -> display_order ASC, created_at DESC

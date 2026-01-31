@@ -1,13 +1,10 @@
 import { AdminUserListQuerySchema } from "@/lib/schema/admin";
 import { internalServerError } from "@/server/api/errors";
+import { buildOrIlikeFilter } from "@/server/api/postgrest";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withRole } from "@/server/auth/guards";
 import { mapProfileRow } from "@/server/profile/mapper";
-
-function escapeLike(value: string): string {
-    return value.replaceAll("%", "\\%").replaceAll("_", "\\_");
-}
 
 export const GET = withApi(
     withRole(["admin"], async (ctx) => {
@@ -34,8 +31,10 @@ export const GET = withApi(
         }
 
         if (query.q) {
-            const escaped = escapeLike(query.q);
-            qb = qb.or(`email.ilike.%${escaped}%,display_name.ilike.%${escaped}%,phone.ilike.%${escaped}%`);
+            const orFilter = buildOrIlikeFilter(["email", "display_name", "phone"], query.q);
+            if (orFilter) {
+                qb = qb.or(orFilter);
+            }
         }
 
         qb = qb.order("created_at", { ascending: false });
@@ -57,4 +56,3 @@ export const GET = withApi(
         });
     }),
 );
-

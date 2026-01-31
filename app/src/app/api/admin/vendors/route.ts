@@ -1,14 +1,11 @@
 import type { Tables } from "@/lib/database.types";
 import { AdminVendorListQuerySchema } from "@/lib/schema/admin";
 import { internalServerError } from "@/server/api/errors";
+import { buildOrIlikeFilter } from "@/server/api/postgrest";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withRole } from "@/server/auth/guards";
 import { mapAdminVendorListItemRow } from "@/server/admin/mapper";
-
-function escapeLike(value: string): string {
-    return value.replaceAll("%", "\\%").replaceAll("_", "\\_");
-}
 
 type VendorVerificationRow = Tables<"vendor_verifications">;
 
@@ -43,8 +40,10 @@ export const GET = withApi(
         }
 
         if (query.q) {
-            const escaped = escapeLike(query.q);
-            qb = qb.or(`name.ilike.%${escaped}%,summary.ilike.%${escaped}%,description.ilike.%${escaped}%`);
+            const orFilter = buildOrIlikeFilter(["name", "summary", "description"], query.q);
+            if (orFilter) {
+                qb = qb.or(orFilter);
+            }
         }
 
         qb = qb.order("created_at", { ascending: false });
@@ -105,4 +104,3 @@ export const GET = withApi(
         });
     }),
 );
-

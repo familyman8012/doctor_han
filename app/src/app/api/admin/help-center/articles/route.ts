@@ -1,5 +1,6 @@
 import { AdminHelpArticleListQuerySchema, HelpArticleCreateBodySchema } from "@/lib/schema/help-center";
 import { internalServerError } from "@/server/api/errors";
+import { buildOrIlikeFilter } from "@/server/api/postgrest";
 import { created, ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withRole } from "@/server/auth/guards";
@@ -39,9 +40,10 @@ export const GET = withApi(
 
         // Search by title or content
         if (query.q) {
-            // Escape special characters for LIKE pattern
-            const escaped = query.q.replace(/[%_\\]/g, "\\$&");
-            queryBuilder = queryBuilder.or(`title.ilike.%${escaped}%,content.ilike.%${escaped}%`);
+            const orFilter = buildOrIlikeFilter(["title", "content"], query.q);
+            if (orFilter) {
+                queryBuilder = queryBuilder.or(orFilter);
+            }
         }
 
         // Sorting: notice -> is_pinned DESC, created_at DESC / faq, guide -> display_order ASC, created_at DESC

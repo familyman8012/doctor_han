@@ -166,9 +166,10 @@ export function CategoryFormModal({
                     </h2>
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={isLoading ? undefined : onClose}
+                        disabled={isLoading}
                         aria-label="닫기"
-                        className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="p-1 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                     >
                         <X className="w-5 h-5 text-gray-500" />
                     </button>
@@ -264,7 +265,7 @@ export function CategoryFormModal({
 
                     {/* Footer */}
                     <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-100">
-                        <Button type="button" variant="secondary" onClick={onClose}>
+                        <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
                             취소
                         </Button>
                         <Button type="submit" variant="primary" isLoading={isLoading}>
