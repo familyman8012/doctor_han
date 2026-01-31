@@ -252,3 +252,13 @@ export const AdminSupportTicketDetailResponseSchema = z.object({
 	message: z.string().optional(),
 });
 export type AdminSupportTicketDetailResponse = z.infer<typeof AdminSupportTicketDetailResponseSchema>;
+
+/** 관리자 티켓 상태 변경 응답 */
+export const AdminTicketStatusChangeResponseSchema = z.object({
+	code: z.literal(API_SUCCESS_CODE),
+	data: z.object({
+		ticket: AdminSupportTicketViewSchema,
+	}),
+	message: z.string().optional(),
+});
+export type AdminTicketStatusChangeResponse = z.infer<typeof AdminTicketStatusChangeResponseSchema>;

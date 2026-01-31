@@ -101,6 +101,8 @@ export default function AdminSupportDetailPage() {
     }
 
     const canChangeStatus = ticket.status !== "closed";
+    const isClosed = ticket.status === "closed";
+    const inputPlaceholder = isClosed ? "종료된 문의입니다" : "메시지를 입력하세요...";
 
     return (
         <div className="space-y-4">
@@ -204,7 +206,12 @@ export default function AdminSupportDetailPage() {
             {/* Message Thread */}
             <div className="flex flex-col h-[400px] bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <MessageList messages={messages} currentUserId={currentUserId} isLoading={false} />
-                <MessageInput onSend={handleSend} isSending={sendMessageMutation.isPending} disabled={false} />
+                <MessageInput
+                    onSend={handleSend}
+                    isSending={sendMessageMutation.isPending}
+                    disabled={isClosed}
+                    placeholder={inputPlaceholder}
+                />
             </div>
 
             {/* Status History */}

@@ -8,9 +8,10 @@ interface MessageInputProps {
     onSend: (content: string) => void;
     isSending: boolean;
     disabled?: boolean;
+    placeholder?: string;
 }
 
-export function MessageInput({ onSend, isSending, disabled }: MessageInputProps) {
+export function MessageInput({ onSend, isSending, disabled, placeholder }: MessageInputProps) {
     const [content, setContent] = useState("");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -55,7 +56,7 @@ export function MessageInput({ onSend, isSending, disabled }: MessageInputProps)
                         value={content}
                         onChange={handleTextareaChange}
                         onKeyDown={handleKeyDown}
-                        placeholder={disabled ? "종료된 문의입니다" : "메시지를 입력하세요..."}
+                        placeholder={placeholder ?? (disabled ? "종료된 문의입니다" : "메시지를 입력하세요...")}
                         disabled={disabled}
                         rows={1}
                         className="w-full px-4 py-2.5 bg-gray-100 border-0 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-[#62e3d5] text-sm placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
