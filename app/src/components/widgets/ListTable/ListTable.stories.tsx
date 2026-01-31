@@ -195,59 +195,61 @@ export const Default: Story = {
     },
 };
 
+const WithPaginationRender = () => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 3;
+    const totalItems = shippingData.length;
+    const totalPages = Math.ceil(totalItems / pageSize);
+
+    const paginatedData = shippingData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+    return (
+        <ListTable
+            columns={[
+                {
+                    key: "id",
+                    header: "출고요청번호",
+                    render: (value) => <span className="font-mono">{value}</span>,
+                },
+                {
+                    key: "campaign",
+                    header: "캠페인명",
+                    render: (value) => <span className="font-medium">{value}</span>,
+                },
+                {
+                    key: "status",
+                    header: "상태",
+                    render: (value) => getStatusBadge(value),
+                },
+                {
+                    key: "type",
+                    header: "유형",
+                    render: (value) => getTypeBadge(value),
+                },
+                {
+                    key: "applicant",
+                    header: "신청인",
+                },
+                {
+                    key: "skuCount",
+                    header: "SKU",
+                    align: "center",
+                },
+            ]}
+            data={paginatedData}
+            pagination={{
+                currentPage,
+                totalPages,
+                pageSize,
+                totalItems,
+                onPageChange: setCurrentPage,
+            }}
+        />
+    );
+};
+
 export const WithPagination: Story = {
-    render: () => {
-        const [currentPage, setCurrentPage] = useState(1);
-        const pageSize = 3;
-        const totalItems = shippingData.length;
-        const totalPages = Math.ceil(totalItems / pageSize);
-
-        const paginatedData = shippingData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
-        return (
-            <ListTable
-                columns={[
-                    {
-                        key: "id",
-                        header: "출고요청번호",
-                        render: (value) => <span className="font-mono">{value}</span>,
-                    },
-                    {
-                        key: "campaign",
-                        header: "캠페인명",
-                        render: (value) => <span className="font-medium">{value}</span>,
-                    },
-                    {
-                        key: "status",
-                        header: "상태",
-                        render: (value) => getStatusBadge(value),
-                    },
-                    {
-                        key: "type",
-                        header: "유형",
-                        render: (value) => getTypeBadge(value),
-                    },
-                    {
-                        key: "applicant",
-                        header: "신청인",
-                    },
-                    {
-                        key: "skuCount",
-                        header: "SKU",
-                        align: "center",
-                    },
-                ]}
-                data={paginatedData}
-                pagination={{
-                    currentPage,
-                    totalPages,
-                    pageSize,
-                    totalItems,
-                    onPageChange: setCurrentPage,
-                }}
-            />
-        );
-    },
+    render: () => <WithPaginationRender />,
 };
 
 export const Loading: Story = {

@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useState, useCallback } from "react";
-import { useDropzone, type DropzoneOptions } from "react-dropzone";
+import { useDropzone, type DropzoneOptions, type FileRejection } from "react-dropzone";
 import { Upload as UploadIcon, X, File, CheckCircle, AlertCircle } from "lucide-react";
 
 export interface UploadedFile {
@@ -46,10 +46,10 @@ const Upload: React.FC<UploadProps> = ({
     showFileList = true,
 }) => {
     const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-    const [rejectedFiles, setRejectedFiles] = useState<any[]>([]);
+    const [rejectedFiles, setRejectedFiles] = useState<FileRejection[]>([]);
 
     const onDrop = useCallback(
-        (acceptedFiles: File[], fileRejections: any[]) => {
+        (acceptedFiles: File[], fileRejections: FileRejection[]) => {
             // 거부된 파일 처리
             if (fileRejections.length > 0) {
                 setRejectedFiles(fileRejections);
@@ -160,7 +160,7 @@ const Upload: React.FC<UploadProps> = ({
                         <div key={file.name} className="error-item">
                             <AlertCircle size={16} />
                             <span>{file.name}: </span>
-                            {errors.map((error: any) => (
+                            {errors.map((error) => (
                                 <span key={error.code}>
                                     {error.code === "file-too-large" && "파일이 너무 큽니다"}
                                     {error.code === "file-invalid-type" && "허용되지 않는 파일 형식입니다"}
@@ -186,6 +186,7 @@ const Upload: React.FC<UploadProps> = ({
                         <div key={index} className="file-item">
                             <div className="file-info">
                                 {showPreview && uploadedFile.preview ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
                                     <img
                                         src={uploadedFile.preview}
                                         alt={uploadedFile.file.name}

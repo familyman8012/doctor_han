@@ -36,8 +36,8 @@ export const GET = withApi(
         }
 
         return ok({
-            items: (data ?? []).map((row: any) =>
-                mapLeadRow(row, mapLeadVendorSummary((row as any).vendor as any)),
+            items: (data ?? []).map((row) =>
+                mapLeadRow(row, mapLeadVendorSummary(row.vendor)),
             ),
             page: query.page,
             pageSize: query.pageSize,

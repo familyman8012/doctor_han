@@ -15,7 +15,7 @@ export type AsAdminRequestListQuery = z.infer<typeof AsAdminRequestListQuerySche
 export const AsSessionInfoSchema = AnyObjectSchema.nullable();
 export type AsSessionInfo = z.infer<typeof AsSessionInfoSchema>;
 
-const SuccessEnvelopeSchema = z.object({
+export const SuccessEnvelopeSchema = z.object({
     code: z.literal(API_SUCCESS_CODE),
     data: z.unknown(),
     message: z.string().optional(),

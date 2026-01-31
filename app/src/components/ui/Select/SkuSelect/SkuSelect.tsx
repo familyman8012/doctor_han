@@ -18,7 +18,7 @@ import type { SkuView } from "@/lib/schema/sku";
 
 interface SkuSelectProps {
     value?: string | null;
-    onChange?: (value: string | null, skuData?: any) => void;
+    onChange?: (value: string | null, skuData?: unknown) => void;
     disabled?: boolean;
     placeholder?: string;
     size?: "xs" | "sm" | "md" | "lg";
@@ -59,8 +59,9 @@ export const SkuSelect = forwardRef<HTMLButtonElement, SkuSelectProps>(function 
         usePortal = true,
         excludeSkuCodes = [],
     },
-    _ref,
+    ref,
 ) {
+    void ref; // Forward ref support for future use
     const containerRef = useRef<HTMLDivElement>(null);
     const controlRef = useRef<HTMLButtonElement>(null);
     const listRef = useRef<HTMLDivElement>(null);
@@ -215,14 +216,14 @@ export const SkuSelect = forwardRef<HTMLButtonElement, SkuSelectProps>(function 
 
         // 선택값이 없는 경우: 단순히 첫 항목에 포커스 한 번만 주고 끝낸다.
         if (value === null || value === undefined) {
-            setHighlightIndex(0);
+            setHighlightIndex((prev) => prev !== 0 ? 0 : prev);
             hasInitialHighlightRef.current = true;
             return;
         }
 
         const foundIndex = skuOptions.findIndex((opt) => opt.value === value);
         if (foundIndex >= 0) {
-            setHighlightIndex(foundIndex);
+            setHighlightIndex((prev) => prev !== foundIndex ? foundIndex : prev);
             hasInitialHighlightRef.current = true;
         }
     }, [isOpen, value, skuOptions]);
@@ -239,17 +240,16 @@ export const SkuSelect = forwardRef<HTMLButtonElement, SkuSelectProps>(function 
 
         optionEl.scrollIntoView({ block: "nearest" });
         hasInitialScrollRef.current = true;
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- skuOptions.length is intentionally omitted to prevent scroll reset during infinite scroll data loading
     }, [highlightIndex, isOpen]);
 
     const toggleOpen = () => {
         if (disabled) return;
-        setIsOpen((prev) => {
-            const next = !prev;
-            if (next && !shouldFetch) {
-                setShouldFetch(true);
-            }
-            return next;
-        });
+        // Trigger fetch before opening if needed
+        if (!isOpen && !shouldFetch) {
+            setShouldFetch(true);
+        }
+        setIsOpen((prev) => !prev);
     };
 
     const handleSelect = (option: IOption | null) => {
@@ -313,7 +313,7 @@ export const SkuSelect = forwardRef<HTMLButtonElement, SkuSelectProps>(function 
             if (listRef.current) {
                 listRef.current.scrollTop = 0;
             }
-            setHighlightIndex(0);
+            setHighlightIndex((prevIdx) => prevIdx !== 0 ? 0 : prevIdx);
             hasInitialScrollRef.current = false;
             hasUserScrolledRef.current = false;
         }

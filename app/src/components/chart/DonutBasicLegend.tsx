@@ -3,15 +3,24 @@
 import type React from "react";
 import { cn } from "@/components/utils";
 
+interface LegendPayloadEntry {
+    value?: string;
+    color?: string;
+    payload?: {
+        percent?: number;
+        increase?: number;
+    };
+}
+
 export interface DonutBasicLegendProps {
-    payload?: any[];
+    payload?: LegendPayloadEntry[];
     className?: string;
 }
 
 export const DonutBasicLegend: React.FC<DonutBasicLegendProps> = ({ payload = [], className }) => {
     return (
         <ul className={cn("list-none m-0 p-0", className)}>
-            {payload.map((entry: any, index: number) => {
+            {payload.map((entry, index: number) => {
                 const percent = entry.payload?.percent || 0;
                 const increase = entry.payload?.increase || 0;
                 const hasIncrease = increase !== 0;

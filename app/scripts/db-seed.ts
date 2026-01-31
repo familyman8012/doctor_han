@@ -388,8 +388,6 @@ async function main() {
 	}
 
 	const adminUser = createdUsers.find((u) => u.spec.role === "admin")!;
-	const doctorUsers = createdUsers.filter((u) => u.spec.role === "doctor").map((u) => u.user);
-	const vendorUsers = createdUsers.filter((u) => u.spec.role === "vendor").map((u) => u.user);
 
 	const profileRows: TablesInsert<"profiles">[] = createdUsers.map(({ spec, user }) => ({
 		id: user.id,

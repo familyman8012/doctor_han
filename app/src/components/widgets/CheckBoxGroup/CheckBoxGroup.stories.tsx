@@ -100,7 +100,7 @@ export const WithAllCheckHandler: Story = {
 export const WithSubText: Story = {
     render: (args) => {
         const Component = () => {
-            const [_selectedValues, setSelectedValues] = useState<string[]>([]);
+            const [, setSelectedValues] = useState<string[]>([]);
 
             return (
                 <CheckBoxGroup
@@ -138,7 +138,7 @@ export const Horizontal: Story = {
     },
     render: (args) => {
         const Component = () => {
-            const [_selectedValues, setSelectedValues] = useState<string[]>([]);
+            const [, setSelectedValues] = useState<string[]>([]);
 
             return (
                 <CheckBoxGroup
@@ -164,7 +164,7 @@ export const Horizontal: Story = {
 export const WithInitialValues: Story = {
     render: (args) => {
         const Component = () => {
-            const [_selectedValues, setSelectedValues] = useState<string[]>(["react", "typescript"]);
+            const [, setSelectedValues] = useState<string[]>(["react", "typescript"]);
 
             return (
                 <CheckBoxGroup
@@ -361,7 +361,7 @@ export const WithReactHookForm: Story = {
 
             const watchedValues = watch("checkboxGroup");
 
-            const onSubmit = (data: any) => {
+            const onSubmit = (data: { checkboxGroup: string[] }) => {
                 alert(`제출된 값: ${JSON.stringify(data.checkboxGroup)}`);
                 console.log("Form data:", data);
             };

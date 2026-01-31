@@ -87,7 +87,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         const isValuePropProvided = Object.prototype.hasOwnProperty.call(props, "value");
         const normalizedInputProps: React.InputHTMLAttributes<HTMLInputElement> = {
             ...props,
-            ...(isValuePropProvided ? { value: (props as any).value ?? "" } : {}),
+            ...(isValuePropProvided ? { value: props.value ?? "" } : {}),
         };
 
         return (

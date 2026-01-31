@@ -12,7 +12,7 @@ import type {
 import { badRequest, internalServerError, notFound } from "@/server/api/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { mapReportToListItem, mapReportToView, mapSanctionToView } from "./mapper";
+import { mapReportToListItem, mapReportToView, mapSanctionToView, type ReportRowWithRelations, type SanctionRowWithRelations } from "./mapper";
 
 type ReportRow = Tables<"reports">;
 
@@ -258,7 +258,7 @@ export async function getReportList(
     const items: AdminReportListItem[] = (data ?? []).map((row) => {
         const key = `${row.target_type}:${row.target_id}`;
         const targetSummary = summaries.get(key) ?? row.target_id;
-        return mapReportToListItem(row as any, targetSummary);
+        return mapReportToListItem(row as ReportRowWithRelations, targetSummary);
     });
 
     return {
@@ -327,9 +327,9 @@ export async function getReportDetail(
     }
 
     return {
-        report: mapReportToView(reportData as any, targetSummary),
+        report: mapReportToView(reportData as ReportRowWithRelations, targetSummary),
         targetReportCount: targetReportCount ?? 0,
-        sanctions: (sanctionsData ?? []).map((row) => mapSanctionToView(row as any)),
+        sanctions: (sanctionsData ?? []).map((row) => mapSanctionToView(row as SanctionRowWithRelations)),
     };
 }
 
@@ -398,13 +398,18 @@ export async function resolveReport(
 ): Promise<{ report: AdminReportView; sanction?: SanctionView }> {
     // Use RPC for atomic transaction (report update + sanction creation + target status update)
     // Note: Using type assertion as the RPC function types are generated after migration
-    const { data: rpcResult, error: rpcError } = await (supabase.rpc as any)("resolve_report", {
+    type RpcResult = { reportId: string; sanctionId: string | null };
+    type RpcError = { message?: string; code?: string } | null;
+    const { data: rpcResult, error: rpcError } = (await (supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>
+    ) => Promise<{ data: RpcResult | null; error: RpcError }>)("resolve_report", {
         p_report_id: reportId,
         p_admin_user_id: adminUserId,
         p_reason: body.reason,
         p_sanction_type: body.sanctionType ?? null,
         p_duration_days: body.durationDays ?? null,
-    }) as { data: { reportId: string; sanctionId: string | null } | null; error: any };
+    }));
 
     if (rpcError) {
         if (rpcError.message?.includes("not found")) {
@@ -597,7 +602,7 @@ export async function resolveReport(
             .single();
 
         if (sanctionData) {
-            sanction = mapSanctionToView(sanctionData as any);
+            sanction = mapSanctionToView(sanctionData as SanctionRowWithRelations);
         }
     }
 
@@ -713,7 +718,7 @@ export async function getSanctionList(
     }
 
     return {
-        items: (data ?? []).map((row) => mapSanctionToView(row as any)),
+        items: (data ?? []).map((row) => mapSanctionToView(row as SanctionRowWithRelations)),
         total: count ?? 0,
     };
 }
@@ -896,5 +901,5 @@ export async function revokeSanction(
         throw internalServerError("제재 정보를 조회할 수 없습니다.");
     }
 
-    return { sanction: mapSanctionToView(updatedSanction as any) };
+    return { sanction: mapSanctionToView(updatedSanction as SanctionRowWithRelations) };
 }

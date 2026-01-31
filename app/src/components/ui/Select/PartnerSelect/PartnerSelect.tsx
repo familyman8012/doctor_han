@@ -12,7 +12,7 @@ import { type IOption } from "@/components/ui/Select/Select";
 
 interface PartnerSelectProps {
     value?: string | null;
-    onChange?: (value: string | null, partnerData?: any) => void;
+    onChange?: (value: string | null, partnerData?: unknown) => void;
     disabled?: boolean;
     placeholder?: string;
     size?: "xs" | "sm" | "md" | "lg";
@@ -189,7 +189,8 @@ export function PartnerSelect({
         if (!searchText) return true;
         const search = searchText.toLowerCase();
         const label = (typeof option.label === "string" ? option.label : "").toLowerCase();
-        const description = ((option as any).data?.description || "").toLowerCase();
+        const optionData = option.data as { description?: string } | undefined;
+        const description = (optionData?.description || "").toLowerCase();
         return label.includes(search) || description.includes(search);
     };
 

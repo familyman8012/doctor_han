@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/api-client/client";
@@ -21,12 +21,22 @@ const GUEST_AUTH: MeData = {
     requiredConsents: null,
 };
 
+interface DismissalState {
+    prevUserId: string | null;
+    onboardingDismissed: boolean;
+    consentsDismissed: boolean;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     const setAuth = useAuthStore((state) => state.setAuth);
     const queryClient = useQueryClient();
     const supabase = getSupabaseBrowserClient();
-    const [showOnboardingModal, setShowOnboardingModal] = useState(false);
-    const [showRequiredConsentsModal, setShowRequiredConsentsModal] = useState(false);
+    // Track user dismissals in a single state object to avoid multiple setState calls
+    const [dismissalState, setDismissalState] = useState<DismissalState>({
+        prevUserId: null,
+        onboardingDismissed: false,
+        consentsDismissed: false,
+    });
     const pathname = usePathname();
 
     // /api/me 호출하여 사용자 정보 가져오기
@@ -45,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         mutationFn: () => api.patch("/api/onboarding", { action: "skip" }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-            setShowOnboardingModal(false);
+            setDismissalState((prev) => ({ ...prev, onboardingDismissed: true }));
         },
     });
 
@@ -53,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         mutationFn: () => api.patch("/api/profile", { termsAgreed: true }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-            setShowRequiredConsentsModal(false);
+            setDismissalState((prev) => ({ ...prev, consentsDismissed: true }));
         },
     });
 
@@ -69,8 +79,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 // 세션이 없으면 게스트 상태로 초기화 (로딩 고정 방지)
                 queryClient.setQueryData(["auth", "me"], GUEST_AUTH);
                 setAuth(GUEST_AUTH);
-                setShowOnboardingModal(false);
-                setShowRequiredConsentsModal(false);
             }
         });
 
@@ -82,45 +90,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!isError) return;
         queryClient.setQueryData(["auth", "me"], GUEST_AUTH);
         setAuth(GUEST_AUTH);
-        setShowOnboardingModal(false);
-        setShowRequiredConsentsModal(false);
     }, [isError, queryClient, setAuth]);
 
-    // 데이터 변경 시 스토어 업데이트 + 온보딩 모달 표시 여부 결정
+    // 데이터 변경 시 스토어 업데이트 및 사용자 변경 시 dismissal 상태 리셋
     useEffect(() => {
         if (data) {
             setAuth(data);
-
-            const needsRequiredConsents =
-                !data.onboardingRequired &&
-                Boolean(data.profile) &&
-                Boolean(data.requiredConsents) &&
-                (
-                    data.requiredConsents!.terms.agreedVersion !== data.requiredConsents!.terms.currentVersion ||
-                    data.requiredConsents!.privacy.agreedVersion !== data.requiredConsents!.privacy.currentVersion ||
-                    !data.requiredConsents!.terms.agreedAt ||
-                    !data.requiredConsents!.privacy.agreedAt
-                );
-
-            const isLegalPage = pathname?.startsWith("/legal") ?? false;
-            setShowRequiredConsentsModal(Boolean(needsRequiredConsents && !isLegalPage));
-
-            // 온보딩 모달 표시 조건:
-            // - 프로필 있음 (onboardingRequired가 false)
-            // - 온보딩 데이터 있음
-            // - 필수 스텝 미완료
-            // - "나중에 하기" 안 함
-            // - 완료 처리 안 함
-            const shouldShowModal =
-                !data.onboardingRequired &&
-                data.onboarding &&
-                !data.onboarding.requiredStepsCompleted &&
-                !data.onboarding.skippedAt &&
-                !data.onboarding.completedAt;
-
-            setShowOnboardingModal(Boolean(shouldShowModal && !needsRequiredConsents));
+            // Reset dismissals when user changes
+            const currentUserId = data.user?.id ?? null;
+            if (currentUserId !== dismissalState.prevUserId) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect -- 사용자 변경 시 dismissal 상태 일괄 초기화
+                setDismissalState({
+                    prevUserId: currentUserId,
+                    onboardingDismissed: false,
+                    consentsDismissed: false,
+                });
+            }
         }
-    }, [data, pathname, setAuth]);
+    }, [data, setAuth, dismissalState.prevUserId]);
+
+    // Derive modal visibility from data (useMemo instead of useEffect + setState)
+    const { showRequiredConsentsModal, showOnboardingModal } = useMemo(() => {
+        if (!data) {
+            return { showRequiredConsentsModal: false, showOnboardingModal: false };
+        }
+
+        const needsRequiredConsents =
+            !data.onboardingRequired &&
+            Boolean(data.profile) &&
+            Boolean(data.requiredConsents) &&
+            (
+                data.requiredConsents!.terms.agreedVersion !== data.requiredConsents!.terms.currentVersion ||
+                data.requiredConsents!.privacy.agreedVersion !== data.requiredConsents!.privacy.currentVersion ||
+                !data.requiredConsents!.terms.agreedAt ||
+                !data.requiredConsents!.privacy.agreedAt
+            );
+
+        const isLegalPage = pathname?.startsWith("/legal") ?? false;
+        const computedShowRequiredConsents = Boolean(needsRequiredConsents && !isLegalPage && !dismissalState.consentsDismissed);
+
+        // 온보딩 모달 표시 조건:
+        // - 프로필 있음 (onboardingRequired가 false)
+        // - 온보딩 데이터 있음
+        // - 필수 스텝 미완료
+        // - "나중에 하기" 안 함
+        // - 완료 처리 안 함
+        const shouldShowModal =
+            !data.onboardingRequired &&
+            data.onboarding &&
+            !data.onboarding.requiredStepsCompleted &&
+            !data.onboarding.skippedAt &&
+            !data.onboarding.completedAt;
+
+        const computedShowOnboarding = Boolean(shouldShowModal && !needsRequiredConsents && !dismissalState.onboardingDismissed);
+
+        return {
+            showRequiredConsentsModal: computedShowRequiredConsents,
+            showOnboardingModal: computedShowOnboarding,
+        };
+    }, [data, pathname, dismissalState.consentsDismissed, dismissalState.onboardingDismissed]);
 
     return (
         <>
@@ -136,7 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             )}
             {showOnboardingModal && !showRequiredConsentsModal && (
                 <OnboardingModal
-                    onClose={() => setShowOnboardingModal(false)}
+                    onClose={() => setDismissalState((prev) => ({ ...prev, onboardingDismissed: true }))}
                     onSkip={() => skipOnboardingMutation.mutate()}
                 />
             )}

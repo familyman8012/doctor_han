@@ -3,8 +3,6 @@ import type { FC, ReactNode } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/components/utils";
 
-type BadgeType = "square" | "circle";
-type BadgeSize = "xs" | "sm" | "md" | "circle";
 export type BadgeColor =
     // Status colors
     | "success"
@@ -28,7 +26,6 @@ export type BadgeColor =
     | "red"
     | "blue"
     | "gray";
-type BadgeFill = "fill" | "outline" | "transparent";
 
 const badgeVariants = cva("w-max", {
     variants: {
@@ -109,6 +106,8 @@ export const Badge: FC<BadgeProps> = ({
     onClick,
     className,
 }) => {
+    void textWhite; // Prop retained for API compatibility
+
     const Leading = LeadingIcon?.type;
     const Trailing = TrailingIcon?.type;
 

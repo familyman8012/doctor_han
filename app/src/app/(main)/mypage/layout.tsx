@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { User, Heart, FileText, Star, Settings, ChevronRight, Bell } from "lucide-react";
 import { useIsAuthenticated, useUserRole, useAuthStore, useProfile } from "@/stores/auth";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
@@ -69,12 +70,13 @@ export default function MypageLayout({ children }: { children: ReactNode }) {
                     {/* 데스크톱 프로필 요약 */}
                     <div className="hidden lg:block bg-white rounded-xl p-5 border border-gray-200 mb-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-[#62e3d5]/20 flex items-center justify-center">
+                            <div className="relative w-12 h-12 rounded-full bg-[#62e3d5]/20 flex items-center justify-center overflow-hidden">
                                 {profile?.avatarUrl ? (
-                                    <img
+                                    <Image
                                         src={profile.avatarUrl}
                                         alt="프로필"
-                                        className="w-12 h-12 rounded-full object-cover"
+                                        fill
+                                        className="object-cover"
                                     />
                                 ) : (
                                     <User className="w-6 h-6 text-[#62e3d5]" />

@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
+import Image from "next/image";
 import { X, Star, Camera, Trash2 } from "lucide-react";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
@@ -197,10 +198,11 @@ export function ReviewEditModal({ review, onClose, onSuccess }: ReviewEditModalP
                         <div className="flex gap-2 flex-wrap">
                             {photoFileIds.map((fileId) => (
                                 <div key={fileId} className="relative w-20 h-20 rounded-lg overflow-hidden group">
-                                    <img
+                                    <Image
                                         src={`/api/files/open?fileId=${fileId}`}
                                         alt="리뷰 사진"
-                                        className="w-full h-full object-cover"
+                                        fill
+                                        className="object-cover"
                                     />
                                     <button
                                         type="button"

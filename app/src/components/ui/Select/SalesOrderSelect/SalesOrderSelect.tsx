@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { salesOrderApi } from "@/api-client/sales-order";
 import { Select, type IOption } from "@/components/ui/Select/Select";
 import { useDebounce } from "@/hooks/agent-ncos/use-debounce";
-import type { SalesOrderListQuery, SalesOrderDetail } from "@/lib/schema/sales-order";
+import type { SalesOrderListQuery } from "@/lib/schema/sales-order";
 
 interface SalesOrderSelectProps {
     value?: string | null;
@@ -23,7 +23,7 @@ interface SalesOrderSelectProps {
     usePortal?: boolean;
 }
 
-type SalesOrderOption = IOption & { data?: any };
+type SalesOrderOption = IOption & { data?: unknown };
 
 const DEFAULT_PAGE_SIZE = 50;
 
@@ -37,8 +37,9 @@ export function SalesOrderSelect({
     error,
     required = false,
     className,
-    usePortal = true,
+    usePortal: _usePortal = true,
 }: SalesOrderSelectProps) {
+    void _usePortal;
     const [searchInput, setSearchInput] = useState("");
     const debouncedSearch = useDebounce(searchInput, 300).trim();
 
@@ -82,14 +83,14 @@ export function SalesOrderSelect({
 
     const listItems = useMemo(() => {
         if (!data?.pages) return [];
-        const seen = new Map<string, any>();
+        const seen = new Map<string, (typeof data.pages)[number]["items"][number]>();
         data.pages.forEach((page) => {
             page.items.forEach((item) => {
                 seen.set(item.id, item);
             });
         });
         return Array.from(seen.values());
-    }, [data?.pages]);
+    }, [data]);
 
     const listOptions = useMemo<SalesOrderOption[]>(() => {
         return listItems.map((order) => ({

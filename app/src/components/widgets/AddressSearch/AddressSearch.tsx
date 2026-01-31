@@ -52,8 +52,8 @@ export const AddressSearch = forwardRef<HTMLInputElement, AddressSearchProps>(
 
         // onChange 콜백 실행
         if (onChange && typeof onChange === 'function') {
-          const event = new Event('change', { bubbles: true }) as any;
-          event.target = { value: formattedAddress };
+          const event = new Event('change', { bubbles: true }) as unknown as React.ChangeEvent<HTMLInputElement>;
+          Object.defineProperty(event, 'target', { value: { value: formattedAddress } });
           onChange(event);
         }
 
@@ -65,7 +65,7 @@ export const AddressSearch = forwardRef<HTMLInputElement, AddressSearchProps>(
     );
 
     const handleOpen = useCallback(() => {
-      setOpenQuery(sanitizeToQuery((formControlProps as any).value));
+      setOpenQuery(sanitizeToQuery(formControlProps.value));
       setShowAddressPopup(true);
     }, [formControlProps]);
     const handleClose = useCallback(() => setShowAddressPopup(false), []);

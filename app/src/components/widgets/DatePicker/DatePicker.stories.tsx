@@ -5,6 +5,38 @@ import MyDatePicker from "./DatePicker";
 import { Input } from "@/components/ui/Input/Input";
 import { Calendar } from "lucide-react";
 
+// Custom Input component for DatePicker - defined outside to avoid static-components error
+interface CustomDateInputProps {
+    value?: string;
+    onClick?: () => void;
+    placeholder?: string;
+    disabled?: boolean;
+}
+
+const CustomDateInput = forwardRef<HTMLInputElement, CustomDateInputProps>((props, ref) => {
+    const { value, onClick, placeholder, disabled } = props;
+
+    // value를 포맷팅하여 표시
+    const displayValue = value ? new Date(value).toLocaleDateString("ko-KR") : "";
+
+    return (
+        <Input
+            ref={ref}
+            type="text"
+            value={displayValue}
+            onClick={onClick}
+            placeholder={placeholder}
+            disabled={disabled}
+            size="xs"
+            className="w-auto"
+            readOnly
+            TrailingIcon={<Calendar className="w-4 h-4" />}
+        />
+    );
+});
+
+CustomDateInput.displayName = "CustomDateInput";
+
 const meta: Meta<typeof MyDatePicker> = {
     title: "Widgets/DatePicker",
     component: MyDatePicker,
@@ -187,55 +219,28 @@ export const WithReactHookForm: Story = {
 };
 
 // customInput 예제 - 커스텀 Input 사용
+const CustomDateInputExample = () => {
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+    return (
+        <div className="p-4 space-y-4">
+            <h3 className="text-lg font-semibold">Custom Input 예제</h3>
+            <div className="space-y-2">
+                <label className="block text-sm font-medium">날짜 선택 (커스텀 Input 사용)</label>
+                <MyDatePicker
+                    selectedDate={selectedDate}
+                    onChange={(date) => setSelectedDate(date)}
+                    customInput={<CustomDateInput />}
+                    placeholderText="날짜를 선택하세요"
+                />
+            </div>
+            <div className="text-sm bg-gray-100 p-2 rounded">
+                <strong>선택된 날짜:</strong> {selectedDate || "없음"}
+            </div>
+        </div>
+    );
+};
+
 export const WithCustomDateInput: Story = {
-    render: () => {
-        const CustomDateInputExample = () => {
-            const [selectedDate, setSelectedDate] = useState<string | null>(null);
-
-            // Custom Input component
-            const CustomDateInput = forwardRef<HTMLInputElement, any>((props, ref) => {
-                const { value, onClick, placeholder, disabled } = props;
-
-                // value를 포맷팅하여 표시
-                const displayValue = value ? new Date(value).toLocaleDateString("ko-KR") : "";
-
-                return (
-                    <Input
-                        ref={ref}
-                        type="text"
-                        value={displayValue}
-                        onClick={onClick}
-                        placeholder={placeholder}
-                        disabled={disabled}
-                        size="xs"
-                        className="w-auto"
-                        readOnly
-                        TrailingIcon={<Calendar className="w-4 h-4" />}
-                    />
-                );
-            });
-
-            CustomDateInput.displayName = "CustomDateInput";
-
-            return (
-                <div className="p-4 space-y-4">
-                    <h3 className="text-lg font-semibold">Custom Input 예제</h3>
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium">날짜 선택 (커스텀 Input 사용)</label>
-                        <MyDatePicker
-                            selectedDate={selectedDate}
-                            onChange={(date) => setSelectedDate(date)}
-                            customInput={<CustomDateInput />}
-                            placeholderText="날짜를 선택하세요"
-                        />
-                    </div>
-                    <div className="text-sm bg-gray-100 p-2 rounded">
-                        <strong>선택된 날짜:</strong> {selectedDate || "없음"}
-                    </div>
-                </div>
-            );
-        };
-
-        return <CustomDateInputExample />;
-    },
+    render: () => <CustomDateInputExample />,
 };

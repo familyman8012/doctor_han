@@ -58,7 +58,7 @@ export const SidebarMenuLevel3 = React.memo<SidebarMenuLevel3Props>(({ menu, dis
     const isFinalActive = isActive || isPathActive;
 
     // 링크 클릭 핸들러
-    const handleClick = (_e: React.MouseEvent<HTMLAnchorElement>) => {
+    const handleClick = () => {
         if (hasPath && !disabled && menu.path) {
             setActiveMenuByPath(menu.path, UNIFIED_MENU_CONFIG);
         }

@@ -21,12 +21,14 @@ interface AppShellProps {
 export function AppShell({
     area,
     sidebar,
-    headerLeft: _headerLeft,
-    headerRight: _headerRight,
+    headerLeft: _,
+    headerRight: __,
     children,
     className,
     sessionUserId,
 }: AppShellProps) {
+    void _;
+    void __;
     const pathname = usePathname() ?? "/";
     const setLastPath = useSidebarStore((state) => state.setLastPath);
     const setCurrentUser = useSidebarStore((state) => state.setCurrentUser);

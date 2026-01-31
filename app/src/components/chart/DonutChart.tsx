@@ -39,11 +39,16 @@ const renderCustomizedLabel = ({
     );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- recharts Legend/Tooltip content props have complex types
+type LegendContent = any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- recharts Legend/Tooltip content props have complex types
+type TooltipContent = any;
+
 export interface DonutChartProps {
-    chartData: any[];
+    chartData: Record<string, unknown>[];
     height?: string | number;
-    legend?: any;
-    toolTip?: any;
+    legend?: LegendContent;
+    toolTip?: TooltipContent;
     colors?: string[];
     dataKey?: string;
     className?: string;

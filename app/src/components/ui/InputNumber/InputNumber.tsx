@@ -148,6 +148,7 @@ export const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
             if (value !== lastPropValueRef.current) {
                 lastPropValueRef.current = value;
                 if (!focused) {
+                    // eslint-disable-next-line react-hooks/set-state-in-effect -- controlled component: 외부 prop 변경 시 내부 상태 동기화 필요
                     setText(value === undefined || value === null ? "" : String(value));
                 }
             }

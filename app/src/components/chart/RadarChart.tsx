@@ -14,7 +14,7 @@ import {
 import { cn } from "@/components/utils";
 
 export interface RadarChartProps {
-    chartData: any[];
+    chartData: Record<string, unknown>[];
     dataKey?: string;
     height?: string | number;
     fill?: string;

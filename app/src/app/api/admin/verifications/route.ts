@@ -27,9 +27,7 @@ export const GET = withApi(
             let qb = ctx.supabase.from("doctor_verifications").select(
                 `
                     *,
-                    user:profiles!doctor_verifications_user_id_fkey(
-                        id, role, status, display_name, phone, email, created_at, updated_at
-                    )
+                    user:profiles!doctor_verifications_user_id_fkey(*)
                 `,
                 { count: "exact" },
             );
@@ -58,7 +56,7 @@ export const GET = withApi(
 
             return ok({
                 type: "doctor" as const,
-                items: (data ?? []).map((row: any) => mapAdminDoctorVerificationListItemRow(row)),
+                items: (data ?? []).map((row) => mapAdminDoctorVerificationListItemRow(row)),
                 page: query.page,
                 pageSize: query.pageSize,
                 total: count ?? 0,
@@ -68,9 +66,7 @@ export const GET = withApi(
         let qb = ctx.supabase.from("vendor_verifications").select(
             `
                 *,
-                user:profiles!vendor_verifications_user_id_fkey(
-                    id, role, status, display_name, phone, email, created_at, updated_at
-                )
+                user:profiles!vendor_verifications_user_id_fkey(*)
             `,
             { count: "exact" },
         );
@@ -102,7 +98,7 @@ export const GET = withApi(
 
         return ok({
             type: "vendor" as const,
-            items: (data ?? []).map((row: any) => mapAdminVendorVerificationListItemRow(row)),
+            items: (data ?? []).map((row) => mapAdminVendorVerificationListItemRow(row)),
             page: query.page,
             pageSize: query.pageSize,
             total: count ?? 0,

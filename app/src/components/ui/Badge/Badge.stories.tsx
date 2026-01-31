@@ -148,6 +148,7 @@ const StoryBadge = (args: Props) => {
                 <Badge
                     {...args}
                     LeadingIcon={
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                             src="https://res.cloudinary.com/tailwindcss/image/upload/v1635279277/nl_tpy2ab.svg"
                             alt="nl"
@@ -181,7 +182,8 @@ const Default: Story = {
 };
 
 // TimeBadge Story
-const StoryTimeBadge = (_args: Props) => {
+const StoryTimeBadge = (_: Props) => {
+    void _;
     return (
         <div className="p-8">
             <TimeBadge time={65} />
@@ -193,7 +195,8 @@ const TimeBadgeCase: Story = {
 };
 
 // TextBadge Story
-const StoryTextBadge = (_args: Props) => {
+const StoryTextBadge = (_: Props) => {
+    void _;
     return (
         <div className="p-8 space-y-6">
             <div>

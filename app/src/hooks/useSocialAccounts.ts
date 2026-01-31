@@ -1,54 +1,43 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { UserIdentity } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/server/supabase/browser";
 import type { SocialProviderId } from "@/lib/constants/oauth";
 
-interface SocialAccountState {
-    identities: UserIdentity[];
-    isLoading: boolean;
-}
-
 export function useSocialAccounts() {
-    const [state, setState] = useState<SocialAccountState>({
-        identities: [],
-        isLoading: true,
-    });
+    const queryClient = useQueryClient();
 
-    const fetchIdentities = useCallback(async () => {
-        setState((prev) => ({ ...prev, isLoading: true }));
-        try {
+    const { data: identities = [], isLoading } = useQuery({
+        queryKey: ["auth", "identities"],
+        queryFn: async () => {
             const supabase = getSupabaseBrowserClient();
             const { data } = await supabase.auth.getUserIdentities();
-            setState({
-                identities: data?.identities ?? [],
-                isLoading: false,
-            });
-        } catch {
-            setState((prev) => ({ ...prev, isLoading: false }));
-        }
-    }, []);
+            return data?.identities ?? [];
+        },
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
 
-    useEffect(() => {
-        fetchIdentities();
-    }, [fetchIdentities]);
+    const refetch = useCallback(() => {
+        queryClient.invalidateQueries({ queryKey: ["auth", "identities"] });
+    }, [queryClient]);
 
     const isConnected = useCallback(
-        (providerId: SocialProviderId) => state.identities.some((i) => i.provider === providerId),
-        [state.identities]
+        (providerId: SocialProviderId) => identities.some((i: UserIdentity) => i.provider === providerId),
+        [identities]
     );
 
     const getIdentity = useCallback(
-        (providerId: SocialProviderId) => state.identities.find((i) => i.provider === providerId),
-        [state.identities]
+        (providerId: SocialProviderId) => identities.find((i: UserIdentity) => i.provider === providerId),
+        [identities]
     );
 
     return {
-        identities: state.identities,
-        isLoading: state.isLoading,
+        identities,
+        isLoading,
         isConnected,
         getIdentity,
-        refetch: fetchIdentities,
+        refetch,
     };
 }

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FolderOpen, Plus, Trash2, Image } from "lucide-react";
+import NextImage from "next/image";
+import { FolderOpen, Plus, Trash2, Image as ImageIcon } from "lucide-react";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
@@ -153,20 +154,22 @@ function PortfolioCard({
             {/* 썸네일 */}
             <div className="relative aspect-video bg-gray-100">
                 {firstAsset?.fileId ? (
-                    <img
+                    <NextImage
                         src={`/api/files/open?fileId=${firstAsset.fileId}`}
                         alt={portfolio.title ?? "포트폴리오"}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                     />
                 ) : firstAsset?.url ? (
-                    <img
+                    <NextImage
                         src={firstAsset.url}
                         alt={portfolio.title ?? "포트폴리오"}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                        <Image className="w-12 h-12 text-gray-300" />
+                        <ImageIcon className="w-12 h-12 text-gray-300" />
                     </div>
                 )}
 

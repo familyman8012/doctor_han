@@ -24,7 +24,7 @@ import styles from "./TanstackTable.module.css";
 
 export interface TanstackTableProps<TData> {
     data: TData[];
-    columns: ColumnDef<TData, any>[];
+    columns: ColumnDef<TData, unknown>[];
     /** 로딩 상태일 때 스켈레톤을 보여줍니다. */
     isLoading?: boolean;
     /** 원격 정렬 여부. true면 테이블은 정렬 상태만 넘겨줍니다. */

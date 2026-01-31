@@ -190,78 +190,84 @@ function createQueryClient(setter: (client: QueryClient) => void) {
     return client;
 }
 
+const PartnerSelectScenarioRender = () => {
+    const [queryClient] = useState(() =>
+        createQueryClient((client) => {
+            client.setQueryData(["partners"], partnerListMock);
+        }),
+    );
+
+    const [value, setValue] = useState<string | null>(partnerListMock.items[0]?.id ?? null);
+
+    return (
+        <QueryClientProvider client={queryClient}>
+            <div className="w-[360px] space-y-3">
+                <PartnerSelect
+                    label="거래처 선택"
+                    value={value}
+                    onChange={setValue}
+                    required
+                />
+            </div>
+        </QueryClientProvider>
+    );
+};
+
 export const PartnerSelectScenario: PartnerStory = {
-    render: () => {
-        const [queryClient] = useState(() =>
-            createQueryClient((client) => {
-                client.setQueryData(["partners"], partnerListMock);
-            }),
-        );
+    render: () => <PartnerSelectScenarioRender />,
+};
 
-        const [value, setValue] = useState<string | null>(partnerListMock.items[0]?.id ?? null);
+const SkuSelectScenarioRender = () => {
+    const [queryClient] = useState(() =>
+        createQueryClient((client) => {
+            client.setQueryData(["skus", { brand: undefined, status: undefined, salesGroupId: undefined }], skuListMock);
+        }),
+    );
 
-        return (
-            <QueryClientProvider client={queryClient}>
-                <div className="w-[360px] space-y-3">
-                    <PartnerSelect
-                        label="거래처 선택"
-                        value={value}
-                        onChange={setValue}
-                        required
-                    />
-                </div>
-            </QueryClientProvider>
-        );
-    },
+    const [value, setValue] = useState<string | null>(null);
+
+    return (
+        <QueryClientProvider client={queryClient}>
+            <div className="w-[360px] space-y-3">
+                <SkuSelect
+                    label="SKU 선택"
+                    value={value}
+                    onChange={(next) => setValue(next)}
+                    required
+                />
+            </div>
+        </QueryClientProvider>
+    );
 };
 
 export const SkuSelectScenario: SkuStory = {
-    render: () => {
-        const [queryClient] = useState(() =>
-            createQueryClient((client) => {
-                client.setQueryData(["skus", { brand: undefined, status: undefined, salesGroupId: undefined }], skuListMock);
-            }),
-        );
+    render: () => <SkuSelectScenarioRender />,
+};
 
-        const [value, setValue] = useState<string | null>(null);
+const UserSelectScenarioRender = () => {
+    const [queryClient] = useState(() =>
+        createQueryClient((client) => {
+            client.setQueryData(["employees", "all", { filterDeleted: true }], employeeListMock);
+        }),
+    );
 
-        return (
-            <QueryClientProvider client={queryClient}>
-                <div className="w-[360px] space-y-3">
-                    <SkuSelect
-                        label="SKU 선택"
-                        value={value}
-                        onChange={(next) => setValue(next)}
-                        required
-                    />
-                </div>
-            </QueryClientProvider>
-        );
-    },
+    const [value, setValue] = useState<string | null>(employeeListMock.items[0]?.identity?.identityId ?? null);
+
+    return (
+        <QueryClientProvider client={queryClient}>
+            <div className="w-[360px] space-y-3">
+                <UserSelect
+                    label="담당자 선택"
+                    value={value}
+                    onChange={setValue}
+                    required
+                    showCurrentUserFirst={false}
+                />
+            </div>
+        </QueryClientProvider>
+    );
 };
 
 export const UserSelectScenario: UserStory = {
-    render: () => {
-        const [queryClient] = useState(() =>
-            createQueryClient((client) => {
-                client.setQueryData(["employees", "all", { filterDeleted: true }], employeeListMock);
-            }),
-        );
-
-        const [value, setValue] = useState<string | null>(employeeListMock.items[0]?.identity?.identityId ?? null);
-
-        return (
-            <QueryClientProvider client={queryClient}>
-                <div className="w-[360px] space-y-3">
-                    <UserSelect
-                        label="담당자 선택"
-                        value={value}
-                        onChange={setValue}
-                        required
-                        showCurrentUserFirst={false}
-                    />
-                </div>
-            </QueryClientProvider>
-        );
-    },
+    render: () => <UserSelectScenarioRender />,
 };

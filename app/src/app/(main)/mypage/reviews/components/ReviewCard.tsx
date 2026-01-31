@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Star, MoreVertical, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { Badge } from "@/components/ui/Badge/Badge";
@@ -153,12 +154,13 @@ export function ReviewCard({
                     {review.photoFileIds.map((fileId) => (
                         <div
                             key={fileId}
-                            className="w-20 h-20 rounded-lg bg-gray-100 shrink-0 overflow-hidden"
+                            className="relative w-20 h-20 rounded-lg bg-gray-100 shrink-0 overflow-hidden"
                         >
-                            <img
+                            <Image
                                 src={`/api/files/open?fileId=${fileId}`}
                                 alt="리뷰 사진"
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover"
                             />
                         </div>
                     ))}

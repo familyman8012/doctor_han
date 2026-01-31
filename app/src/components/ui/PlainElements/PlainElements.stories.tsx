@@ -22,149 +22,151 @@ export const AllElements: Story = {
     render: () => <PlainElements />,
 };
 
-export const FormExample: Story = {
-    render: () => {
-        const [formData, setFormData] = React.useState({
-            name: "",
-            email: "",
-            country: "kr",
-            message: "",
-            terms: false,
-            newsletter: "yes",
-        });
+const FormExampleRender = () => {
+    const [formData, setFormData] = React.useState({
+        name: "",
+        email: "",
+        country: "kr",
+        message: "",
+        terms: false,
+        newsletter: "yes",
+    });
 
-        const handleSubmit = (e: React.FormEvent) => {
-            e.preventDefault();
-            alert(JSON.stringify(formData, null, 2));
-        };
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        alert(JSON.stringify(formData, null, 2));
+    };
 
-        return (
-            <div className="p-8 max-w-2xl mx-auto">
-                <h2 className="text-xl font-semibold mb-6">Contact Form (Plain Elements)</h2>
+    return (
+        <div className="p-8 max-w-2xl mx-auto">
+            <h2 className="text-xl font-semibold mb-6">Contact Form (Plain Elements)</h2>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="plain">First Name</label>
-                            <input
-                                type="text"
-                                className="plain"
-                                placeholder="John"
-                                value={formData.name}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                            />
-                        </div>
-
-                        <div>
-                            <label className="plain">Email Address</label>
-                            <input
-                                type="email"
-                                className="plain"
-                                placeholder="john@example.com"
-                                value={formData.email}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                            />
-                        </div>
-                    </div>
-
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="plain">Country</label>
-                        <select
+                        <label className="plain">First Name</label>
+                        <input
+                            type="text"
                             className="plain"
-                            value={formData.country}
-                            onChange={(e) => setFormData((prev) => ({ ...prev, country: e.target.value }))}
-                        >
-                            <option value="kr">South Korea</option>
-                            <option value="us">United States</option>
-                            <option value="jp">Japan</option>
-                            <option value="cn">China</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="plain">Message</label>
-                        <textarea
-                            className="plain"
-                            placeholder="Your message..."
-                            rows={4}
-                            value={formData.message}
-                            onChange={(e) => setFormData((prev) => ({ ...prev, message: e.target.value }))}
+                            placeholder="John"
+                            value={formData.name}
+                            onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                         />
-                        <p className="helper-text">Maximum 500 characters</p>
                     </div>
 
-                    <div className="space-y-3">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                className="plain"
-                                checked={formData.terms}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, terms: e.target.checked }))}
-                            />
-                            <span className="text-sm">I agree to the terms and conditions</span>
-                        </label>
+                    <div>
+                        <label className="plain">Email Address</label>
+                        <input
+                            type="email"
+                            className="plain"
+                            placeholder="john@example.com"
+                            value={formData.email}
+                            onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                        />
+                    </div>
+                </div>
 
-                        <div>
-                            <p className="text-sm font-medium mb-2">Subscribe to newsletter?</p>
-                            <div className="space-y-2">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        className="plain"
-                                        name="newsletter"
-                                        value="yes"
-                                        checked={formData.newsletter === "yes"}
-                                        onChange={(e) =>
-                                            setFormData((prev) => ({ ...prev, newsletter: e.target.value }))
-                                        }
-                                    />
-                                    <span className="text-sm">Yes, subscribe me</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        className="plain"
-                                        name="newsletter"
-                                        value="no"
-                                        checked={formData.newsletter === "no"}
-                                        onChange={(e) =>
-                                            setFormData((prev) => ({ ...prev, newsletter: e.target.value }))
-                                        }
-                                    />
-                                    <span className="text-sm">No, thanks</span>
-                                </label>
-                            </div>
+                <div>
+                    <label className="plain">Country</label>
+                    <select
+                        className="plain"
+                        value={formData.country}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, country: e.target.value }))}
+                    >
+                        <option value="kr">South Korea</option>
+                        <option value="us">United States</option>
+                        <option value="jp">Japan</option>
+                        <option value="cn">China</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label className="plain">Message</label>
+                    <textarea
+                        className="plain"
+                        placeholder="Your message..."
+                        rows={4}
+                        value={formData.message}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, message: e.target.value }))}
+                    />
+                    <p className="helper-text">Maximum 500 characters</p>
+                </div>
+
+                <div className="space-y-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            className="plain"
+                            checked={formData.terms}
+                            onChange={(e) => setFormData((prev) => ({ ...prev, terms: e.target.checked }))}
+                        />
+                        <span className="text-sm">I agree to the terms and conditions</span>
+                    </label>
+
+                    <div>
+                        <p className="text-sm font-medium mb-2">Subscribe to newsletter?</p>
+                        <div className="space-y-2">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    className="plain"
+                                    name="newsletter"
+                                    value="yes"
+                                    checked={formData.newsletter === "yes"}
+                                    onChange={(e) =>
+                                        setFormData((prev) => ({ ...prev, newsletter: e.target.value }))
+                                    }
+                                />
+                                <span className="text-sm">Yes, subscribe me</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    className="plain"
+                                    name="newsletter"
+                                    value="no"
+                                    checked={formData.newsletter === "no"}
+                                    onChange={(e) =>
+                                        setFormData((prev) => ({ ...prev, newsletter: e.target.value }))
+                                    }
+                                />
+                                <span className="text-sm">No, thanks</span>
+                            </label>
                         </div>
                     </div>
+                </div>
 
-                    <div className="flex gap-3">
-                        <button
-                            type="submit"
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                            Submit
-                        </button>
-                        <button
-                            type="button"
-                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                            onClick={() =>
-                                setFormData({
-                                    name: "",
-                                    email: "",
-                                    country: "kr",
-                                    message: "",
-                                    terms: false,
-                                    newsletter: "yes",
-                                })
-                            }
-                        >
-                            Reset
-                        </button>
-                    </div>
-                </form>
-            </div>
-        );
-    },
+                <div className="flex gap-3">
+                    <button
+                        type="submit"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        Submit
+                    </button>
+                    <button
+                        type="button"
+                        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                        onClick={() =>
+                            setFormData({
+                                name: "",
+                                email: "",
+                                country: "kr",
+                                message: "",
+                                terms: false,
+                                newsletter: "yes",
+                            })
+                        }
+                    >
+                        Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+    );
+};
+
+export const FormExample: Story = {
+    render: () => <FormExampleRender />,
 };
 
 export const ComparisonWithComponents: Story = {

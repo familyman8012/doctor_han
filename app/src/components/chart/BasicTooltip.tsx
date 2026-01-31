@@ -4,9 +4,16 @@ import type React from "react";
 import { cn } from "@/components/utils";
 import { ArrowUp, ArrowDown } from "lucide-react";
 
+interface TooltipPayloadEntry {
+    name?: string;
+    value?: string | number;
+    color?: string;
+    payload?: Record<string, unknown>;
+}
+
 export interface BasicTooltipProps {
     active?: boolean;
-    payload?: any[];
+    payload?: TooltipPayloadEntry[];
     label?: string;
     className?: string;
 }
@@ -19,7 +26,7 @@ export const BasicTooltip: React.FC<BasicTooltipProps> = ({ active, payload, lab
     // 간단한 기본 툴팁 (차트 데이터 구조에 따라 수정 필요)
     if (data?.payload?.base_sales_count !== undefined) {
         // 판매 데이터용 툴팁
-        const increaseRate = data?.payload?.increase_decrease_rate || 0;
+        const increaseRate = Number(data?.payload?.increase_decrease_rate) || 0;
         const isIncrease = increaseRate > 0;
         const isDecrease = increaseRate < 0;
 

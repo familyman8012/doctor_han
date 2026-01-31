@@ -292,14 +292,10 @@ function useEnvironmentIndicator(): EnvironmentIndicator | null {
     const [indicator, setIndicator] = useState<EnvironmentIndicator | null>(null);
 
     useEffect(() => {
-        if (typeof window === "undefined") return;
         const host = window.location.hostname?.toLowerCase() ?? "";
-
-        if (host.endsWith("dev.ncos.app")||host.endsWith("localhost")) {
-            setIndicator({
-                label: "개발환경",
-                host,
-            });
+        if (host.endsWith("dev.ncos.app") || host.endsWith("localhost")) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- 마운트 시 한 번만 실행, 환경 정보 초기화
+            setIndicator({ label: "개발환경", host });
         }
     }, []);
 

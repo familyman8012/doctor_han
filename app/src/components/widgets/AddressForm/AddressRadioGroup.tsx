@@ -27,8 +27,8 @@ export const AddressRadioGroup: React.FC<AddressRadioGroupProps> = ({
 }) => {
   const groupId = React.useId();
 
-  const isRadioEl = (type: any) =>
-    type === Radio || (typeof type === "function" && (type.displayName === "Radio" || type.name === "Radio"));
+  const isRadioEl = (type: unknown) =>
+    type === Radio || (typeof type === "function" && ((type as { displayName?: string }).displayName === "Radio" || (type as { name?: string }).name === "Radio"));
 
   const enhance = (node: React.ReactNode, index = 0): React.ReactNode => {
     if (!React.isValidElement(node)) return node;
@@ -50,12 +50,12 @@ export const AddressRadioGroup: React.FC<AddressRadioGroupProps> = ({
       });
     }
 
-    const el = node as React.ReactElement<any>;
-    const hasChildren = (el.props as any)?.children !== undefined;
-    if ((el.type as any) === React.Fragment || hasChildren) {
-      const nextChildren = React.Children.map((el.props as any).children, (c, i) => enhance(c, i));
+    const el = node as React.ReactElement<{ children?: React.ReactNode }>;
+    const hasChildren = el.props?.children !== undefined;
+    if (el.type === React.Fragment || hasChildren) {
+      const nextChildren = React.Children.map(el.props.children, (c, i) => enhance(c, i));
       // clone with explicit children arg to avoid TS complaining about props shape
-      return React.cloneElement(el, undefined as any, nextChildren as any);
+      return React.cloneElement(el, {}, nextChildren);
     }
 
     return node;

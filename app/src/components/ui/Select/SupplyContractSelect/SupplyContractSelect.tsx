@@ -96,7 +96,7 @@ export function SupplyContractSelect({
             });
         });
         return Array.from(seen.values());
-    }, [data?.pages]);
+    }, [data]);
 
     const listOptions = useMemo<SupplyContractOption[]>(() => {
         return listItems.map((contract) => ({

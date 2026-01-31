@@ -51,7 +51,7 @@ export const SidebarMenuLevel1 = React.memo<SidebarMenuLevel1Props>(({ menu, chi
     const Icon = menu.icon;
 
     // 이벤트 핸들러
-    const handleClick = (_e: React.MouseEvent) => {
+    const handleClick = () => {
         if (hasChildren) {
             toggleMenu(menu.id);
         }

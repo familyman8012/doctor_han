@@ -5,10 +5,13 @@ import type React from "react";
 import { type FC, useId, useMemo } from "react";
 import ReactSelect, {
     components,
+    type ControlProps,
     type DropdownIndicatorProps,
     type FormatOptionLabelMeta,
     type GroupBase,
+    type MultiValue,
     type OptionProps,
+    type SingleValue,
     type StylesConfig,
 } from "react-select";
 
@@ -59,7 +62,10 @@ const DropdownIndicator = (props: DropdownIndicatorProps<IOption, boolean>) => {
 };
 
 const CustomControl = (prefixLabel: string) => {
-    const ControlComponent = ({ children, selectProps, ...rest }: any) => {
+    const ControlComponent = <Option, IsMulti extends boolean, Group extends GroupBase<Option>>(
+        props: ControlProps<Option, IsMulti, Group>
+    ) => {
+        const { children, ...rest } = props;
         return (
             <components.Control {...rest}>
                 <span className="px-2 text-gray-500">{prefixLabel}</span>
@@ -119,6 +125,8 @@ export const Select: FC<SelectProps> = ({
     isLoading = false,
     ...restProps
 }) => {
+    void LeadingIcon; // Prop retained for API compatibility
+
     // 사이즈별 높이 설정
     const sizeHeights = {
         xs: "34px", // 리스트 페이지용
@@ -136,7 +144,7 @@ export const Select: FC<SelectProps> = ({
             minHeight: computedHeight,
             height:
                 isMulti ||
-                (showDescriptionWhenSelected && computedValue && (computedValue as any)?.description)
+                (showDescriptionWhenSelected && computedValue && !Array.isArray(computedValue) && (computedValue as IOption)?.description)
                     ? "auto"
                     : computedHeight,
             display: "flex",
@@ -151,7 +159,7 @@ export const Select: FC<SelectProps> = ({
                 borderColor: state.menuIsOpen || state.isFocused ? "transparent" : "#d1d5db",
             },
         }),
-        valueContainer: (provided, _state) => ({
+        valueContainer: (provided) => ({
             ...provided,
             padding: "2px 4px 2px 8px",
         }),
@@ -359,9 +367,16 @@ export const Select: FC<SelectProps> = ({
         );
     };
 
-    const handleChange = (newValue: any) => {
-        if (onChange) {
-            onChange(newValue);
+    const handleChange = (newValue: MultiValue<IOption> | SingleValue<IOption>) => {
+        if (!onChange) return;
+
+        // Convert readonly array to mutable array for compatibility with existing onChange signature
+        if (Array.isArray(newValue)) {
+            const mutableArray: IOption[] = [...newValue];
+            onChange(mutableArray);
+        } else {
+            // SingleValue<IOption> is IOption | null, which matches onChange signature
+            onChange(newValue as IOption | null);
         }
     };
 
@@ -374,7 +389,7 @@ export const Select: FC<SelectProps> = ({
     };
 
     // Custom filter to search in both label and description
-    const customFilterOption = (option: any, searchText: string) => {
+    const customFilterOption = (option: { data: IOption }, searchText: string) => {
         const search = searchText.toLowerCase();
         const label = (typeof option.data.label === "string" ? option.data.label : "").toLowerCase();
         const description = (option.data.description || "").toLowerCase();

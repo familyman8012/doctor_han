@@ -7,8 +7,6 @@ import { withApi } from "@/server/api/with-api";
 import { calculateDoctorCompletion, calculateVendorCompletion, fetchOnboardingState } from "@/server/onboarding/completion";
 import { mapProfileRow } from "@/server/profile/mapper";
 import { createSupabaseServerClient } from "@/server/supabase/server";
-import type { NextRequest } from "next/server";
-
 type DoctorVerificationSummaryRow = Pick<Tables<"doctor_verifications">, "status" | "reviewed_at" | "reject_reason">;
 type VendorVerificationSummaryRow = Pick<Tables<"vendor_verifications">, "status" | "reviewed_at" | "reject_reason">;
 
@@ -28,7 +26,7 @@ function mapVendorVerification(row: VendorVerificationSummaryRow): VendorVerific
     };
 }
 
-export const GET = withApi(async (_req: NextRequest) => {
+export const GET = withApi(async () => {
     const supabase = await createSupabaseServerClient();
 
     const { data, error } = await supabase.auth.getUser();

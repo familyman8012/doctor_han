@@ -13,13 +13,13 @@ type ReportRow = Tables<"reports">;
 type SanctionRow = Tables<"sanctions">;
 type ProfileRow = Tables<"profiles">;
 
-type ReportRowWithRelations = ReportRow & {
+export type ReportRowWithRelations = ReportRow & {
     reporter_user: Pick<ProfileRow, "id" | "display_name" | "email">;
     reviewed_by_user?: Pick<ProfileRow, "id" | "display_name"> | null;
     resolved_by_user?: Pick<ProfileRow, "id" | "display_name"> | null;
 };
 
-type SanctionRowWithRelations = SanctionRow & {
+export type SanctionRowWithRelations = SanctionRow & {
     created_by_user: Pick<ProfileRow, "id" | "display_name"> | null;
     revoked_by_user?: Pick<ProfileRow, "id" | "display_name"> | null;
 };

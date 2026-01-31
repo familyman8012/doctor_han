@@ -89,7 +89,7 @@ const columns: ColumnDef<SampleRow>[] = [
     },
 ];
 
-const meta: Meta<typeof TanstackTable<any>> = {
+const meta: Meta<typeof TanstackTable<SampleRow>> = {
     title: "Widgets/TanstackTable",
     component: TanstackTable,
     parameters: {
@@ -99,46 +99,50 @@ const meta: Meta<typeof TanstackTable<any>> = {
 
 export default meta;
 
-type Story = StoryObj<typeof TanstackTable<any>>;
+type Story = StoryObj<typeof TanstackTable<SampleRow>>;
+
+const BasicRender = () => {
+    const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+
+    return (
+        <div className="p-6 bg-[#f4f7fa] min-h-screen">
+            <TanstackTable<SampleRow>
+                data={SAMPLE_DATA}
+                columns={columns}
+                enableRowSelection
+                rowSelection={rowSelection}
+                onRowSelectionChange={setRowSelection}
+            />
+        </div>
+    );
+};
 
 export const 기본: Story = {
-    render: () => {
-        const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+    render: () => <BasicRender />,
+};
 
-        return (
-            <div className="p-6 bg-[#f4f7fa] min-h-screen">
-                <TanstackTable<SampleRow>
-                    data={SAMPLE_DATA}
-                    columns={columns}
-                    enableRowSelection
-                    rowSelection={rowSelection}
-                    onRowSelectionChange={setRowSelection}
-                />
-            </div>
-        );
-    },
+const RemoteSortingRender = () => {
+    const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+    const [sorting, setSorting] = useState<SortingState>([]);
+
+    return (
+        <div className="p-6 bg-[#f4f7fa] min-h-screen">
+            <TanstackTable<SampleRow>
+                data={SAMPLE_DATA}
+                columns={columns}
+                manualSorting
+                sorting={sorting}
+                onSortingChange={setSorting}
+                enableRowSelection
+                rowSelection={rowSelection}
+                onRowSelectionChange={setRowSelection}
+            />
+        </div>
+    );
 };
 
 export const 원격정렬: Story = {
-    render: () => {
-        const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-        const [sorting, setSorting] = useState<SortingState>([]);
-
-        return (
-            <div className="p-6 bg-[#f4f7fa] min-h-screen">
-                <TanstackTable<SampleRow>
-                    data={SAMPLE_DATA}
-                    columns={columns}
-                    manualSorting
-                    sorting={sorting}
-                    onSortingChange={setSorting}
-                    enableRowSelection
-                    rowSelection={rowSelection}
-                    onRowSelectionChange={setRowSelection}
-                />
-            </div>
-        );
-    },
+    render: () => <RemoteSortingRender />,
 };
 
 export const 로딩: Story = {

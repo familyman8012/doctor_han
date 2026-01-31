@@ -1,17 +1,11 @@
 import {
     Calculator,
     CheckCircle,
-    Download,
     FileText,
-    Handshake,
     Layers,
-    // Megaphone,
     type LucideIcon,
-    Plus,
-    Send,
     ShoppingBag,
     TruckIcon,
-    Users,
 } from "lucide-react";
 
 export interface SubMenuItem {

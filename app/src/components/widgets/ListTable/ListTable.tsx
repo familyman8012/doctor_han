@@ -8,10 +8,10 @@ export interface ListTableColumn<T> {
     header: string;
     width?: string;
     align?: "left" | "center" | "right";
-    render?: (value: any, item: T, index: number) => React.ReactNode;
+    render?: (value: unknown, item: T, index: number) => React.ReactNode;
 }
 
-export interface ListTableProps<T = any> {
+export interface ListTableProps<T = Record<string, unknown>> {
     columns: ListTableColumn<T>[];
     data: T[];
     loading?: boolean;
@@ -29,7 +29,7 @@ export interface ListTableProps<T = any> {
     showPaginationInfo?: boolean;
 }
 
-export function ListTable<T = any>({
+export function ListTable<T = Record<string, unknown>>({
     columns,
     data,
     loading = false,
@@ -51,14 +51,15 @@ export function ListTable<T = any>({
         }
     };
 
-    const renderCellContent = (column: ListTableColumn<T>, item: T, index: number) => {
-        const value = (item as any)[column.key];
+    const renderCellContent = (column: ListTableColumn<T>, item: T, index: number): React.ReactNode => {
+        const value = (item as Record<string, unknown>)[column.key];
 
         if (column.render) {
             return column.render(value, item, index);
         }
 
-        return value;
+        // Cast to ReactNode - if value is a primitive it will render, otherwise React will ignore it
+        return value as React.ReactNode;
     };
 
     const renderPaginationButtons = () => {

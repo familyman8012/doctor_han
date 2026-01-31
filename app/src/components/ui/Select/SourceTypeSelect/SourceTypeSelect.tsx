@@ -2,7 +2,7 @@
 
 import { ChevronDown, Database } from "lucide-react";
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
-import type { DropdownIndicatorProps, FilterOptionOption, GroupBase, StylesConfig } from "react-select";
+import type { DropdownIndicatorProps, GroupBase, StylesConfig } from "react-select";
 import { components } from "react-select";
 import CreatableSelect from "react-select/creatable";
 import { type IOption } from "@/components/ui/Select/Select";
@@ -224,7 +224,7 @@ export function SourceTypeSelect({
                     DropdownIndicator,
                 }}
                 onInputChange={handleInputChange}
-                formatOptionLabel={(option: unknown, { context }: { context: "menu" | "value" }) => {
+                formatOptionLabel={(option: unknown) => {
                     const typedOption = option as IOption;
                     return (
                         <div className="flex items-center gap-2">

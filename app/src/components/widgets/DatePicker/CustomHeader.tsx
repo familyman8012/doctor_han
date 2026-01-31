@@ -1,6 +1,24 @@
 import { ChevronDown } from "lucide-react";
+import type DatepickerLibrary from "react-datepicker";
 
-const CustomHeader = ({ showMonthYearPicker, setShowMonthYearPicker, params, datePickerRef }: any) => {
+interface CustomHeaderProps {
+    showMonthYearPicker: boolean;
+    setShowMonthYearPicker: React.Dispatch<React.SetStateAction<boolean>>;
+    params: {
+        date: Date;
+        decreaseYear: () => void;
+        increaseYear: () => void;
+        decreaseMonth: () => void;
+        increaseMonth: () => void;
+        prevYearButtonDisabled: boolean;
+        nextYearButtonDisabled: boolean;
+        prevMonthButtonDisabled: boolean;
+        nextMonthButtonDisabled: boolean;
+    };
+    datePickerRef: React.RefObject<DatepickerLibrary | null>;
+}
+
+const CustomHeader = ({ showMonthYearPicker, setShowMonthYearPicker, params, datePickerRef }: CustomHeaderProps) => {
     const monthNames = Array.from({ length: 12 }, (_, i) => new Date(0, i).toLocaleDateString("ko", { month: "long" }));
 
     const handleHeaderClick = () => {

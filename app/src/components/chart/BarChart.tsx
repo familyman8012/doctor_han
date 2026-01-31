@@ -25,7 +25,7 @@ const LegendFormatter = ({ value }: { value: string }) => {
 export interface BarChartProps {
     type?: string;
     height?: string | number;
-    chartData: any[];
+    chartData: Record<string, unknown>[];
     barSize?: number;
     tickCount?: number;
     xKey?: string;

@@ -22,7 +22,7 @@ export const PlainElements = () => {
                         <div>
                             <label className="plain">With Helper Text</label>
                             <input type="email" className="plain" placeholder="email@example.com" />
-                            <p className="helper-text">We'll never share your email.</p>
+                            <p className="helper-text">We&apos;ll never share your email.</p>
                         </div>
 
                         <div>

@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
+import Image from "next/image";
 import { Camera, User, Mail, Phone, Shield, CheckCircle, Clock, XCircle } from "lucide-react";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
@@ -158,12 +159,13 @@ export default function MyProfilePage() {
                 <div className="p-6 border-b border-gray-100">
                     <div className="flex items-center gap-6">
                         <div className="relative">
-                            <div className="w-24 h-24 rounded-full bg-[#62e3d5]/20 flex items-center justify-center overflow-hidden">
+                            <div className="relative w-24 h-24 rounded-full bg-[#62e3d5]/20 flex items-center justify-center overflow-hidden">
                                 {profile?.avatarUrl ? (
-                                    <img
+                                    <Image
                                         src={profile.avatarUrl}
                                         alt="프로필"
-                                        className="w-full h-full object-cover"
+                                        fill
+                                        className="object-cover"
                                     />
                                 ) : (
                                     <User className="w-10 h-10 text-[#62e3d5]" />

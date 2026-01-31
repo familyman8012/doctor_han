@@ -88,7 +88,7 @@ export default function PartnerProfilePage() {
         },
     });
 
-    // 폼 초기값 설정
+    // 폼 초기값 설정: vendorData가 변경될 때 폼을 리셋하고 카테고리도 동기화
     useEffect(() => {
         if (vendorData) {
             reset({
@@ -100,7 +100,9 @@ export default function PartnerProfilePage() {
                 priceMin: vendorData.priceMin?.toString() ?? "",
                 priceMax: vendorData.priceMax?.toString() ?? "",
             });
-            setSelectedCategoryIds(vendorData.categories?.map((c) => c.id) ?? []);
+            const newCategoryIds = vendorData.categories?.map((c) => c.id) ?? [];
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setSelectedCategoryIds(newCategoryIds);
         }
     }, [vendorData, reset]);
 

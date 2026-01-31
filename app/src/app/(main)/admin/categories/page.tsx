@@ -38,7 +38,7 @@ export default function AdminCategoriesPage() {
         },
     });
 
-    const categories = data?.data?.items ?? [];
+    const categories = useMemo(() => data?.data?.items ?? [], [data?.data?.items]);
 
     // 트리 구조로 변환
     const categoryTree = useMemo(() => {

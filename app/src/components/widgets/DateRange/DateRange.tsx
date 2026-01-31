@@ -1,8 +1,6 @@
 'use client';
 
 import React, {
-  ChangeEvent,
-  KeyboardEvent,
   useEffect,
   useRef,
   useState,
@@ -80,7 +78,7 @@ interface DateRangePickerProps {
   exceptDateRange?: DateRangeType;
   placeholder?: string;
   disabled?: boolean;
-  maxDate?: any;
+  maxDate?: Date;
   customInput?: React.ReactElement;
   size?: 'xs' | 'sm' | 'md' | 'lg';
   error?: string;
@@ -90,7 +88,16 @@ interface DateRangePickerProps {
 }
 
 // RangeCustomInput - 단일 input 커스텀 컴포넌트
-const RangeCustomInput = forwardRef<HTMLInputElement, any>((props, ref) => {
+interface RangeCustomInputProps {
+  value?: string;
+  onClick?: () => void;
+  placeholder?: string;
+  disabled?: boolean;
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+  error?: string;
+}
+
+const RangeCustomInput = forwardRef<HTMLInputElement, RangeCustomInputProps>((props, ref) => {
   const { value, onClick, placeholder, disabled, size, error } = props;
   
   return (
@@ -136,11 +143,10 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   // 캘린더에 표시할 range: 선택 중이면 pendingRange, 아니면 committedRange
   const displayRange = pendingRange ?? committedRange;
 
-  const [startDateInput, setStartDateInput] = useState<string | null>('');
-  const [endDateInput, setEndDateInput] = useState<string | null>('');
+  const [, setStartDateInput] = useState<string | null>('');
+  const [, setEndDateInput] = useState<string | null>('');
   const [open, setOpen] = useState(false);
   const [, setIsResetVisible] = useState(false);
-  const refEndDate = useRef<HTMLInputElement | null>(null);
   const ref = useRef<HTMLDivElement | null>(null);
 
   // 날짜 비교 헬퍼
@@ -152,16 +158,19 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   // 부모/내부 상태와 동기화되면 pendingRange 해제
   useEffect(() => {
     if (pendingRange && isSameRange(pendingRange, committedRange)) {
-      setPendingRange(null);
+      setPendingRange((prev) => prev !== null ? null : prev);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- isSameRange is a stable helper function defined above
   }, [pendingRange, committedRange]);
 
   // value prop이 변경될 때 input 값 업데이트 (controlled mode)
   useEffect(() => {
     if (isControlled && value) {
       const [start, end] = value;
-      setStartDateInput(start ? dayjs(start).format('YYYY-MM-DD') : '');
-      setEndDateInput(end ? dayjs(end).format('YYYY-MM-DD') : '');
+      const newStartInput = start ? dayjs(start).format('YYYY-MM-DD') : '';
+      const newEndInput = end ? dayjs(end).format('YYYY-MM-DD') : '';
+      setStartDateInput((prev) => prev !== newStartInput ? newStartInput : prev);
+      setEndDateInput((prev) => prev !== newEndInput ? newEndInput : prev);
     }
   }, [value, isControlled]);
 
@@ -170,7 +179,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     if (!isControlled && (initialDateRange[0] || initialDateRange[1])) {
       const start = initialDateRange[0];
       const end = initialDateRange[1];
-      
+
       if (start) {
         setStartDateInput(dayjs(start).format('YYYY-MM-DD'));
       }
@@ -179,107 +188,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
       }
       setInternalDateRange([start, end]);
     }
-  }, []); // 초기 렌더링 시에만 실행
-
-  const validateDate = (dateStr: string) => {
-    const regex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!regex.test(dateStr)) {
-      return false;
-    }
-
-    const [year, month, day] = dateStr.split('-').map(Number);
-    if (year < 2000) {
-      return false;
-    }
-
-    const date = new Date(year, month - 1, day);
-
-    return (
-      date.getFullYear() === year &&
-      date.getMonth() === month - 1 &&
-      date.getDate() === day
-    );
-  };
-
-  const handleStartDateChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const dateStr = e.target.value;
-    setStartDateInput(dateStr);
-
-    if (validateDate(dateStr)) {
-      const [year, month, day] = dateStr.split('-').map(Number);
-      const startDate = new Date(year, month - 1, day);
-      const endDate = displayRange[1];
-
-      // 종료일이 설정되어 있고, 시작일이 종료일로부터 1년 이내인지 확인
-      if (endDate) {
-        const oneMonthAfterStartDate = new Date(startDate);
-        oneMonthAfterStartDate.setMonth(oneMonthAfterStartDate.getMonth() + 1); // 변경된 부분
-
-        if (endDate > oneMonthAfterStartDate) {
-          setEndDateInput('');
-          if (!isControlled) {
-            setInternalDateRange([startDate, null]);
-          }
-          onDateRangeChange([startDate, null]);
-        }
-      } else {
-        // 시작일과 (조정된) 종료일 업데이트
-        if (!isControlled) {
-          setInternalDateRange([startDate, endDate]);
-        }
-        onDateRangeChange([startDate, endDate]);
-      }
-    }
-  };
-
-  const handleEndDateChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const dateStr = e.target.value;
-    setEndDateInput(dateStr);
-
-    if (validateDate(dateStr)) {
-      const [year, month, day] = dateStr.split('-').map(Number);
-      const endDate = new Date(year, month - 1, day);
-      const startDate = displayRange[0];
-
-      // 시작일이 설정되어 있고, 종료일이 시작일로부터 1년 이내인지 확인
-      if (startDate && endDate) {
-        const oneMonthLater = new Date(startDate);
-        oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
-
-        if (endDate > oneMonthLater) {
-          alert('종료일은 시작일로부터 최대 1개월 이내로 설정해야 합니다.');
-          setEndDateInput('');
-
-          return; // 조건을 충족하지 않으면 업데이트 중단
-        }
-      }
-
-      // 종료일 업데이트
-      const update: DateRangeType = [displayRange[0], endDate];
-      if (!isControlled) {
-        setInternalDateRange(update);
-      }
-      onDateRangeChange(update);
-    }
-  };
-
-  const handleStartDateKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && startDateInput && validateDate(startDateInput)) {
-      refEndDate.current?.focus();
-    }
-  };
-
-  const handleEndDateKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && endDateInput && validateDate(endDateInput)) {
-      setOpen(false);
-      refEndDate.current?.blur();
-    }
-  };
-
-  const handleFocus = () => {
-    setOpen(true);
-    setIsResetVisible(true);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally run only on initial mount for uncontrolled mode initialization
+  }, []);
 
   const onChange = (dates: [Date | null, Date | null] | Date | null) => {
     if (!dates) {
@@ -387,7 +297,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     <div className="DateRangeWrap">
       <div className="box_daterange_input" onClick={() => setOpen(!open)}>
         {customInput ? (
-          React.cloneElement(customInput as React.ReactElement<any>, {
+          React.cloneElement(customInput as React.ReactElement<RangeCustomInputProps>, {
             value: displayText,
             placeholder,
             disabled,

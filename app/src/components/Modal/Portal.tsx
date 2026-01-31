@@ -1,13 +1,14 @@
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import ReactDOM from "react-dom";
 
-const Portal = ({ children }: React.PropsWithChildren) => {
-    const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
+// SSR-safe document.body subscription
+const subscribe = () => () => {};
+const getSnapshot = () => (typeof document !== "undefined" ? document.body : null);
+const getServerSnapshot = () => null;
 
-    useEffect(() => {
-        setPortalRoot(document.body);
-    }, []);
+const Portal = ({ children }: React.PropsWithChildren) => {
+    const portalRoot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
     if (!portalRoot) {
         return null;

@@ -7,7 +7,7 @@ import { cn } from "@/components/utils";
 import { getChartColors } from "./chartTheme";
 
 export interface LineChartProps {
-    chartData: any[];
+    chartData: Record<string, unknown>[];
     lines?: { dataKey: string; color: string; name?: string; strokeWidth?: number }[];
     height?: string | number;
     xKey?: string;

@@ -1,13 +1,28 @@
 // import { ArrowDownFilled } from '@ComponentFarm/atom/icons';
 
+interface CustomHeaderParams {
+    date: Date;
+    decreaseMonth: () => void;
+    increaseMonth: () => void;
+    prevMonthButtonDisabled: boolean;
+    nextMonthButtonDisabled: boolean;
+    onChange: (date: Date) => void;
+    monthCount: number;
+}
+
+interface CustomHeaderProps {
+    showMonthYearPicker: boolean[];
+    setShowMonthYearPicker: React.Dispatch<React.SetStateAction<boolean[]>>;
+    params: CustomHeaderParams;
+    monthIndex: number;
+}
+
 const CustomHeader = ({
     showMonthYearPicker,
     setShowMonthYearPicker,
     params,
-    datePickerRef,
-    dateRange,
     monthIndex,
-}: any) => {
+}: CustomHeaderProps) => {
     const monthNames = Array.from({ length: 12 }, (_, i) => new Date(0, i).toLocaleDateString("ko", { month: "long" }));
 
     const handleHeaderClick = () => {
@@ -25,7 +40,7 @@ const CustomHeader = ({
         params.onChange(newDate);
 
         // 연/월 선택기를 숨기고 날짜 선택기를 다시 표시
-        setShowMonthYearPicker((prev: any) => {
+        setShowMonthYearPicker((prev) => {
             const newValues = [...prev];
             newValues[params.monthCount] = false;
             return newValues;

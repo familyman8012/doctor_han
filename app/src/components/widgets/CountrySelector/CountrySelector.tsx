@@ -68,7 +68,7 @@ export function CountrySelector({
             keywords: country.keywords,
             data: country,
         }));
-    }, [data?.options]);
+    }, [data]);
 
     const selectedOption = useMemo(() => {
         if (!value) return null;

@@ -25,9 +25,7 @@ export const GET = withApi(
         let qb = ctx.supabase.from("vendors").select(
             `
                 *,
-                owner:profiles!vendors_owner_user_id_fkey(
-                    id, role, status, display_name, phone, email, created_at, updated_at
-                ),
+                owner:profiles!vendors_owner_user_id_fkey(*),
                 vendor_categories(
                     category:categories(*)
                 )
@@ -57,7 +55,7 @@ export const GET = withApi(
             });
         }
 
-        const ownerIds = Array.from(new Set((data ?? []).map((row: any) => row.owner_user_id).filter(Boolean)));
+        const ownerIds = Array.from(new Set((data ?? []).map((row) => row.owner_user_id).filter(Boolean)));
         const verificationByUserId = new Map<string, VendorVerificationRow>();
 
         if (ownerIds.length > 0) {
@@ -78,14 +76,14 @@ export const GET = withApi(
             }
         }
 
-        const items = (data ?? []).map((row: any) => {
+        const items = (data ?? []).map((row) => {
             const owner = row.owner;
             if (!owner) {
                 throw internalServerError("업체 소유자 정보를 조회할 수 없습니다.");
             }
 
             const categories = (row.vendor_categories ?? [])
-                .map((rel: any) => rel.category)
+                .map((rel) => rel.category)
                 .filter(Boolean);
 
             return mapAdminVendorListItemRow({

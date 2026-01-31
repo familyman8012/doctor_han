@@ -173,96 +173,100 @@ export const SemanticColors: Story = {
     ),
 };
 
-export const ColorSearch: Story = {
-    render: () => {
-        const [searchTerm, setSearchTerm] = React.useState("");
+const ColorSearchRender = () => {
+    const [searchTerm, setSearchTerm] = React.useState("");
 
-        const allColors = Object.entries(colorGroups).flatMap(([group, colors]) =>
-            colors.map((color) => ({ ...color, group })),
-        );
+    const allColors = Object.entries(colorGroups).flatMap(([group, colors]) =>
+        colors.map((color) => ({ ...color, group })),
+    );
 
-        const filteredColors = searchTerm
-            ? allColors.filter(
-                  (color) =>
-                      color.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      color.variable.toLowerCase().includes(searchTerm.toLowerCase()),
-              )
-            : allColors;
+    const filteredColors = searchTerm
+        ? allColors.filter(
+              (color) =>
+                  color.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  color.variable.toLowerCase().includes(searchTerm.toLowerCase()),
+          )
+        : allColors;
 
-        return (
-            <div className="p-8">
-                <h1 className="text-2xl font-bold text-gray-900 mb-4">Color Search</h1>
+    return (
+        <div className="p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Color Search</h1>
 
-                <input
-                    type="text"
-                    placeholder="Search colors by name or variable..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-primary-300"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
+            <input
+                type="text"
+                placeholder="Search colors by name or variable..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-primary-300"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+            />
 
-                {searchTerm && (
-                    <p className="text-sm text-gray-600 mb-4">
-                        Found {filteredColors.length} color{filteredColors.length !== 1 ? "s" : ""}
-                    </p>
-                )}
+            {searchTerm && (
+                <p className="text-sm text-gray-600 mb-4">
+                    Found {filteredColors.length} color{filteredColors.length !== 1 ? "s" : ""}
+                </p>
+            )}
 
-                <div className="grid grid-cols-4 gap-4">
-                    {filteredColors.map((color) => (
-                        <div key={color.variable}>
-                            <p className="text-xs text-gray-500 mb-1">{color.group}</p>
-                            <ColorBox color={color} />
-                        </div>
-                    ))}
-                </div>
-
-                {searchTerm && filteredColors.length === 0 && (
-                    <p className="text-center text-gray-500 py-8">No colors found matching "{searchTerm}"</p>
-                )}
+            <div className="grid grid-cols-4 gap-4">
+                {filteredColors.map((color) => (
+                    <div key={color.variable}>
+                        <p className="text-xs text-gray-500 mb-1">{color.group}</p>
+                        <ColorBox color={color} />
+                    </div>
+                ))}
             </div>
-        );
-    },
+
+            {searchTerm && filteredColors.length === 0 && (
+                <p className="text-center text-gray-500 py-8">No colors found matching &quot;{searchTerm}&quot;</p>
+            )}
+        </div>
+    );
+};
+
+export const ColorSearch: Story = {
+    render: () => <ColorSearchRender />,
+};
+
+const CopyableColorsRender = () => {
+    const [copiedVariable, setCopiedVariable] = React.useState("");
+
+    const handleCopy = (variable: string) => {
+        // Copy CSS variable usage
+        navigator.clipboard.writeText(`var(${variable})`);
+        setCopiedVariable(variable);
+        setTimeout(() => setCopiedVariable(""), 2000);
+    };
+
+    return (
+        <div className="p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Click to Copy CSS Variable</h1>
+            <p className="text-gray-600 mb-8">Click any color box to copy its CSS variable to clipboard</p>
+
+            <div className="grid grid-cols-4 gap-4">
+                {colorGroups.primary.map((color) => (
+                    <div
+                        key={color.variable}
+                        className="cursor-pointer relative"
+                        onClick={() => handleCopy(color.variable)}
+                    >
+                        <ColorBox color={color} />
+                        {copiedVariable === color.variable && (
+                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black text-white px-2 py-1 rounded text-xs">
+                                Copied!
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+
+            {copiedVariable && (
+                <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg">
+                    Copied: var({copiedVariable})
+                </div>
+            )}
+        </div>
+    );
 };
 
 export const CopyableColors: Story = {
-    render: () => {
-        const [copiedVariable, setCopiedVariable] = React.useState("");
-
-        const handleCopy = (variable: string, _value: string) => {
-            // Copy CSS variable usage
-            navigator.clipboard.writeText(`var(${variable})`);
-            setCopiedVariable(variable);
-            setTimeout(() => setCopiedVariable(""), 2000);
-        };
-
-        return (
-            <div className="p-8">
-                <h1 className="text-2xl font-bold text-gray-900 mb-4">Click to Copy CSS Variable</h1>
-                <p className="text-gray-600 mb-8">Click any color box to copy its CSS variable to clipboard</p>
-
-                <div className="grid grid-cols-4 gap-4">
-                    {colorGroups.primary.map((color) => (
-                        <div
-                            key={color.variable}
-                            className="cursor-pointer relative"
-                            onClick={() => handleCopy(color.variable, "")}
-                        >
-                            <ColorBox color={color} />
-                            {copiedVariable === color.variable && (
-                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black text-white px-2 py-1 rounded text-xs">
-                                    Copied!
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-
-                {copiedVariable && (
-                    <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg">
-                        Copied: var({copiedVariable})
-                    </div>
-                )}
-            </div>
-        );
-    },
+    render: () => <CopyableColorsRender />,
 };

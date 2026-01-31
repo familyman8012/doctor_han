@@ -54,24 +54,26 @@ const meta: Meta<CheckboxProps> = {
 export default meta;
 type Story = StoryObj<CheckboxProps>;
 
-export const Default: Story = {
-    render: (args) => {
-        const [checked, setChecked] = useState(args.checked || false);
+const DefaultRender = (args: CheckboxProps) => {
+    const [checked, setChecked] = useState(args.checked || false);
+    return <Checkbox {...args} checked={checked} onChange={(e) => setChecked(e.target.checked)} />;
+};
 
-        return <Checkbox {...args} checked={checked} onChange={(e) => setChecked(e.target.checked)} />;
-    },
+export const Default: Story = {
+    render: (args) => <DefaultRender {...args} />,
     args: {
         label: "Remember me",
         size: "md",
     },
 };
 
-export const WithSubText: Story = {
-    render: (args) => {
-        const [checked, setChecked] = useState(args.checked || false);
+const WithSubTextRender = (args: CheckboxProps) => {
+    const [checked, setChecked] = useState(args.checked || false);
+    return <Checkbox {...args} checked={checked} onChange={(e) => setChecked(e.target.checked)} />;
+};
 
-        return <Checkbox {...args} checked={checked} onChange={(e) => setChecked(e.target.checked)} />;
-    },
+export const WithSubText: Story = {
+    render: (args) => <WithSubTextRender {...args} />,
     args: {
         label: "I agree to the terms",
         subText: "You agree to our Terms of Service and Privacy Policy.",
@@ -79,28 +81,30 @@ export const WithSubText: Story = {
     },
 };
 
-export const Sizes: Story = {
-    render: () => {
-        const [smallChecked, setSmallChecked] = useState(false);
-        const [mediumChecked, setMediumChecked] = useState(false);
+const SizesRender = () => {
+    const [smallChecked, setSmallChecked] = useState(false);
+    const [mediumChecked, setMediumChecked] = useState(false);
 
-        return (
-            <div className="space-y-4">
-                <Checkbox
-                    size="sm"
-                    label="Small checkbox"
-                    checked={smallChecked}
-                    onChange={(e) => setSmallChecked(e.target.checked)}
-                />
-                <Checkbox
-                    size="md"
-                    label="Medium checkbox"
-                    checked={mediumChecked}
-                    onChange={(e) => setMediumChecked(e.target.checked)}
-                />
-            </div>
-        );
-    },
+    return (
+        <div className="space-y-4">
+            <Checkbox
+                size="sm"
+                label="Small checkbox"
+                checked={smallChecked}
+                onChange={(e) => setSmallChecked(e.target.checked)}
+            />
+            <Checkbox
+                size="md"
+                label="Medium checkbox"
+                checked={mediumChecked}
+                onChange={(e) => setMediumChecked(e.target.checked)}
+            />
+        </div>
+    );
+};
+
+export const Sizes: Story = {
+    render: () => <SizesRender />,
 };
 
 export const States: Story = {
@@ -118,58 +122,60 @@ export const States: Story = {
     },
 };
 
-export const UsageExamples: Story = {
-    render: () => {
-        const [terms, setTerms] = useState(false);
-        const [newsletter, setNewsletter] = useState(false);
-        const [notifications, setNotifications] = useState({
-            email: false,
-            sms: false,
-            push: false,
-        });
+const UsageExamplesRender = () => {
+    const [terms, setTerms] = useState(false);
+    const [newsletter, setNewsletter] = useState(false);
+    const [notifications, setNotifications] = useState({
+        email: false,
+        sms: false,
+        push: false,
+    });
 
-        return (
-            <div className="p-8 space-y-8">
-                <div>
-                    <h3 className="text-lg font-semibold mb-4">Form Example</h3>
-                    <div className="space-y-3">
-                        <Checkbox
-                            label="I agree to the terms and conditions"
-                            subText="Please read our terms carefully before proceeding."
-                            checked={terms}
-                            onChange={(e) => setTerms(e.target.checked)}
-                        />
-                        <Checkbox
-                            label="Subscribe to newsletter"
-                            checked={newsletter}
-                            onChange={(e) => setNewsletter(e.target.checked)}
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <h3 className="text-lg font-semibold mb-4">Notification Preferences</h3>
-                    <div className="space-y-3">
-                        <Checkbox
-                            label="Email notifications"
-                            checked={notifications.email}
-                            onChange={(e) => setNotifications((prev) => ({ ...prev, email: e.target.checked }))}
-                        />
-                        <Checkbox
-                            label="SMS notifications"
-                            checked={notifications.sms}
-                            onChange={(e) => setNotifications((prev) => ({ ...prev, sms: e.target.checked }))}
-                        />
-                        <Checkbox
-                            label="Push notifications"
-                            checked={notifications.push}
-                            onChange={(e) => setNotifications((prev) => ({ ...prev, push: e.target.checked }))}
-                        />
-                    </div>
+    return (
+        <div className="p-8 space-y-8">
+            <div>
+                <h3 className="text-lg font-semibold mb-4">Form Example</h3>
+                <div className="space-y-3">
+                    <Checkbox
+                        label="I agree to the terms and conditions"
+                        subText="Please read our terms carefully before proceeding."
+                        checked={terms}
+                        onChange={(e) => setTerms(e.target.checked)}
+                    />
+                    <Checkbox
+                        label="Subscribe to newsletter"
+                        checked={newsletter}
+                        onChange={(e) => setNewsletter(e.target.checked)}
+                    />
                 </div>
             </div>
-        );
-    },
+
+            <div>
+                <h3 className="text-lg font-semibold mb-4">Notification Preferences</h3>
+                <div className="space-y-3">
+                    <Checkbox
+                        label="Email notifications"
+                        checked={notifications.email}
+                        onChange={(e) => setNotifications((prev) => ({ ...prev, email: e.target.checked }))}
+                    />
+                    <Checkbox
+                        label="SMS notifications"
+                        checked={notifications.sms}
+                        onChange={(e) => setNotifications((prev) => ({ ...prev, sms: e.target.checked }))}
+                    />
+                    <Checkbox
+                        label="Push notifications"
+                        checked={notifications.push}
+                        onChange={(e) => setNotifications((prev) => ({ ...prev, push: e.target.checked }))}
+                    />
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export const UsageExamples: Story = {
+    render: () => <UsageExamplesRender />,
     parameters: {
         docs: {
             source: {

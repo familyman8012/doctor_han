@@ -1,7 +1,8 @@
 "use client";
 
 import { type FC, useState, type ChangeEvent, useRef } from "react";
-import { Image, Plus, Edit2 } from "lucide-react";
+import NextImage from "next/image";
+import { Image as ImageIcon, Plus, Edit2 } from "lucide-react";
 
 export interface ImageUploaderProps {
     /** 페이지 모드 (add | edit) */
@@ -95,10 +96,10 @@ const ImageUploader: FC<ImageUploaderProps> = ({
                 />
 
                 {image ? (
-                    <img src={image} alt="Uploaded" className="uploaded-image" />
+                    <NextImage src={image} alt="Uploaded" fill className="uploaded-image" unoptimized />
                 ) : (
                     <div className="placeholder-content">
-                        <Image size={32} className="icon" />
+                        <ImageIcon size={32} className="icon" />
                         <p className="help-text">권장 용량 최대 {maxSizeMB}MB</p>
                     </div>
                 )}

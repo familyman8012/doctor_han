@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronRight, Star, Image as ImageIcon } from "lucide-react";
 import type { HomeVendorCarouselSection } from "@/lib/schema/home";
 
@@ -56,10 +57,11 @@ function VendorCard({ vendor }: { vendor: VendorItem }) {
             {/* Thumbnail */}
             <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
                 {thumbnailSrc ? (
-                    <img
+                    <Image
                         src={thumbnailSrc}
                         alt={vendor.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -122,10 +124,11 @@ function VendorCardGrid({ vendor }: { vendor: VendorItem }) {
             {/* Thumbnail */}
             <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
                 {thumbnailSrc ? (
-                    <img
+                    <Image
                         src={thumbnailSrc}
                         alt={vendor.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center">

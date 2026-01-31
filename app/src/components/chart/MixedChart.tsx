@@ -6,7 +6,7 @@ import { BasicTooltip } from "./BasicTooltip";
 import { cn } from "@/components/utils";
 
 export interface MixedChartProps {
-    chartData: any[];
+    chartData: Record<string, unknown>[];
     bars?: { dataKey: string; color: string; name?: string }[];
     lines?: { dataKey: string; color: string; name?: string }[];
     height?: string | number;

@@ -233,16 +233,18 @@ const Default: Story = {
 };
 
 // Options 배열 사용
+const WithOptionsRender = (args: React.ComponentProps<typeof RadioGroup>) => {
+    const [value, setValue] = useState("opt2");
+    return (
+        <div className="space-y-4">
+            <p className="text-sm text-gray-600">선택된 값: {value}</p>
+            <RadioGroup {...args} value={value} onChange={setValue} />
+        </div>
+    );
+};
+
 const WithOptions: Story = {
-    render: (args) => {
-        const [value, setValue] = useState("opt2");
-        return (
-            <div className="space-y-4">
-                <p className="text-sm text-gray-600">선택된 값: {value}</p>
-                <RadioGroup {...args} value={value} onChange={setValue} />
-            </div>
-        );
-    },
+    render: (args) => <WithOptionsRender {...args} />,
     args: {
         options: [
             { value: "opt1", label: "첫 번째 옵션", subText: "첫 번째 옵션에 대한 설명" },

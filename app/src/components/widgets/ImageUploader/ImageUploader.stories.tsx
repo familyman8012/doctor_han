@@ -113,125 +113,123 @@ interface FormData {
     image: File | null;
 }
 
+const FormExample = () => {
+    const {
+        control,
+        handleSubmit,
+        watch,
+        reset,
+        setValue,
+        formState: { errors },
+    } = useForm<FormData>({
+        defaultValues: {
+            title: "",
+            description: "",
+            image: null,
+        },
+    });
+
+    const watchedValues = watch();
+
+    const onSubmit = (data: FormData) => {
+        console.log("Form submitted:", data);
+        alert("폼이 제출되었습니다. 콘솔을 확인하세요.");
+    };
+
+    return (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+                <label className="block text-sm font-medium mb-1">제품명 *</label>
+                <Controller
+                    name="title"
+                    control={control}
+                    rules={{ required: "제품명을 입력해주세요" }}
+                    render={({ field }) => (
+                        <input
+                            {...field}
+                            type="text"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            placeholder="제품명을 입력하세요"
+                        />
+                    )}
+                />
+                {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium mb-1">설명</label>
+                <Controller
+                    name="description"
+                    control={control}
+                    render={({ field }) => (
+                        <textarea
+                            {...field}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            rows={3}
+                            placeholder="제품 설명을 입력하세요"
+                        />
+                    )}
+                />
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium mb-1">제품 이미지 *</label>
+                <Controller
+                    name="image"
+                    control={control}
+                    rules={{ required: "이미지를 업로드해주세요" }}
+                    render={({ field }) => (
+                        <ImageUploader
+                            onImageChange={(file) => {
+                                field.onChange(file);
+                                setValue("image", file);
+                            }}
+                            pageMode="add"
+                        />
+                    )}
+                />
+                {errors.image && <p className="text-red-500 text-sm mt-1">{errors.image.message}</p>}
+            </div>
+
+            <div className="p-4 bg-gray-100 rounded">
+                <h4 className="font-semibold mb-2">Form Values:</h4>
+                <pre className="text-sm whitespace-pre-wrap">
+                    {JSON.stringify(
+                        {
+                            title: watchedValues.title,
+                            description: watchedValues.description,
+                            image: watchedValues.image
+                                ? {
+                                      name: watchedValues.image.name,
+                                      size: watchedValues.image.size,
+                                      type: watchedValues.image.type,
+                                  }
+                                : null,
+                        },
+                        null,
+                        2,
+                    )}
+                </pre>
+            </div>
+
+            <div className="flex gap-2">
+                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    제출
+                </button>
+                <button
+                    type="button"
+                    onClick={() => reset()}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                >
+                    초기화
+                </button>
+            </div>
+        </form>
+    );
+};
+
 export const WithReactHookForm: Story = {
-    render: () => {
-        const FormExample = () => {
-            const {
-                control,
-                handleSubmit,
-                watch,
-                reset,
-                setValue,
-                formState: { errors },
-            } = useForm<FormData>({
-                defaultValues: {
-                    title: "",
-                    description: "",
-                    image: null,
-                },
-            });
-
-            const watchedValues = watch();
-
-            const onSubmit = (data: FormData) => {
-                console.log("Form submitted:", data);
-                alert("폼이 제출되었습니다. 콘솔을 확인하세요.");
-            };
-
-            return (
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-1">제품명 *</label>
-                        <Controller
-                            name="title"
-                            control={control}
-                            rules={{ required: "제품명을 입력해주세요" }}
-                            render={({ field }) => (
-                                <input
-                                    {...field}
-                                    type="text"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                    placeholder="제품명을 입력하세요"
-                                />
-                            )}
-                        />
-                        {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-1">설명</label>
-                        <Controller
-                            name="description"
-                            control={control}
-                            render={({ field }) => (
-                                <textarea
-                                    {...field}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                    rows={3}
-                                    placeholder="제품 설명을 입력하세요"
-                                />
-                            )}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-1">제품 이미지 *</label>
-                        <Controller
-                            name="image"
-                            control={control}
-                            rules={{ required: "이미지를 업로드해주세요" }}
-                            render={({ field }) => (
-                                <ImageUploader
-                                    onImageChange={(file) => {
-                                        field.onChange(file);
-                                        setValue("image", file);
-                                    }}
-                                    pageMode="add"
-                                />
-                            )}
-                        />
-                        {errors.image && <p className="text-red-500 text-sm mt-1">{errors.image.message}</p>}
-                    </div>
-
-                    <div className="p-4 bg-gray-100 rounded">
-                        <h4 className="font-semibold mb-2">Form Values:</h4>
-                        <pre className="text-sm whitespace-pre-wrap">
-                            {JSON.stringify(
-                                {
-                                    title: watchedValues.title,
-                                    description: watchedValues.description,
-                                    image: watchedValues.image
-                                        ? {
-                                              name: watchedValues.image.name,
-                                              size: watchedValues.image.size,
-                                              type: watchedValues.image.type,
-                                          }
-                                        : null,
-                                },
-                                null,
-                                2,
-                            )}
-                        </pre>
-                    </div>
-
-                    <div className="flex gap-2">
-                        <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                            제출
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => reset()}
-                            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-                        >
-                            초기화
-                        </button>
-                    </div>
-                </form>
-            );
-        };
-
-        return <FormExample />;
-    },
+    render: () => <FormExample />,
 };
 
 // 다양한 크기 옵션
@@ -361,8 +359,8 @@ const [file, setFile] = useState<File | null>(null);
                         <tbody>
                             <tr className="border-b">
                                 <td className="py-2">pageMode</td>
-                                <td className="py-2">'add' | 'edit'</td>
-                                <td className="py-2">'add'</td>
+                                <td className="py-2">&apos;add&apos; | &apos;edit&apos;</td>
+                                <td className="py-2">&apos;add&apos;</td>
                                 <td className="py-2">페이지 모드</td>
                             </tr>
                             <tr className="border-b">
@@ -392,19 +390,19 @@ const [file, setFile] = useState<File | null>(null);
                             <tr className="border-b">
                                 <td className="py-2">acceptTypes</td>
                                 <td className="py-2">string</td>
-                                <td className="py-2">'image/*'</td>
+                                <td className="py-2">&apos;image/*&apos;</td>
                                 <td className="py-2">허용 파일 타입</td>
                             </tr>
                             <tr className="border-b">
                                 <td className="py-2">maxWidth</td>
                                 <td className="py-2">string</td>
-                                <td className="py-2">'40rem'</td>
+                                <td className="py-2">&apos;40rem&apos;</td>
                                 <td className="py-2">컨테이너 최대 너비</td>
                             </tr>
                             <tr className="border-b">
                                 <td className="py-2">height</td>
                                 <td className="py-2">string</td>
-                                <td className="py-2">'24.8rem'</td>
+                                <td className="py-2">&apos;24.8rem&apos;</td>
                                 <td className="py-2">컨테이너 높이</td>
                             </tr>
                         </tbody>

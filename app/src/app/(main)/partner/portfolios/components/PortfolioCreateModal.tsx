@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import Image from "next/image";
 import { X, Camera, Trash2 } from "lucide-react";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
@@ -190,10 +191,12 @@ export function PortfolioCreateModal({ onClose, onSuccess }: PortfolioCreateModa
                         <div className="grid grid-cols-4 gap-2">
                             {uploadedFiles.map((file) => (
                                 <div key={file.id} className="relative aspect-square rounded-lg overflow-hidden group">
-                                    <img
+                                    <Image
                                         src={file.previewUrl}
                                         alt="포트폴리오 이미지"
-                                        className="w-full h-full object-cover"
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
                                     />
                                     <button
                                         type="button"

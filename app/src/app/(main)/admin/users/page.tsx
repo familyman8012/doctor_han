@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import Image from "next/image";
 import { Search, User, Stethoscope, Building2, Shield } from "lucide-react";
 import dayjs from "dayjs";
 import { adminApi } from "@/api-client/admin";
@@ -200,12 +201,13 @@ export default function AdminUsersPage() {
                                     {/* 데스크탑 레이아웃 */}
                                     <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 items-center">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                                            <div className="relative w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center shrink-0 overflow-hidden">
                                                 {user.avatarUrl ? (
-                                                    <img
+                                                    <Image
                                                         src={user.avatarUrl}
                                                         alt=""
-                                                        className="w-9 h-9 rounded-full object-cover"
+                                                        fill
+                                                        className="object-cover"
                                                     />
                                                 ) : (
                                                     <User className="w-4 h-4 text-gray-400" />

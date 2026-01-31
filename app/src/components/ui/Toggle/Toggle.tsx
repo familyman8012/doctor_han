@@ -3,7 +3,7 @@ import { forwardRef } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/components/utils";
 
-const toggleVariants = cva(
+export const toggleVariants = cva(
     "relative inline-flex cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#62e3d5]/20 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
     {
         variants: {

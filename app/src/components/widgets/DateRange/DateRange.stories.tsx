@@ -196,11 +196,11 @@ export const WithReactHookForm: Story = {
                         <pre className="mt-2 text-xs">
                             {JSON.stringify(
                                 watchedValues,
-                                (_key, value) => {
-                                    if (value instanceof Date) {
-                                        return value.toISOString().split("T")[0];
+                                (_key, v) => {
+                                    if (v instanceof Date) {
+                                        return v.toISOString().split("T")[0];
                                     }
-                                    return value;
+                                    return v;
                                 },
                                 2,
                             )}

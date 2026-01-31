@@ -1,7 +1,6 @@
 "use client";
 
 import React, {
-    ChangeEvent,
     useEffect,
     useRef,
     useState,
@@ -17,7 +16,7 @@ import "./DatePicker.css";
 
 registerLocale("ko", ko);
 
-export type NewDate = string | ChangeEvent<Element> | null;
+export type NewDate = string | React.ChangeEvent<Element> | null;
 
 export interface DatePickerProps {
   className?: string;
@@ -44,7 +43,17 @@ export interface DatePickerProps {
 }
 
 // DefaultCustomInput 컴포넌트 - 기본 Input 컴포넌트를 react-datepicker와 연결
-const DefaultCustomInput = forwardRef<HTMLInputElement, any>((props, ref) => {
+interface DefaultCustomInputProps {
+  value?: string;
+  onClick?: () => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+  error?: string;
+}
+
+const DefaultCustomInput = forwardRef<HTMLInputElement, DefaultCustomInputProps>((props, ref) => {
   const { value, onClick, onChange, placeholder, disabled, size, error } = props;
   
   return (
@@ -89,7 +98,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   portalId = DEFAULT_PORTAL_ID,
   isClearable = false,
   errorClassName,
-}) => { 
+}) => {
   const [selectedDateState, setSelectedDateState] = useState<Date | null>(
     selectedDate ? new Date(selectedDate + 'T00:00:00') : null
   );
@@ -100,14 +109,19 @@ const DatePicker: React.FC<DatePickerProps> = ({
     usePortal ? portalId : undefined
   );
 
+  // 날짜 문자열을 로컬 시간으로 파싱 (UTC 변환 방지)
   useEffect(() => {
-    // 날짜 문자열을 로컬 시간으로 파싱 (UTC 변환 방지)
-    setSelectedDateState(selectedDate ? new Date(selectedDate + 'T00:00:00') : null);
+    const newDate = selectedDate ? new Date(selectedDate + 'T00:00:00') : null;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- controlled component: selectedDate prop 변경 시 내부 상태 동기화 필요
+    setSelectedDateState(newDate);
+     
     setShowMonthYearPicker(false);
   }, [selectedDate]);
 
+  // 포털 설정 변경 감지
   useEffect(() => {
     if (!usePortal) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- portal 비활성화 시 상태 초기화 필요
       setPortalElementId(undefined);
       return;
     }
@@ -157,7 +171,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
           dateFormat={dateFormat}
           minDate={minDate ?? undefined}
           maxDate={maxDate ?? undefined}
-          renderCustomHeader={(params:any) =>  CustomHeader({
+          renderCustomHeader={(params) => CustomHeader({
             showMonthYearPicker,
             setShowMonthYearPicker,
             params,

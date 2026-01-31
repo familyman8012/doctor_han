@@ -21,7 +21,7 @@ export const GET = withApi(
 
         const items =
             (data ?? [])
-                .map((row: any) => {
+                .map((row) => {
                     const vendor = row.vendor;
                     if (!vendor) return null;
                     return {

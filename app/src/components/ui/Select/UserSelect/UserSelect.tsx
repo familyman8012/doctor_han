@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { employeeAdminApi } from "@/api-client/employee";
 import { type IOption, Select } from "@/components/ui/Select/Select";
 import { useSession } from "@/server/auth/client";
@@ -45,6 +45,11 @@ export function UserSelect({
 
     const [shouldFetch, setShouldFetch] = useState(Boolean(value));
 
+    // value가 truthy로 변경되면 fetch 트리거 (렌더 중 상태 업데이트)
+    if (value && !shouldFetch) {
+        setShouldFetch(true);
+    }
+
     // 활성 사용자 목록 조회 (지연 로딩)
     const { data: employeeResponse, isLoading } = useQuery({
         queryKey: ["employees", "all", { filterDeleted }],
@@ -64,12 +69,6 @@ export function UserSelect({
         refetchOnWindowFocus: false,
         refetchOnMount: false,
     });
-
-    useEffect(() => {
-        if (value && !shouldFetch) {
-            setShouldFetch(true);
-        }
-    }, [value, shouldFetch]);
 
     // 사용자 옵션 생성
     const userOptions = useMemo<IOption[]>(() => {
@@ -149,7 +148,7 @@ export function UserSelect({
         }
 
         return options;
-    }, [employeeResponse, session?.user?.email, showCurrentUserFirst, filterDeleted, valueType]);
+    }, [employeeResponse, session, showCurrentUserFirst, filterDeleted, valueType, filterEmployee]);
 
     // 선택된 옵션 찾기
     const selectedOption = useMemo(() => {

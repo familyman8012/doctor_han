@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, Download, File, FileSpreadsheet, FileText, Image, Trash2, Upload, X } from "lucide-react";
+import { CheckCircle, Download, File, FileSpreadsheet, FileText, Image as ImageIcon, Trash2, Upload, X } from "lucide-react";
 import React, { forwardRef, useCallback, useId, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { deleteFileUsage, fetchDownloadUrl, listFileUsages, uploadFile } from "@/api-client/files";
@@ -89,7 +89,7 @@ export const UploadBlock = forwardRef<UploadBlockHandle, UploadBlockProps>(
         const getFileIcon = useCallback((fileName: string) => {
             const ext = fileName.split(".").pop()?.toLowerCase() || "";
             if (["jpg", "jpeg", "png", "gif", "svg", "webp"].includes(ext)) {
-                return <Image className="h-5 w-5 text-blue-500" />;
+                return <ImageIcon className="h-5 w-5 text-blue-500" />;
             } else if (["xlsx", "xls", "csv"].includes(ext)) {
                 return <FileSpreadsheet className="h-5 w-5 text-green-500" />;
             } else if (["doc", "docx", "txt", "pdf"].includes(ext)) {
@@ -191,38 +191,41 @@ export const UploadBlock = forwardRef<UploadBlockHandle, UploadBlockProps>(
             [],
         );
 
-        async function uploadTargets(targets: PendingAttachment[], targetEntityId: string) {
-            setIsUploading(true);
-            const failedIds: string[] = [];
-            try {
-                for (const attachment of targets) {
-                    try {
-                        const formData = new FormData();
-                        formData.append("file", attachment.file);
-                        formData.append("purposeCode", purposeCode);
-                        formData.append("domain", domain);
-                        formData.append("entityId", targetEntityId);
-                        await uploadFile(formData);
-                    } catch (error) {
-                        failedIds.push(attachment.id);
+        const uploadTargetsCallback = useCallback(
+            async (targets: PendingAttachment[], targetEntityId: string) => {
+                setIsUploading(true);
+                const failedIds: string[] = [];
+                try {
+                    for (const attachment of targets) {
+                        try {
+                            const formData = new FormData();
+                            formData.append("file", attachment.file);
+                            formData.append("purposeCode", purposeCode);
+                            formData.append("domain", domain);
+                            formData.append("entityId", targetEntityId);
+                            await uploadFile(formData);
+                        } catch {
+                            failedIds.push(attachment.id);
+                        }
                     }
+                    const success = targets.length - failedIds.length;
+                    if (success > 0) {
+                        toast.success(`${success}개의 파일을 업로드했습니다.`);
+                        await queryClient.invalidateQueries({ queryKey: ["fileUsages", domain, targetEntityId] });
+                    }
+                    if (failedIds.length > 0) {
+                        toast.error(`${failedIds.length}개의 파일 업로드에 실패했습니다.`);
+                    }
+                    setPending((prev) => prev.filter((p) => failedIds.includes(p.id)));
+                    if (fileInputRef.current) fileInputRef.current.value = "";
+                    onUploadComplete?.({ success, failed: failedIds.length });
+                    return { success, failed: failedIds.length };
+                } finally {
+                    setIsUploading(false);
                 }
-                const success = targets.length - failedIds.length;
-                if (success > 0) {
-                    toast.success(`${success}개의 파일을 업로드했습니다.`);
-                    await queryClient.invalidateQueries({ queryKey: ["fileUsages", domain, targetEntityId] });
-                }
-                if (failedIds.length > 0) {
-                    toast.error(`${failedIds.length}개의 파일 업로드에 실패했습니다.`);
-                }
-                setPending((prev) => prev.filter((p) => failedIds.includes(p.id)));
-                if (fileInputRef.current) fileInputRef.current.value = "";
-                onUploadComplete?.({ success, failed: failedIds.length });
-                return { success, failed: failedIds.length };
-            } finally {
-                setIsUploading(false);
-            }
-        }
+            },
+            [domain, purposeCode, queryClient, onUploadComplete],
+        );
 
         const handleUploadNow = useCallback(
             async (id?: string) => {
@@ -235,15 +238,15 @@ export const UploadBlock = forwardRef<UploadBlockHandle, UploadBlockProps>(
                     toast.error("업로드할 파일을 먼저 선택해주세요.");
                     return { success: 0, failed: 0 };
                 }
-                return uploadTargets(targets, entityId);
+                return uploadTargetsCallback(targets, entityId);
             },
-            [entityId, pending],
+            [entityId, pending, uploadTargetsCallback],
         );
 
         useImperativeHandle(ref, () => ({
-            uploadAllTo: async (toEntityId: string) => uploadTargets(pending, toEntityId),
+            uploadAllTo: async (toEntityId: string) => uploadTargetsCallback(pending, toEntityId),
             clearStaged: () => handleClearPending(),
-        }));
+        }), [pending, uploadTargetsCallback, handleClearPending]);
 
         return (
             <section className={className ?? "rounded-lg bg-white shadow-sm"}>

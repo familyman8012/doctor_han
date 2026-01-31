@@ -16,7 +16,7 @@ import { cn } from "@/components/utils";
 import { getChartColors } from "./chartTheme";
 
 export interface AreaChartProps {
-    chartData: any[];
+    chartData: Record<string, unknown>[];
     areas?: { dataKey: string; color: string; name?: string }[];
     height?: string | number;
     xKey?: string;

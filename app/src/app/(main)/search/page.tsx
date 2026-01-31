@@ -126,7 +126,7 @@ function SearchContent() {
                     {/* 검색어 표시 */}
                     <div className="flex items-center justify-between">
                         <p className="text-gray-600">
-                            <span className="font-medium text-[#0a3b41]">"{q}"</span> 검색 결과
+                            <span className="font-medium text-[#0a3b41]">&quot;{q}&quot;</span> 검색 결과
                             {vendorData && (
                                 <span className="ml-2 text-gray-400">
                                     ({vendorData.total}개)

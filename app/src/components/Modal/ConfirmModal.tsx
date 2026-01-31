@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useConfirmModalStore } from "@/stores/confirmModalStore";
 import Modal from "./Modal";
 
@@ -20,21 +20,21 @@ const ConfirmModal = () => {
         closeModal,
     } = useConfirmModalStore();
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         if (typeof onClose === "function") {
             onClose();
         } else {
             closeModal();
         }
-    };
+    }, [onClose, closeModal]);
 
-    const handleCancel = () => {
+    const handleCancel = useCallback(() => {
         if (typeof onCancel === "function") {
             onCancel();
         } else {
             closeModal();
         }
-    };
+    }, [onCancel, closeModal]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -58,7 +58,7 @@ const ConfirmModal = () => {
         document.addEventListener("keydown", handleKeydown);
 
         return () => document.removeEventListener("keydown", handleKeydown);
-    }, [isOpen, onFormSubmit]);
+    }, [isOpen, onFormSubmit, handleClose]);
 
     return (
         <Modal

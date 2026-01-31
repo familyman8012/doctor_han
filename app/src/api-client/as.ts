@@ -33,8 +33,8 @@ export const asApi = {
             return response.data;
         } catch (error) {
             // AS 고객 로그인 화면에서는 "세션 없음(401)"이 정상 케이스다.
-            const status = (error as any)?.status;
-            const code = (error as any)?.code;
+            const status = (error as { status?: number })?.status;
+            const code = (error as { code?: string })?.code;
             if (status === 401 || code === "401") {
                 return null;
             }
