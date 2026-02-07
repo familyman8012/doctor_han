@@ -7,6 +7,10 @@
     "replicate": {
       "type": "sse",
       "url": "https://mcp.replicate.com/sse"
+    },
+    "tosspayments": {
+      "command": "npx",
+      "args": ["-y", "@tosspayments/integration-guide-mcp@latest"]
     }
   }
 }

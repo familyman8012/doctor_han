@@ -91,3 +91,14 @@ pnpm db:gen
 - `app/src/components/ui/**`
 - `app/src/lib/constants/**`
 - `app/src/server/api/errors.ts`
+
+## Key Reference Docs
+
+수익화/과금 관련 개발 시 반드시 참조:
+
+- **전체 로드맵**: `app/doc/todo.md` (MVP~P8 + Future/Backlog)
+- **수익화 PRD**: `app/doc/domains/monetization/prd.md`
+- **수익화 사전체크**: `app/doc/domains/monetization/pre-implementation-checklist.md`
+  - 비즈니스 결정사항 (가격/정책/우선순위) 확정 내역
+- **사업계획서**: `app/doc/메디허브 사업계획서  마스터버전.md`
+  - 수익모델 10가지, 솔루션 전체 스펙 원본

@@ -350,9 +350,32 @@
 
 > 참조: `app/doc/domains/monetization/prd.md`
 
+### 병렬 작업 가이드 (Claude Squad)
+
+```
+Wave 1 — 동시 착수 가능 (상호 의존 없음)
+├── 7-1 크레딧 시스템           (독립 도메인)
+├── 7-2 TossPayments 연동      (독립 도메인)
+├── 7-3 업체 가격 정책          (독립 도메인)
+├── 10-1 + 10-2 광고 시스템     (완전 독립 도메인)
+└── 11-2 비딩 코어              (스코어링/매칭 로직만, 결제 제외)
+
+Wave 2 — Wave 1 완료 후 (크레딧+결제 인프라 필요)
+├── 8-1 건별 리드 과금          ← 7-1 + 7-3
+├── 8-2 기간제 상품             ← 7-1 + 7-2
+├── 9-2 입점비 구현             ← 7-2
+└── 11-2 비딩 결제 연동         ← 7-1 + 7-2
+
+Wave 3 — Wave 2 완료 후 (거래 데이터 필요)
+├── 12-1 정산                   ← 8-1 + 8-2 + 9-2
+├── 12-2 환불/보상              ← 7-1 + 8-1
+├── 12-3 데이터 내보내기         ← 전체
+└── 13 P8 통계/대시보드          ← 전체 데이터
+```
+
 ## 7) P3 — 수익화 기반 (결제/크레딧)
 
-### 7-1. 크레딧 시스템
+### 7-1. 크레딧 시스템 `[Wave 1]`
 - [ ] 정책: 선불 크레딧, 12개월 유효, 자동충전 2% 보너스
 - [ ] DB: `credit_accounts`, `credit_transactions`, `credit_packages`
   - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_credit_system.sql`
@@ -370,9 +393,11 @@
   - [ ] 충전 페이지 (패키지 선택 → 결제)
   - [ ] 거래 내역 페이지
 
-### 7-2. TossPayments 연동
-- [ ] 가맹점 등록 + 환경변수 설정
-  - [ ] `TOSS_CLIENT_KEY`, `TOSS_SECRET_KEY`
+### 7-2. TossPayments 연동 `[Wave 1]`
+- [x] 가맹점 등록 + 테스트 API 키 발급
+  - [x] `TOSS_PAYMENTS_SECRET_KEY`, `NEXT_PUBLIC_TOSS_PAYMENTS_CLIENT_KEY`, `TOSS_PAYMENTS_WEBHOOK_SECRET`
+  - [x] 웹훅 URL 등록: `https://doctor-han.vercel.app/api/payments/webhook`
+  - [ ] 운영 환경 API 키 발급 (라이브 전환 시)
 - [ ] DB: `payments`, `payment_webhooks`
   - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_payments.sql`
 - [ ] Schema: `app/src/lib/schema/payment.ts`
@@ -387,7 +412,7 @@
   - [ ] 결제 완료 페이지
   - [ ] 결제 실패 페이지
 
-### 7-3. 업체 가격 정책
+### 7-3. 업체 가격 정책 `[Wave 1]`
 - [ ] DB: `vendor_service_prices`
   - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_vendor_prices.sql`
 - [ ] Schema: `app/src/lib/schema/vendor-pricing.ts`
@@ -402,7 +427,7 @@
 
 ## 8) P3.5 — CPL 과금 (리드 기반)
 
-### 8-1. 건별 리드 과금
+### 8-1. 건별 리드 과금 `[Wave 2 ← 7-1 + 7-3]`
 - [ ] 정책 구현:
   - [ ] 서비스별 단가 (1만~20만원)
   - [ ] 복수 서비스 선택 시 합산
@@ -415,13 +440,19 @@
   - [ ] `app/src/server/lead/repository.ts` - 크레딧 차감 로직 통합
   - [ ] `app/src/server/lead/charge-service.ts` - 과금 서비스 신규
 - [ ] 중복 리드 체크 + 크레딧 복구 로직
-- [ ] 72시간 무응답 자동 환불 (Cron)
+- [ ] 무응답 처리 (Cron):
+  - [ ] 48시간 무응답 → 카톡 알림 발송
+  - [ ] 72시간 무응답 → 자동 크레딧 복구
+- [ ] 허위 리드 처리:
+  - [ ] 자동 필터링 (전화번호 형식 오류, 테스트성 문자열, 욕설)
+  - [ ] 업체 신고 → 관리자 심사 → 크레딧 복구
 - [ ] 알림 추가:
   - [ ] `lead_charged` - 리드 과금 완료
   - [ ] `lead_refunded` - 리드 환불 완료
   - [ ] `credit_low` - 잔액 부족
+  - [ ] `lead_no_response_warning` - 48시간 무응답 경고
 
-### 8-2. 기간제 상품
+### 8-2. 기간제 상품 `[Wave 2 ← 7-1 + 7-2]`
 - [ ] 정책: 30/60/90/180/365일 무제한
 - [ ] DB: `vendor_subscriptions`
   - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_subscriptions.sql`
@@ -437,60 +468,111 @@
   - [ ] `/partner/subscriptions` - 구독 관리 페이지
   - [ ] 구독 구매 페이지
 
-## 9) P4 — CPA/비딩/쇼핑몰
+## 9) P4 — 입점비/연회비 (S등급)
 
-### 9-1. CPA (회원가입형)
-- [ ] 정책: 리퍼럴 코드 기반, 트래킹 불가 시 미운영
-- [ ] DB: `referral_codes`, `referral_signups`, `referral_payouts`
-  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_referrals.sql`
-- [ ] Schema: `app/src/lib/schema/referral.ts`
-- [ ] Server: `app/src/server/referral/{repository,service}.ts`
+> 사업계획서 수익모델 (1) — S등급 업종 연 200만원, 1년차 예상 1.77억
+
+### 9-1. 입점비 정책
+- [ ] 대상: S등급 업종만 (원외탕전(한약) 120개, 원외탕전(약침) 25개, 약재회사/제약사 150개 = 총 295개)
+- [ ] 금액: 연 200만원 (초기 할인 프로모션 검토)
+- [ ] 미납 업체: 무료 기본 입점 가능, 단 노출 제한 & 리드 연결 불가
+- [ ] 납부 시 풀 기능 개방
+
+### 9-2. 입점비 구현 `[Wave 2 ← 7-2]`
+- [ ] DB: `vendor_memberships` (업체별 입점 등급, 연회비 상태, 유효기간, 결제 이력)
+  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_vendor_memberships.sql`
+- [ ] Schema: `app/src/lib/schema/vendor-membership.ts`
+- [ ] Server: `app/src/server/vendor/membership-{repository,service}.ts`
+- [ ] 노출 제한 로직: 미납 S등급 업체 → 검색 결과 하위 노출 + 리드 수신 차단
 - [ ] API:
-  - [ ] `GET /api/vendors/me/referrals` - 리퍼럴 코드 목록
-  - [ ] `POST /api/vendors/me/referrals` - 코드 생성
-  - [ ] `GET /api/vendors/me/referrals/stats` - 통계
-- [ ] 회원가입 시 리퍼럴 트래킹 로직 (`?ref=CODE`)
+  - [ ] `GET /api/vendors/me/membership` - 입점 상태 조회
+  - [ ] `POST /api/vendors/me/membership` - 연회비 결제 (TossPayments 연동)
+  - [ ] `GET /api/admin/memberships` - 관리자 연회비 관리
+  - [ ] `PATCH /api/admin/memberships/[id]` - 상태 변경 (승인/해지 등)
 - [ ] UI:
-  - [ ] `/partner/referrals` - 리퍼럴 관리 페이지
-  - [ ] 통계 대시보드
+  - [ ] 업체 파트너센터: 입점 상태 표시 + 연회비 결제
+  - [ ] 관리자: 연회비 납부 현황 + 업체별 상태 관리
+- [ ] 만료 알림 (30일/7일 전) — Cron
 
-### 9-2. 비딩 시스템 (인테리어)
-- [ ] 정책: 매니저 배정, 5% 수수료, 추천업체 3개
-- [ ] DB: `bid_projects`, `bid_responses`, `bid_managers`, `bid_contracts`
+## 10) P5 — 광고 시스템 (배너 + 우선순위노출)
+
+> 사업계획서 수익모델 (3) 배너광고 + (4) 우선순위노출 광고
+> 1년차 예상: 배너 2.02억 + 우선순위 8,064만 = 약 2.83억
+
+### 10-1. 배너광고 `[Wave 1]`
+- [ ] 정책:
+  - [ ] 메인 배너 3개 (200만/월), 서브 배너 2개 (120만/월)
+  - [ ] 랜덤 회전형 독점 슬롯 (2배수: 메인 6개, 서브 4개 광고주)
+  - [ ] 초기 정액형(CPM) → 추후 혼합형(CPC) 전환
+  - [ ] 카테고리별 차등 광고비 (추후)
+- [ ] DB: `ad_slots`, `ad_campaigns`, `ad_creatives`
+  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_ad_system.sql`
+- [ ] Schema: `app/src/lib/schema/ad.ts`
+- [ ] Server: `app/src/server/ad/{repository,service}.ts`
+- [ ] API:
+  - [ ] `GET /api/ads/banners` - 배너 노출 (위치별 로테이션)
+  - [ ] `POST /api/ads/banners/[id]/click` - 클릭 트래킹
+  - [ ] `GET /api/admin/ads/campaigns` - 캠페인 목록
+  - [ ] `POST /api/admin/ads/campaigns` - 캠페인 생성
+  - [ ] `PATCH /api/admin/ads/campaigns/[id]` - 캠페인 수정
+  - [ ] `GET /api/admin/ads/reports` - 성과 리포트 (노출/클릭/CTR)
+- [ ] UI:
+  - [ ] 메인/서브 배너 컴포넌트 (로테이션 + 클릭 트래킹)
+  - [ ] 관리자: 캠페인 CRUD + 성과 리포트
+
+### 10-2. 우선순위노출 광고 `[Wave 1, 10-1과 함께]`
+- [ ] 정책:
+  - [ ] 4단계: 프리미엄(30만/주) / 플러스업(21만/주) / 플러스(6만/주) / 루키(3만/주)
+  - [ ] 카테고리당 4줄 x 4개 = 16슬롯
+  - [ ] 주단위 상품
+  - [ ] 루키: 기간 내 3회 점프업 (1일 1회, 30분씩 프리미엄 위 노출)
+- [ ] DB: `ad_priority_slots`, `ad_priority_purchases`
+  - [ ] 마이그레이션: 위 `ad_system.sql`에 포함 또는 별도
+- [ ] Server: `app/src/server/ad/priority-{repository,service}.ts`
+- [ ] API:
+  - [ ] `GET /api/ads/priority?category=[id]` - 카테고리별 우선순위 노출 목록
+  - [ ] `POST /api/ads/priority/purchase` - 슬롯 구매
+  - [ ] `POST /api/ads/priority/[id]/jumpup` - 루키 점프업
+  - [ ] `GET /api/vendors/me/ads` - 내 광고 현황
+- [ ] UI:
+  - [ ] 카테고리 페이지: 상위 4줄 광고 영역 (등급별 배경/배지 구분)
+  - [ ] 업체 파트너센터: 광고 구매 + 현황 관리
+  - [ ] 관리자: 슬롯 현황 + 매출 리포트
+
+## 11) P6 — 비딩
+
+### 11-1. CPA (회원가입형) — 현 단계 보류, 트래픽 확보 후 도입
+> 모델: 업체 쇼핑몰에 회원 1명 유치 시 건당 10만원 과금 (웹훅 트래킹)
+> 대상: 원외탕전, 유통쇼핑몰, 한약재 유통몰 (자체 쇼핑몰 보유 업종)
+> 보류 사유: 초기 플랫폼이라 업체에 트래킹 연동 요구할 협상력 없음.
+> 도입 조건: 트래픽 충분히 쌓인 후 업체에 웹훅 연동 요구 가능한 시점.
+> (결정일: 26.02.07)
+
+### 11-2. 비딩 시스템 (인테리어) `[Wave 1: 코어 | Wave 2: 결제 연동 ← 7-1 + 7-2]`
+- [ ] 정책: 자동 매칭 + 파운더 겸임 (전담 매니저 없음), 수수료 3%, 추천업체 3개
+- [ ] DB: `bid_projects`, `bid_responses`, `bid_contracts`
   - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_bidding.sql`
 - [ ] Schema: `app/src/lib/schema/bidding.ts`
 - [ ] Server: `app/src/server/bidding/{repository,service}.ts`
+- [ ] 자동 스코어링 매칭 (지역30%/평점25%/응답률20%/포트폴리오15%/가격10%)
 - [ ] API:
   - [ ] `POST /api/bid/projects` - 프로젝트 등록 (의사)
   - [ ] `GET /api/bid/projects` - 프로젝트 목록
   - [ ] `GET /api/bid/projects/[id]` - 프로젝트 상세
   - [ ] `POST /api/bid/projects/[id]/responses` - 입찰 제출 (업체)
   - [ ] `PATCH /api/bid/projects/[id]/select` - 업체 선정 (의사)
-- [ ] 매니저 배정 로직 (24시간 내)
 - [ ] UI:
   - [ ] `/interior` - 인테리어 프로젝트 등록 (의사)
   - [ ] `/partner/bids` - 입찰 관리 (업체)
-  - [ ] `/admin/bid-projects` - 매니저 대시보드
+  - [ ] `/admin/bid-projects` - 프로젝트 현황 (분쟁/상담 대응용)
 
-### 9-3. 쇼핑몰
-- [ ] DB: `shop_products`, `shop_orders`, `shop_order_items`
-  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_shop.sql`
-- [ ] Schema: `app/src/lib/schema/shop.ts`
-- [ ] Server: `app/src/server/shop/{repository,service}.ts`
-- [ ] API:
-  - [ ] `GET /api/shop/products` - 상품 목록
-  - [ ] `GET /api/shop/products/[id]` - 상품 상세
-  - [ ] `POST /api/shop/orders` - 주문 생성
-  - [ ] `GET /api/shop/orders` - 주문 목록
-- [ ] UI:
-  - [ ] `/shop` - 상품 리스트
-  - [ ] `/shop/[id]` - 상품 상세
-  - [ ] `/shop/cart` - 장바구니
-  - [ ] `/shop/checkout` - 결제
+### ~~11-3. 쇼핑몰~~ — 현 단계 제외
+> 최소 구현도 DB 8~10개, API 20개+, 화면 15개+로 별도 프로덕트 규모.
+> 플랫폼 안정 운영 후 별도 프로젝트로 검토. (결정일: 26.02.07)
 
-## 10) P5 — 정산/환불/리포트
+## 12) P7 — 정산/환불/리포트
 
-### 10-1. 정산 관리
+### 12-1. 정산 관리 `[Wave 3 ← 8-1 + 8-2 + 9-2]`
 - [ ] DB: `settlements`, `settlement_items`
   - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_settlements.sql`
 - [ ] Schema: `app/src/lib/schema/settlement.ts`
@@ -504,7 +586,7 @@
 - [ ] UI:
   - [ ] `/admin/settlements` - 정산 관리 페이지
 
-### 10-2. 환불/보상
+### 12-2. 환불/보상 `[Wave 3 ← 7-1 + 8-1]`
 - [ ] 정책: SLA/무응답/허위 리드 기준
 - [ ] DB: `refund_requests`
   - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_refunds.sql`
@@ -519,14 +601,14 @@
   - [ ] `/partner/refunds` - 환불 요청 페이지
   - [ ] `/admin/refunds` - 환불 관리 페이지
 
-### 10-3. 데이터 내보내기
+### 12-3. 데이터 내보내기 `[Wave 3 ← 전체]`
 - [ ] 결제/정산/리드 CSV Export 기능
 - [ ] API:
   - [ ] `GET /api/exports/payments` - 결제 내역 CSV
   - [ ] `GET /api/exports/settlements` - 정산 내역 CSV
   - [ ] `GET /api/exports/leads` - 리드 내역 CSV
 
-## 11) P6 — 데이터/성장(통계/외부연동)
+## 13) P8 — 데이터/성장(통계/외부연동) `[Wave 3]`
 - [ ] 관리자 대시보드/통계 고도화: DAU/MAU, 신규회원, 리드/응답률/SLA, 퍼널/이탈, 광고 성과
 - [ ] 분석/태그: GA4/Tag Manager 이벤트 설계(가입/문의/결제) + 전환 목표
 - [ ] UTM 규칙: 캠페인별 UTM 자동 생성/검수
@@ -535,10 +617,88 @@
 - [ ] 백업 포인트: 정책/카테고리 설정 스냅샷 백업/복원
 - [ ] 챗봇/실시간 채팅상담(AI 상담)(필요 시)
 
-## 12) Future — 임상 케이스 DB
-- [ ] 케이스 업로드 템플릿(증상/진단/치료/경과/부작용 메타데이터)
-- [ ] 유사도 검색/태그 검색
-- [ ] 통계/인사이트 리포트
+## 14) Future — 임상 케이스 DB
+
+> 사업계획서 수익모델 (11) + 솔루션 B — 3년차 예상 25.2억+
+> 장기 핵심 BM. 구독형 열람권 + 학회/업체 제휴.
+
+- [ ] 케이스 업로드 템플릿(증상/진단/치료(처방/약대)/경과/부작용 메타데이터 표준화)
+- [ ] 유사도 검색/태그 검색, 개인·학회 단위 업로드·관리
+- [ ] 통계/인사이트 리포트 (질환별 처방 조합, 반응률, 트렌드)
+- [ ] 구독형 열람권: 자기 학회 케이스 무료, 타 학회 유료 (월 7만원)
+- [ ] 프리미엄 단건: 희귀·난치성 케이스 묶음, 학회 리포트
+- [ ] 학회 제휴: 회원 서비스/학술 지원 (평균 700만/년/학회)
+- [ ] 업체 제휴: 제품 언급 통계, 경쟁 분석 (연 2,000만/업체)
+- [ ] AI 임상 의사결정 보조 (유사 케이스 추천, 요약, 금기 플래그)
+- [ ] 비식별화/동의/감사 로그 (준법 내장)
+- [ ] (장기) 국제화: 영어/일본어/스페인어, 해외 기관 구독
+
+## 15) Future — 게시판/게시물광고
+
+> 사업계획서 솔루션 A-5 (게시판/마켓플레이스) + 수익모델 (5) 게시물광고
+> 게시판이 선행되어야 게시물광고 수익 모델 가능. 1년차 예상 4,416만원
+
+### 15-1. 게시판 시스템
+- [ ] 개원입지 매물 게시판
+- [ ] 학회/세미나 모집 게시판
+- [ ] 구인구직 게시판
+- [ ] 중고거래 게시판
+- [ ] 한의원 양수·양도 게시판
+
+### 15-2. 게시물광고 (게시판 구축 후)
+- [ ] 개원입지 광고: VIP(3슬롯 고정) / 프리미엄(9x2 로테이션) / 플러스(8x3 로테이션) / 일반
+- [ ] 학회/세미나 광고: 프리미엄존 6x2 로테이션, 단독 30만/월, 스폰서 50만/월
+- [ ] 기간제 + 정액제 이중 과금 모델
+
+## 16) Backlog — 개원세미나 (오프라인)
+
+> 사업계획서 수익모델 (6) — 1년차 예상 1.2억
+> 오프라인 행사 위주. 개발은 온라인 신청/결제/관리 페이지 정도.
+
+- [ ] 매월 오프라인 개원세미나 주최
+- [ ] 핵심 업종 7개 (입지/인테리어/개원자금/의료기기/마케팅/세무노무): 강연 + 부스 (100만/업체)
+- [ ] 서브 업종 6개 (보험/원외탕전/간판/전자차트/홈페이지/의료기기): 부스만 (50만/업체)
+- [ ] 예비 개원의 참가비: 무료~3만원
+- [ ] 온라인: 세미나 신청 페이지, 업체 참가 신청/결제, 참가자 관리
+
+## 17) Backlog — 개원패키지 (턴키)
+
+> 사업계획서 수익모델 (7) — 1년차 예상 2.1억
+> 엄선 업체로 턴키 개원. 수수료 7%.
+
+- [ ] 베이직 패키지: 인테리어/간판/의료기기/세무노무/전자차트 (~8천만원, 마진 560만)
+- [ ] 프리미엄 패키지: 베이직 + 가구/마케팅/직원교육/홈페이지 (~1.7억, 마진 1,190만)
+- [ ] 온라인: 패키지 소개 페이지, 상담 신청, 견적서/계약 관리, 진행 현황 트래킹
+
+## 18) Backlog — 쇼룸 운영 (오프라인)
+
+> 사업계획서 수익모델 (8) — 1년차 예상 3.36억
+> 오프라인 상설 전시공간. 개발보다 공간 확보/운영이 핵심.
+
+- [ ] 전시존: 업체 부스 20~25개 (프리미엄 150만/월, 일반 100만/월)
+- [ ] 교육장: 70~80명 수용, 외부 대관 월 8회 x 50만
+- [ ] 온라인: 쇼룸 안내 페이지, 전시/대관 신청, 업체 부스 관리
+
+## 19) Backlog — 공동구매
+
+> 사업계획서 수익모델 (9) — 1년차 예상 4,800만
+> MOQ 달성형, 에스크로/정산, 수수료 10%.
+
+- [ ] 공동구매 상품 등록/MOQ 설정
+- [ ] 참여 신청/결제 (에스크로)
+- [ ] MOQ 달성 시 확정/미달 시 환불
+- [ ] 납품 품질관리/정산
+- [ ] 회원수 8,000명 기준 참여율 10% = 800명, 1인 평균 5만원
+
+## 20) Backlog — 소모품 가격비교/통합검색
+
+> 사업계획서 수익모델 (10) + 솔루션 A-4 — 예상매출 미정
+> 다수 의료소모품 유통쇼핑몰의 재고/가격/배송비 한눈 비교.
+
+- [ ] 외부 쇼핑몰 상품 크롤링/API 연동 (보유 여부부터 시작 → 추후 가격비교)
+- [ ] 통합검색 UI (한약재, 의료 소모품 위주)
+- [ ] 상단 고정 광고 상품 (검색 시 추천 업체 노출, 월 10만)
+- [ ] 회원가입형 리드 연결 (CPA 모델과 연계)
 
 
 todo.md 기준으로 MVP→P1→P4까지 뼈대를 먼저 만들고, 실제로 코파운더랑 운영하면서
