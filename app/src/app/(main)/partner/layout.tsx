@@ -3,7 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Building2, Inbox, FolderOpen, Settings, ChevronRight, Bell, Wallet } from "lucide-react";
+import { Building2, Inbox, FolderOpen, Settings, ChevronRight, Bell, Wallet, DollarSign } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useIsAuthenticated, useUserRole, useAuthStore, useProfile } from "@/stores/auth";
 import { creditsApi } from "@/api-client/credits";
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
     { href: "/partner", label: "업체 프로필", icon: Building2, exact: true },
     { href: "/partner/leads", label: "받은 리드함", icon: Inbox },
     { href: "/partner/credits", label: "크레딧", icon: Wallet },
+    { href: "/partner/pricing", label: "서비스 단가", icon: DollarSign },
     { href: "/partner/portfolios", label: "포트폴리오", icon: FolderOpen },
     { href: "/partner/notifications", label: "알림 설정", icon: Bell },
     { href: "/partner/settings", label: "계정 설정", icon: Settings },

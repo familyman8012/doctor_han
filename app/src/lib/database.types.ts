@@ -1430,6 +1430,54 @@ export type Database = {
           },
         ]
       }
+      vendor_service_prices: {
+        Row: {
+          category_id: string
+          created_at: string
+          daily_budget_limit: number | null
+          id: string
+          price: number
+          status: Database["public"]["Enums"]["vendor_service_price_status"]
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          daily_budget_limit?: number | null
+          id?: string
+          price: number
+          status?: Database["public"]["Enums"]["vendor_service_price_status"]
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          daily_budget_limit?: number | null
+          id?: string
+          price?: number
+          status?: Database["public"]["Enums"]["vendor_service_price_status"]
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_service_prices_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_service_prices_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_verifications: {
         Row: {
           business_license_file_id: string | null
@@ -1681,6 +1729,7 @@ export type Database = {
       review_status: "published" | "hidden"
       sanction_status: "active" | "expired" | "revoked"
       sanction_type: "warning" | "suspension" | "permanent_ban"
+      vendor_service_price_status: "active" | "archived"
       vendor_status: "draft" | "active" | "inactive" | "banned"
       verification_status: "pending" | "approved" | "rejected"
     }
@@ -1888,6 +1937,7 @@ export const Constants = {
       review_status: ["published", "hidden"],
       sanction_status: ["active", "expired", "revoked"],
       sanction_type: ["warning", "suspension", "permanent_ban"],
+      vendor_service_price_status: ["active", "archived"],
       vendor_status: ["draft", "active", "inactive", "banned"],
       verification_status: ["pending", "approved", "rejected"],
     },

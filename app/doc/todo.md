@@ -412,18 +412,18 @@ Wave 3 — Wave 2 완료 후 (거래 데이터 필요)
   - [x] 결제 완료 페이지
   - [x] 결제 실패 페이지
 
-### 7-3. 업체 가격 정책 `[Wave 1]`
-- [ ] DB: `vendor_service_prices`
-  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_vendor_prices.sql`
-- [ ] Schema: `app/src/lib/schema/vendor-pricing.ts`
-- [ ] Server: `app/src/server/vendor/pricing-{repository,service}.ts`
-- [ ] API:
-  - [ ] `GET /api/vendors/me/prices` - 단가 조회
-  - [ ] `POST /api/vendors/me/prices` - 단가 설정
-  - [ ] `PATCH /api/vendors/me/prices/[id]` - 단가 수정
-  - [ ] `DELETE /api/vendors/me/prices/[id]` - 단가 삭제
-- [ ] UI:
-  - [ ] `/partner/settings/pricing` - 가격 설정 페이지
+### 7-3. 업체 가격 정책 `[Wave 1]` ✅
+- [x] DB: `vendor_service_prices`
+  - [x] 마이그레이션 작성: `20260228130000_vendor_service_prices.sql`
+- [x] Schema: `app/src/lib/schema/vendor-pricing.ts`
+- [x] Server: `app/src/server/vendor/pricing-{mapper,repository,service}.ts`
+- [x] API:
+  - [x] `GET /api/vendors/me/prices` - 단가 조회
+  - [x] `POST /api/vendors/me/prices` - 단가 설정
+  - [x] `PATCH /api/vendors/me/prices/[id]` - 단가 수정
+  - [x] `DELETE /api/vendors/me/prices/[id]` - 단가 삭제
+- [x] UI:
+  - [x] `/partner/pricing` - 가격 설정 페이지
 
 ## 8) P3.5 — CPL 과금 (리드 기반)
 
