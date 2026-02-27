@@ -3,14 +3,17 @@
 import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Building2, Inbox, FolderOpen, Settings, ChevronRight, Bell } from "lucide-react";
+import { Building2, Inbox, FolderOpen, Settings, ChevronRight, Bell, Wallet } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useIsAuthenticated, useUserRole, useAuthStore, useProfile } from "@/stores/auth";
+import { creditsApi } from "@/api-client/credits";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { cn } from "@/components/utils";
 
 const NAV_ITEMS = [
     { href: "/partner", label: "업체 프로필", icon: Building2, exact: true },
     { href: "/partner/leads", label: "받은 리드함", icon: Inbox },
+    { href: "/partner/credits", label: "크레딧", icon: Wallet },
     { href: "/partner/portfolios", label: "포트폴리오", icon: FolderOpen },
     { href: "/partner/notifications", label: "알림 설정", icon: Bell },
     { href: "/partner/settings", label: "계정 설정", icon: Settings },
@@ -23,6 +26,14 @@ export default function PartnerLayout({ children }: { children: ReactNode }) {
     const role = useUserRole();
     const profile = useProfile();
     const { isInitialized } = useAuthStore();
+
+    const { data: creditData } = useQuery({
+        queryKey: ["credits", "balance"],
+        queryFn: () => creditsApi.getBalance(),
+        enabled: isAuthenticated && role === "vendor",
+        staleTime: 30_000,
+    });
+    const creditBalance = creditData?.data?.account?.balance;
 
     useEffect(() => {
         if (!isInitialized) return;
@@ -76,6 +87,9 @@ export default function PartnerLayout({ children }: { children: ReactNode }) {
                                     {profile?.displayName ?? "파트너"}
                                 </p>
                                 <p className="text-xs text-gray-500">업체 회원</p>
+                                <p className="text-xs text-[#62e3d5] font-medium">
+                                    {creditBalance?.toLocaleString() ?? "0"}C
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -124,6 +138,11 @@ export default function PartnerLayout({ children }: { children: ReactNode }) {
                                         <span className="flex items-center gap-3">
                                             <Icon className={cn("w-4 h-4", active && "text-[#62e3d5]")} />
                                             {item.label}
+                                            {item.label === "크레딧" && creditBalance != null && (
+                                                <span className="text-[10px] text-[#62e3d5] font-medium">
+                                                    {creditBalance.toLocaleString()}C
+                                                </span>
+                                            )}
                                         </span>
                                         <ChevronRight className="w-4 h-4 text-gray-400" />
                                     </Link>

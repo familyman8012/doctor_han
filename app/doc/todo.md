@@ -376,41 +376,41 @@ Wave 3 — Wave 2 완료 후 (거래 데이터 필요)
 ## 7) P3 — 수익화 기반 (결제/크레딧)
 
 ### 7-1. 크레딧 시스템 `[Wave 1]`
-- [ ] 정책: 선불 크레딧, 12개월 유효, 자동충전 2% 보너스
-- [ ] DB: `credit_accounts`, `credit_transactions`, `credit_packages`
-  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_credit_system.sql`
-  - [ ] RLS 정책 설정 (업체별 본인 계정만 접근)
-- [ ] Schema: `app/src/lib/schema/credit.ts`
-- [ ] Server: `app/src/server/credit/{repository,service,mapper}.ts`
-- [ ] API:
-  - [ ] `GET /api/credits` - 잔액 조회
-  - [ ] `GET /api/credits/transactions` - 거래 내역 조회
-  - [ ] `POST /api/credits/charge` - 충전 준비
-  - [ ] `PATCH /api/credits/auto-charge` - 자동 충전 설정
-- [ ] UI:
-  - [ ] 파트너센터 헤더에 크레딧 잔액 표시
-  - [ ] `/partner/credits` - 크레딧 관리 페이지
-  - [ ] 충전 페이지 (패키지 선택 → 결제)
-  - [ ] 거래 내역 페이지
+- [x] 정책: 선불 크레딧, 12개월 유효, 자동충전 2% 보너스
+- [x] DB: `credit_accounts`, `credit_transactions`, `credit_packages`
+  - [x] 마이그레이션 작성: `20260228120000_credit_system.sql` (+ 보정: `20260228123000_fix_credit_balance_update.sql`)
+  - [x] RLS 정책 설정 (업체별 본인 계정만 접근)
+- [x] Schema: `app/src/lib/schema/credit.ts`
+- [x] Server: `app/src/server/credit/{repository,service,mapper}.ts`
+- [x] API:
+  - [x] `GET /api/credits` - 잔액 조회
+  - [x] `GET /api/credits/transactions` - 거래 내역 조회
+  - [x] `POST /api/credits/charge` - 충전 준비
+  - [x] `PATCH /api/credits/auto-charge` - 자동 충전 설정
+- [x] UI:
+  - [x] 파트너센터 헤더에 크레딧 잔액 표시
+  - [x] `/partner/credits` - 크레딧 관리 페이지
+  - [x] 충전 페이지 (패키지 선택 → 결제)
+  - [x] 거래 내역 페이지
 
 ### 7-2. TossPayments 연동 `[Wave 1]`
 - [x] 가맹점 등록 + 테스트 API 키 발급
   - [x] `TOSS_PAYMENTS_SECRET_KEY`, `NEXT_PUBLIC_TOSS_PAYMENTS_CLIENT_KEY`, `TOSS_PAYMENTS_WEBHOOK_SECRET`
   - [x] 웹훅 URL 등록: `https://doctor-han.vercel.app/api/payments/webhook`
   - [ ] 운영 환경 API 키 발급 (라이브 전환 시)
-- [ ] DB: `payments`, `payment_webhooks`
-  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_payments.sql`
-- [ ] Schema: `app/src/lib/schema/payment.ts`
-- [ ] Server: `app/src/server/payment/{repository,service}.ts`
+- [x] DB: `payments`, `payment_webhooks`
+  - [x] 마이그레이션 작성: `20260228120001_payments.sql`
+- [x] Schema: `app/src/lib/schema/payment.ts`
+- [x] Server: `app/src/server/payment/{repository,service}.ts`
 - [ ] API:
-  - [ ] `POST /api/payments/prepare` - 결제 준비
-  - [ ] `POST /api/payments/confirm` - 결제 승인
-  - [ ] `POST /api/payments/webhook` - 웹훅 수신
-  - [ ] `GET /api/payments/[id]` - 결제 상세 조회
-- [ ] UI:
-  - [ ] TossPayments 결제 위젯 통합
-  - [ ] 결제 완료 페이지
-  - [ ] 결제 실패 페이지
+  - [ ] `POST /api/payments/prepare` - 결제 준비 (현재 `POST /api/credits/charge`에서 충전 준비를 처리)
+  - [x] `POST /api/payments/confirm` - 결제 승인
+  - [x] `POST /api/payments/webhook` - 웹훅 수신
+  - [x] `GET /api/payments/[id]` - 결제 상세 조회
+- [x] UI:
+  - [x] TossPayments 결제 위젯 통합
+  - [x] 결제 완료 페이지
+  - [x] 결제 실패 페이지
 
 ### 7-3. 업체 가격 정책 `[Wave 1]`
 - [ ] DB: `vendor_service_prices`
