@@ -31,6 +31,8 @@ interface InquiryFormData {
     content: string;
 }
 
+const MAX_CATEGORIES = 10;
+
 interface UploadedFile {
     file: File;
     fileId: string;
@@ -59,11 +61,26 @@ export function InquiryForm({ vendor }: InquiryFormProps) {
     const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
     const [isUploadingFile, setIsUploadingFile] = useState(false);
 
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+
     const {
         register,
         handleSubmit,
         formState: { errors },
     } = useForm<InquiryFormData>();
+
+    const toggleCategory = (categoryId: string) => {
+        setSelectedCategoryIds((prev) => {
+            if (prev.includes(categoryId)) {
+                return prev.filter((id) => id !== categoryId);
+            }
+            if (prev.length >= MAX_CATEGORIES) {
+                toast.error(`최대 ${MAX_CATEGORIES}개까지 선택할 수 있습니다`);
+                return prev;
+            }
+            return [...prev, categoryId];
+        });
+    };
 
     // 파일 업로드
     const uploadFile = async (file: File): Promise<string> => {
@@ -135,6 +152,11 @@ export function InquiryForm({ vendor }: InquiryFormProps) {
     };
 
     const onSubmit = async (data: InquiryFormData) => {
+        if (selectedCategoryIds.length === 0) {
+            toast.error("관심 서비스를 1개 이상 선택해주세요");
+            return;
+        }
+
         const hasUploadingFiles = uploadedFiles.some((f) => f.isUploading);
         if (hasUploadingFiles) {
             toast.error("파일 업로드가 완료될 때까지 기다려주세요");
@@ -145,6 +167,7 @@ export function InquiryForm({ vendor }: InquiryFormProps) {
 
         await createLeadMutation.mutateAsync({
             vendorId: vendor.id,
+            categoryIds: selectedCategoryIds,
             serviceName: data.serviceName || null,
             contactName: data.contactName,
             contactPhone: data.contactPhone,
@@ -166,11 +189,45 @@ export function InquiryForm({ vendor }: InquiryFormProps) {
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-xl border border-gray-100 p-6 space-y-6">
-            {/* 서비스명 */}
+            {/* 관심 서비스 (카테고리 선택) */}
+            <div>
+                <label className="block text-sm font-medium text-[#0a3b41] mb-1.5">
+                    관심 서비스<span className="ml-0.5 text-red-500">*</span>
+                </label>
+                <p className="text-xs text-gray-400 mb-3">
+                    문의하고 싶은 서비스를 선택해주세요 (최대 {MAX_CATEGORIES}개)
+                </p>
+                <div className="flex flex-wrap gap-2">
+                    {vendor.categories.filter((c) => c.isActive).map((cat) => {
+                        const isSelected = selectedCategoryIds.includes(cat.id);
+                        return (
+                            <button
+                                key={cat.id}
+                                type="button"
+                                onClick={() => toggleCategory(cat.id)}
+                                className={`
+                                    px-3 py-1.5 text-sm rounded-full border transition-all
+                                    ${isSelected
+                                        ? "bg-[#0a3b41] text-white border-[#0a3b41]"
+                                        : "bg-white text-gray-600 border-gray-200 hover:border-[#62e3d5]"
+                                    }
+                                `}
+                            >
+                                {cat.name}
+                            </button>
+                        );
+                    })}
+                </div>
+                {vendor.categories.filter((c) => c.isActive).length === 0 && (
+                    <p className="text-sm text-gray-400 mt-2">등록된 서비스가 없습니다</p>
+                )}
+            </div>
+
+            {/* 기타 요청사항 */}
             <Input
-                label="관심 서비스"
-                placeholder="예: 원외탕전 서비스, 인테리어 시공 등"
-                helperText="문의하고 싶은 서비스를 간단히 적어주세요"
+                label="기타 요청사항"
+                placeholder="추가로 요청할 사항이 있으면 적어주세요"
+                helperText="선택사항"
                 {...register("serviceName")}
             />
 

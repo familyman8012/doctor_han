@@ -427,3 +427,192 @@ export async function sendVerificationResult(
 
 	return result;
 }
+
+// ============================================================
+// 범용 업체 알림 발송 (CPL 리드 과금 등)
+// ============================================================
+
+interface SendVendorNotificationParams {
+	vendorUserId: string;
+	email: string;
+	phone?: string;
+	notificationType: string; // notification_type enum value
+	emailTemplate: { subject: string; body: string };
+	kakaoTemplate?: KakaoTemplate;
+}
+
+/**
+ * 범용 업체 알림 발송 (이메일 + 카카오 병렬)
+ *
+ * - 사용자의 알림 설정에 따라 활성화된 채널로만 발송
+ * - fire-and-forget: void 반환, 에러는 로그만 남기고 throw하지 않음
+ * - 리드 과금, 환불, 크레딧 부족, 미응답 경고 등에 사용
+ */
+export async function sendVendorNotification(params: SendVendorNotificationParams): Promise<void> {
+	const { vendorUserId, email, phone, notificationType, emailTemplate, kakaoTemplate } = params;
+
+	try {
+		const adminSupabase = createSupabaseAdminClient();
+
+		// 1. 알림 설정 조회
+		let settings: NotificationSettingsRow | null = null;
+		try {
+			settings = await fetchNotificationSettings(adminSupabase, vendorUserId);
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : "Unknown error";
+			console.error("[Notification] Failed to fetch notification settings", { vendorUserId, errorMessage });
+			return; // 설정 조회 실패 시 발송하지 않음
+		}
+
+		const emailEnabled = settings?.email_enabled ?? true;
+		const kakaoEnabled = settings?.kakao_enabled ?? false;
+
+		// 2. 활성화된 채널에 대해 병렬 발송
+		const sendTasks: Promise<void>[] = [];
+
+		// 이메일 발송
+		if (emailEnabled && email) {
+			sendTasks.push(
+				(async () => {
+					try {
+						const result = await resend.emails.send({
+							from: RESEND_FROM_EMAIL,
+							to: email,
+							subject: emailTemplate.subject,
+							text: emailTemplate.body,
+						});
+
+						const sentAt = new Date().toISOString();
+						await insertNotificationDelivery(adminSupabase, {
+							userId: vendorUserId,
+							type: notificationType,
+							channel: "email",
+							provider: "resend",
+							recipient: email,
+							subject: emailTemplate.subject,
+							bodyPreview: emailTemplate.body.slice(0, 200),
+							providerResponse: result as Json,
+							sentAt,
+							retryCount: 0,
+							maxRetries: 0,
+							status: "sent",
+						});
+
+						console.log("[Notification] Vendor email sent", {
+							vendorUserId,
+							to: maskEmail(email),
+							type: notificationType,
+						});
+					} catch (error) {
+						const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
+						try {
+							const failedAt = new Date().toISOString();
+							await insertNotificationDelivery(adminSupabase, {
+								userId: vendorUserId,
+								type: notificationType,
+								channel: "email",
+								provider: "resend",
+								recipient: email,
+								subject: emailTemplate.subject,
+								bodyPreview: emailTemplate.body.slice(0, 200),
+								failedAt,
+								errorMessage,
+								retryCount: 0,
+								maxRetries: 0,
+								status: "failed",
+							});
+						} catch (logError) {
+							console.error("[Notification] Failed to log email delivery error", logError);
+						}
+
+						console.error("[Notification] Vendor email failed", {
+							vendorUserId,
+							to: maskEmail(email),
+							errorMessage,
+						});
+					}
+				})(),
+			);
+		}
+
+		// 카카오 발송
+		if (kakaoEnabled && phone && kakaoTemplate) {
+			sendTasks.push(
+				(async () => {
+					try {
+						const kakaoResult = await sendKakaoAlimtalk({ phone, template: kakaoTemplate });
+
+						await insertNotificationDelivery(adminSupabase, {
+							userId: vendorUserId,
+							type: notificationType,
+							channel: "kakao",
+							provider: "solapi",
+							recipient: phone,
+							bodyPreview: `알림톡: ${kakaoTemplate.templateId}`,
+							providerResponse: kakaoResult.providerResponse,
+							sentAt: kakaoResult.success ? new Date().toISOString() : undefined,
+							failedAt: !kakaoResult.success ? new Date().toISOString() : undefined,
+							errorMessage: kakaoResult.error,
+							retryCount: 0,
+							maxRetries: 0,
+							status: kakaoResult.success ? "sent" : "failed",
+						});
+
+						if (kakaoResult.success) {
+							console.log("[Notification] Vendor kakao sent", {
+								vendorUserId,
+								to: maskPhone(phone),
+								type: notificationType,
+							});
+						} else {
+							console.error("[Notification] Vendor kakao failed", {
+								vendorUserId,
+								to: maskPhone(phone),
+								error: kakaoResult.error,
+							});
+						}
+					} catch (error) {
+						const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
+						try {
+							const failedAt = new Date().toISOString();
+							await insertNotificationDelivery(adminSupabase, {
+								userId: vendorUserId,
+								type: notificationType,
+								channel: "kakao",
+								provider: "solapi",
+								recipient: phone,
+								bodyPreview: `알림톡: ${kakaoTemplate.templateId}`,
+								failedAt,
+								errorMessage,
+								retryCount: 0,
+								maxRetries: 0,
+								status: "failed",
+							});
+						} catch (logError) {
+							console.error("[Notification] Failed to log kakao delivery error", logError);
+						}
+
+						console.error("[Notification] Vendor kakao failed", {
+							vendorUserId,
+							to: maskPhone(phone),
+							errorMessage,
+						});
+					}
+				})(),
+			);
+		}
+
+		// 병렬 실행 (모든 결과 대기)
+		await Promise.allSettled(sendTasks);
+	} catch (error) {
+		// fire-and-forget: 최상위 에러도 로그만 남기고 throw하지 않음
+		const errorMessage = error instanceof Error ? error.message : "Unknown error";
+		console.error("[Notification] sendVendorNotification unexpected error", {
+			vendorUserId,
+			notificationType,
+			errorMessage,
+		});
+	}
+}

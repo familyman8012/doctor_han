@@ -18,7 +18,7 @@ import { StatusChangeModal } from "./components/StatusChangeModal";
 import { LeadStatusHistory } from "./components/StatusHistory";
 import { LeadAttachments } from "./components/Attachments";
 import { MessagesTab } from "./components/MessagesTab";
-import type { LeadStatus } from "@/lib/schema/lead";
+import type { LeadStatus, LeadReportReason } from "@/lib/schema/lead";
 
 const STATUS_CONFIG: Record<LeadStatus, { label: string; color: BadgeColor }> = {
     submitted: { label: "신규", color: "primary" },
@@ -45,6 +45,22 @@ const TIME_LABELS: Record<string, string> = {
     anytime: "상관없음",
 };
 
+const CHARGE_STATUS_CONFIG: Record<string, { label: string; color: BadgeColor }> = {
+    charged: { label: "과금됨", color: "primary" },
+    pending: { label: "보류", color: "warning" },
+    refunded: { label: "환불됨", color: "info" },
+    waived: { label: "면제", color: "neutral" },
+    failed: { label: "실패", color: "error" },
+};
+
+const REPORT_REASON_OPTIONS: { value: LeadReportReason; label: string }[] = [
+    { value: "wrong_contact", label: "잘못된 연락처" },
+    { value: "test_inquiry", label: "테스트 문의" },
+    { value: "competitor", label: "경쟁사 문의" },
+    { value: "inappropriate", label: "부적절한 내용" },
+    { value: "other", label: "기타" },
+];
+
 export default function PartnerLeadDetailPage() {
     const params = useParams();
     const router = useRouter();
@@ -56,6 +72,9 @@ export default function PartnerLeadDetailPage() {
     const { isInitialized } = useAuthStore();
     const [showStatusModal, setShowStatusModal] = useState(false);
     const [activeTabIndex, setActiveTabIndex] = useState(0);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportReason, setReportReason] = useState<LeadReportReason | "">("");
+    const [reportDetail, setReportDetail] = useState("");
 
     // 리드 상세 조회
     const { data, isLoading, isError } = useQuery({
@@ -84,6 +103,21 @@ export default function PartnerLeadDetailPage() {
             queryClient.invalidateQueries({ queryKey: ["leads"] });
             queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
             setShowStatusModal(false);
+        },
+    });
+
+    // 허위 리드 신고 mutation
+    const reportLeadMutation = useMutation({
+        mutationFn: () =>
+            leadsApi.reportLead(leadId, {
+                reason: reportReason as LeadReportReason,
+                detail: reportDetail || undefined,
+            }),
+        onSuccess: () => {
+            toast.success("신고가 접수되었습니다");
+            setShowReportModal(false);
+            setReportReason("");
+            setReportDetail("");
         },
     });
 
@@ -256,6 +290,56 @@ export default function PartnerLeadDetailPage() {
                                 </div>
                             </div>
 
+                            {/* 과금 정보 */}
+                            {lead.charge && (
+                                <div>
+                                    <h2 className="text-lg font-bold text-[#0a3b41] mb-4">과금 정보</h2>
+                                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-500">상태</span>
+                                            <Badge
+                                                color={CHARGE_STATUS_CONFIG[lead.charge.status]?.color ?? "neutral"}
+                                                size="sm"
+                                            >
+                                                {CHARGE_STATUS_CONFIG[lead.charge.status]?.label ?? lead.charge.status}
+                                            </Badge>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-500">총 과금액</span>
+                                            <span className="font-semibold text-[#0a3b41]">
+                                                {lead.charge.totalAmount.toLocaleString()}원
+                                            </span>
+                                        </div>
+                                        {lead.charge.priceBreakdown.length > 0 && (
+                                            <div className="border-t border-gray-200 pt-3">
+                                                <p className="text-xs text-gray-400 mb-2">서비스별 내역</p>
+                                                {lead.charge.priceBreakdown.map((item) => (
+                                                    <div
+                                                        key={item.categoryId}
+                                                        className="flex items-center justify-between text-sm"
+                                                    >
+                                                        <span className="text-gray-600">{item.categoryName}</span>
+                                                        <span className="text-gray-800">
+                                                            {item.price.toLocaleString()}원
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {lead.charge.isDuplicate && (
+                                            <p className="text-xs text-amber-600">
+                                                30일 이내 중복 문의로 과금이 면제되었습니다
+                                            </p>
+                                        )}
+                                        {lead.charge.status === "refunded" && lead.charge.refundedAt && (
+                                            <p className="text-xs text-blue-600">
+                                                환불됨 ({dayjs(lead.charge.refundedAt).format("YYYY.MM.DD")})
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* 문의 내용 */}
                             <div>
                                 <h2 className="text-lg font-bold text-[#0a3b41] mb-4 flex items-center gap-2">
@@ -274,6 +358,17 @@ export default function PartnerLeadDetailPage() {
                             {lead.statusHistory.length > 0 && (
                                 <LeadStatusHistory history={lead.statusHistory} />
                             )}
+
+                            {/* 허위 리드 신고 */}
+                            <div className="pt-4 border-t border-gray-200">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowReportModal(true)}
+                                    className="text-sm text-red-500 hover:text-red-600 underline"
+                                >
+                                    허위 리드 신고
+                                </button>
+                            </div>
                         </div>
                     )}
 
@@ -291,6 +386,67 @@ export default function PartnerLeadDetailPage() {
                     onClose={() => setShowStatusModal(false)}
                     onConfirm={(status) => updateStatusMutation.mutate(status)}
                 />
+            )}
+
+            {/* 허위 리드 신고 모달 */}
+            {showReportModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                    <div className="bg-white rounded-xl p-6 w-full max-w-md space-y-4">
+                        <h3 className="text-lg font-bold text-[#0a3b41]">허위 리드 신고</h3>
+                        <div>
+                            <label className="block text-sm font-medium text-[#0a3b41] mb-1.5">
+                                사유
+                            </label>
+                            <select
+                                className="w-full h-[38px] px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                                value={reportReason}
+                                onChange={(e) =>
+                                    setReportReason(e.target.value as LeadReportReason | "")
+                                }
+                            >
+                                <option value="">선택해주세요</option>
+                                {REPORT_REASON_OPTIONS.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-[#0a3b41] mb-1.5">
+                                상세 내용 (선택)
+                            </label>
+                            <textarea
+                                className="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-200 rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                                placeholder="신고 사유를 구체적으로 작성해주세요"
+                                value={reportDetail}
+                                onChange={(e) => setReportDetail(e.target.value)}
+                            />
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                    setShowReportModal(false);
+                                    setReportReason("");
+                                    setReportDetail("");
+                                }}
+                            >
+                                취소
+                            </Button>
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                disabled={!reportReason || reportLeadMutation.isPending}
+                                isLoading={reportLeadMutation.isPending}
+                                onClick={() => reportLeadMutation.mutate()}
+                            >
+                                신고하기
+                            </Button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

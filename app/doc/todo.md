@@ -429,28 +429,32 @@ Wave 3 — Wave 2 완료 후 (거래 데이터 필요)
 
 ### 8-1. 건별 리드 과금 `[Wave 2 ← 7-1 + 7-3]`
 - [ ] 정책 구현:
-  - [ ] 서비스별 단가 (1만~20만원)
-  - [ ] 복수 서비스 선택 시 합산
-  - [ ] 30일 중복 리드 무효 처리
+  - [x] 서비스별 단가 (1만~20만원)
+  - [x] 복수 서비스 선택 시 합산
+  - [x] 30일 중복 리드 무효 처리
   - [ ] 크레딧 부족 시 소프트 거절 + 충전 요청 알림
-- [ ] DB: `lead_charges`
-  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_lead_charges.sql`
-- [ ] Schema: `app/src/lib/schema/lead.ts` 확장
-- [ ] Server 수정:
-  - [ ] `app/src/server/lead/repository.ts` - 크레딧 차감 로직 통합
-  - [ ] `app/src/server/lead/charge-service.ts` - 과금 서비스 신규
-- [ ] 중복 리드 체크 + 크레딧 복구 로직
-- [ ] 무응답 처리 (Cron):
-  - [ ] 48시간 무응답 → 카톡 알림 발송
-  - [ ] 72시간 무응답 → 자동 크레딧 복구
+- [x] DB: `lead_charges`
+  - [x] 마이그레이션 작성: `20260228140000_lead_charges.sql`
+- [x] Schema: `app/src/lib/schema/lead.ts` 확장
+- [x] Server 수정:
+  - [x] `app/src/server/lead/repository.ts` - 크레딧 차감 로직 통합
+  - [x] `app/src/server/lead/charge-service.ts` - 과금 서비스 신규
+- [x] 중복 리드 체크 + 크레딧 복구 로직
+- [x] 무응답 처리 (Cron):
+  - [x] 48시간 무응답 → 카톡 알림 발송
+  - [x] 72시간 무응답 → 자동 크레딧 복구
 - [ ] 허위 리드 처리:
   - [ ] 자동 필터링 (전화번호 형식 오류, 테스트성 문자열, 욕설)
-  - [ ] 업체 신고 → 관리자 심사 → 크레딧 복구
+  - [x] 업체 신고 → 관리자 심사 → 크레딧 복구
 - [ ] 알림 추가:
-  - [ ] `lead_charged` - 리드 과금 완료
+  - [x] `lead_charged` - 리드 과금 완료
   - [ ] `lead_refunded` - 리드 환불 완료
   - [ ] `credit_low` - 잔액 부족
-  - [ ] `lead_no_response_warning` - 48시간 무응답 경고
+  - [x] `lead_no_response_warning` - 48시간 무응답 경고
+  - [ ] TODO: 과금 상태별 알림 타입 분기(`lead_charged`/`credit_low`/`lead_refunded`) 정합성 개선
+- [x] 보강 작업:
+  - [x] 서버 검증: 요청 `categoryIds`가 업체 등록 + 단가 설정 카테고리인지 검증
+  - [x] Admin 신고 목록 API: query 파라미터 Zod 파싱 적용
 
 ### 8-2. 기간제 상품 `[Wave 2 ← 7-1 + 7-2]`
 - [ ] 정책: 30/60/90/180/365일 무제한

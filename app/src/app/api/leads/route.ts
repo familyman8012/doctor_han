@@ -3,9 +3,14 @@ import { internalServerError, notFound, tooManyRequests } from "@/server/api/err
 import { created, ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withApprovedDoctor, withAuth } from "@/server/auth/guards";
+import { calculateChargeAmount, processLeadCharge } from "@/server/lead/charge-service";
 import { mapLeadRow, mapLeadVendorSummary } from "@/server/lead/mapper";
 import { fetchLeadDetail } from "@/server/lead/repository";
+import { getKakaoLeadChargedTemplate } from "@/server/notification/kakao-templates";
+import { sendVendorNotification } from "@/server/notification/service";
+import { getLeadChargedTemplate } from "@/server/notification/templates";
 import { checkRateLimit, incrementRateLimit, logRateLimitExceeded } from "@/server/rate-limit";
+import { createSupabaseAdminClient } from "@/server/supabase/admin";
 
 export const GET = withApi(
     withAuth(async (ctx) => {
@@ -78,11 +83,15 @@ export const POST = withApi(
             throw notFound("업체를 찾을 수 없습니다.");
         }
 
+        // 카테고리/단가 서버 검증 (잘못된 categoryIds 요청 차단)
+        await calculateChargeAmount(body.vendorId, body.categoryIds);
+
         const { data: lead, error: leadError } = await ctx.supabase
             .from("leads")
             .insert({
                 doctor_user_id: ctx.user.id,
                 vendor_id: body.vendorId,
+                category_ids: body.categoryIds,
                 service_name: body.serviceName ?? null,
                 contact_name: body.contactName,
                 contact_phone: body.contactPhone,
@@ -127,6 +136,61 @@ export const POST = withApi(
                 // 파일/권한 정책은 후속(File API)에서 보강되므로, 여기서는 생성 실패를 치명적으로 보지 않는다.
                 console.error("[POST /api/leads] lead_attachments insert failed", attachmentError);
             }
+        }
+
+        // Best-effort 리드 과금 처리
+        let charge: Awaited<ReturnType<typeof processLeadCharge>> | null = null;
+        try {
+            charge = await processLeadCharge({
+                leadId: lead.id,
+                vendorId: body.vendorId,
+                doctorUserId: ctx.user.id,
+                categoryIds: body.categoryIds,
+            });
+        } catch (err) {
+            console.error("[POST /api/leads] processLeadCharge failed", err);
+        }
+
+        // Best-effort notification to vendor owner
+        try {
+            const admin = createSupabaseAdminClient();
+            const { data: vendorOwner } = await admin
+                .from("vendors")
+                .select("owner_user_id, name")
+                .eq("id", body.vendorId)
+                .single();
+
+            if (vendorOwner) {
+                const { data: ownerProfile } = await admin
+                    .from("profiles")
+                    .select("email, phone")
+                    .eq("id", vendorOwner.owner_user_id)
+                    .single();
+
+                if (ownerProfile?.email) {
+                    const serviceSummary = charge?.priceBreakdown?.map((p) => p.categoryName).join(", ") ?? "";
+
+                    sendVendorNotification({
+                        vendorUserId: vendorOwner.owner_user_id,
+                        email: ownerProfile.email,
+                        phone: ownerProfile.phone ?? undefined,
+                        notificationType: "lead_charged",
+                        emailTemplate: getLeadChargedTemplate({
+                            vendorName: vendorOwner.name,
+                            doctorName: body.contactName,
+                            totalAmount: charge?.totalAmount ?? 0,
+                            serviceSummary,
+                        }),
+                        kakaoTemplate: getKakaoLeadChargedTemplate({
+                            vendorName: vendorOwner.name,
+                            doctorName: body.contactName,
+                            totalAmount: charge?.totalAmount ?? 0,
+                        }),
+                    }).catch((err) => console.error("[POST /api/leads] Notification failed", err));
+                }
+            }
+        } catch (err) {
+            console.error("[POST /api/leads] Vendor notification failed", err);
         }
 
         // 성공 시 rate limit 카운트 증가
