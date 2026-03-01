@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import api from "@/api-client/client";
 import type { HomeCategoryGridSection, HomeScreen, HomeVendorCarouselSection } from "@/lib/schema/home";
 import { HeroBanner, CategoryScroller, VendorSection, PromoBanner } from "./components";
+import { AdBanner } from "@/components/widgets/AdBanner";
 
 export default function HomePage() {
     const { data: home, isLoading } = useQuery({
@@ -35,6 +36,9 @@ export default function HomePage() {
             {/* 메인 배너 슬라이더 */}
             <HeroBanner />
 
+            {/* 메인 광고 배너 */}
+            <AdBanner position="main" />
+
             {/* 카테고리 가로 스크롤 */}
             {categorySection && <CategoryScroller categories={categorySection.items} />}
 
@@ -49,6 +53,9 @@ export default function HomePage() {
 
             {/* 업체 등록 CTA 배너 */}
             <PromoBanner variant="vendor-cta" />
+
+            {/* 서브 광고 배너 */}
+            <AdBanner position="sub" />
 
             {/* 리뷰로 검증 섹션 */}
             {reviewedSection && <VendorSection section={reviewedSection} />}

@@ -12,6 +12,397 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ad_campaigns: {
+        Row: {
+          ad_slot_id: string
+          advertiser_name: string
+          created_at: string
+          created_by: string
+          ends_at: string
+          id: string
+          monthly_price: number
+          starts_at: string
+          status: Database["public"]["Enums"]["ad_campaign_status"]
+          total_clicks: number
+          total_impressions: number
+          updated_at: string
+          vendor_id: string | null
+        }
+        Insert: {
+          ad_slot_id: string
+          advertiser_name: string
+          created_at?: string
+          created_by: string
+          ends_at: string
+          id?: string
+          monthly_price?: number
+          starts_at: string
+          status?: Database["public"]["Enums"]["ad_campaign_status"]
+          total_clicks?: number
+          total_impressions?: number
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Update: {
+          ad_slot_id?: string
+          advertiser_name?: string
+          created_at?: string
+          created_by?: string
+          ends_at?: string
+          id?: string
+          monthly_price?: number
+          starts_at?: string
+          status?: Database["public"]["Enums"]["ad_campaign_status"]
+          total_clicks?: number
+          total_impressions?: number
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_campaigns_ad_slot_id_fkey"
+            columns: ["ad_slot_id"]
+            isOneToOne: false
+            referencedRelation: "ad_slots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_campaigns_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_click_logs: {
+        Row: {
+          campaign_id: string
+          clicked_at: string
+          creative_id: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          campaign_id: string
+          clicked_at?: string
+          creative_id: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          clicked_at?: string
+          creative_id?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_click_logs_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_click_logs_creative_id_fkey"
+            columns: ["creative_id"]
+            isOneToOne: false
+            referencedRelation: "ad_creatives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_creatives: {
+        Row: {
+          campaign_id: string
+          click_url: string
+          created_at: string
+          html_content: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          sort_order: number
+          title: string
+          type: Database["public"]["Enums"]["ad_creative_type"]
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          click_url: string
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          sort_order?: number
+          title: string
+          type?: Database["public"]["Enums"]["ad_creative_type"]
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          click_url?: string
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          sort_order?: number
+          title?: string
+          type?: Database["public"]["Enums"]["ad_creative_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_creatives_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_impressions: {
+        Row: {
+          campaign_id: string
+          clicks: number
+          created_at: string
+          date: string
+          id: string
+          impressions: number
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          clicks?: number
+          created_at?: string
+          date: string
+          id?: string
+          impressions?: number
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          clicks?: number
+          created_at?: string
+          date?: string
+          id?: string
+          impressions?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_impressions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_priority_jumpups: {
+        Row: {
+          activated_at: string
+          created_at: string
+          expires_at: string
+          id: string
+          purchase_id: string
+        }
+        Insert: {
+          activated_at?: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          purchase_id: string
+        }
+        Update: {
+          activated_at?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          purchase_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_priority_jumpups_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "ad_priority_purchases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_priority_purchases: {
+        Row: {
+          category_id: string
+          created_at: string
+          credit_transaction_id: string | null
+          ends_at: string
+          id: string
+          jumpup_last_used_at: string | null
+          jumpup_remaining: number
+          price_paid: number
+          priority_slot_id: string
+          starts_at: string
+          status: Database["public"]["Enums"]["ad_priority_purchase_status"]
+          tier: Database["public"]["Enums"]["ad_priority_tier"]
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          credit_transaction_id?: string | null
+          ends_at: string
+          id?: string
+          jumpup_last_used_at?: string | null
+          jumpup_remaining?: number
+          price_paid?: number
+          priority_slot_id: string
+          starts_at: string
+          status?: Database["public"]["Enums"]["ad_priority_purchase_status"]
+          tier: Database["public"]["Enums"]["ad_priority_tier"]
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          credit_transaction_id?: string | null
+          ends_at?: string
+          id?: string
+          jumpup_last_used_at?: string | null
+          jumpup_remaining?: number
+          price_paid?: number
+          priority_slot_id?: string
+          starts_at?: string
+          status?: Database["public"]["Enums"]["ad_priority_purchase_status"]
+          tier?: Database["public"]["Enums"]["ad_priority_tier"]
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_priority_purchases_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_priority_purchases_priority_slot_id_fkey"
+            columns: ["priority_slot_id"]
+            isOneToOne: false
+            referencedRelation: "ad_priority_slots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_priority_purchases_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_priority_slots: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          max_slots: number
+          price_weekly: number
+          sort_order: number
+          tier: Database["public"]["Enums"]["ad_priority_tier"]
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_slots?: number
+          price_weekly?: number
+          sort_order?: number
+          tier: Database["public"]["Enums"]["ad_priority_tier"]
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_slots?: number
+          price_weekly?: number
+          sort_order?: number
+          tier?: Database["public"]["Enums"]["ad_priority_tier"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_priority_slots_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_slots: {
+        Row: {
+          created_at: string
+          display_count: number
+          id: string
+          is_active: boolean
+          max_campaigns: number
+          name: string
+          position: Database["public"]["Enums"]["ad_slot_position"]
+          price_monthly: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_count?: number
+          id?: string
+          is_active?: boolean
+          max_campaigns?: number
+          name: string
+          position: Database["public"]["Enums"]["ad_slot_position"]
+          price_monthly?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_count?: number
+          id?: string
+          is_active?: boolean
+          max_campaigns?: number
+          name?: string
+          position?: Database["public"]["Enums"]["ad_slot_position"]
+          price_monthly?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -1643,6 +2034,13 @@ export type Database = {
       is_vendor_approved: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor_owner: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor_public: { Args: { vendor_id: string }; Returns: boolean }
+      purchase_ad_priority_slot: {
+        Args: { p_priority_slot_id: string; p_vendor_id: string }
+        Returns: {
+          purchase_id: string
+          transaction_id: string | null
+        }[]
+      }
       refresh_vendor_rating: {
         Args: { target_vendor_id: string }
         Returns: undefined
@@ -1659,6 +2057,21 @@ export type Database = {
       }
     }
     Enums: {
+      ad_campaign_status:
+        | "draft"
+        | "pending"
+        | "active"
+        | "paused"
+        | "completed"
+        | "canceled"
+      ad_creative_type: "image" | "html"
+      ad_priority_purchase_status:
+        | "active"
+        | "expired"
+        | "canceled"
+        | "refunded"
+      ad_priority_tier: "premium" | "plus_up" | "plus" | "rookie"
+      ad_slot_position: "main" | "sub"
       credit_transaction_status: "pending" | "completed" | "failed" | "canceled"
       credit_transaction_type:
         | "charge"
@@ -1859,6 +2272,23 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      ad_campaign_status: [
+        "draft",
+        "pending",
+        "active",
+        "paused",
+        "completed",
+        "canceled",
+      ],
+      ad_creative_type: ["image", "html"],
+      ad_priority_purchase_status: [
+        "active",
+        "expired",
+        "canceled",
+        "refunded",
+      ],
+      ad_priority_tier: ["premium", "plus_up", "plus", "rookie"],
+      ad_slot_position: ["main", "sub"],
       credit_transaction_status: ["pending", "completed", "failed", "canceled"],
       credit_transaction_type: [
         "charge",

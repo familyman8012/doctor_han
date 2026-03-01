@@ -500,44 +500,44 @@ Wave 3 — Wave 2 완료 후 (거래 데이터 필요)
 > 1년차 예상: 배너 2.02억 + 우선순위 8,064만 = 약 2.83억
 
 ### 10-1. 배너광고 `[Wave 1]`
-- [ ] 정책:
-  - [ ] 메인 배너 3개 (200만/월), 서브 배너 2개 (120만/월)
-  - [ ] 랜덤 회전형 독점 슬롯 (2배수: 메인 6개, 서브 4개 광고주)
-  - [ ] 초기 정액형(CPM) → 추후 혼합형(CPC) 전환
-  - [ ] 카테고리별 차등 광고비 (추후)
-- [ ] DB: `ad_slots`, `ad_campaigns`, `ad_creatives`
-  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_ad_system.sql`
-- [ ] Schema: `app/src/lib/schema/ad.ts`
-- [ ] Server: `app/src/server/ad/{repository,service}.ts`
-- [ ] API:
-  - [ ] `GET /api/ads/banners` - 배너 노출 (위치별 로테이션)
-  - [ ] `POST /api/ads/banners/[id]/click` - 클릭 트래킹
-  - [ ] `GET /api/admin/ads/campaigns` - 캠페인 목록
-  - [ ] `POST /api/admin/ads/campaigns` - 캠페인 생성
-  - [ ] `PATCH /api/admin/ads/campaigns/[id]` - 캠페인 수정
-  - [ ] `GET /api/admin/ads/reports` - 성과 리포트 (노출/클릭/CTR)
-- [ ] UI:
-  - [ ] 메인/서브 배너 컴포넌트 (로테이션 + 클릭 트래킹)
-  - [ ] 관리자: 캠페인 CRUD + 성과 리포트
+- [x] 정책:
+  - [x] 메인 배너 3개 (200만/월), 서브 배너 2개 (120만/월)
+  - [x] 랜덤 회전형 독점 슬롯 (2배수: 메인 6개, 서브 4개 광고주)
+  - [x] 초기 정액형(CPM) → 추후 혼합형(CPC) 전환
+  - [x] 카테고리별 차등 광고비 (추후)
+- [x] DB: `ad_slots`, `ad_campaigns`, `ad_creatives`
+  - [x] 마이그레이션 작성: `20260228140000_ad_system.sql`
+- [x] Schema: `app/src/lib/schema/ad.ts`
+- [x] Server: `app/src/server/ad/{repository,service}.ts`
+- [x] API:
+  - [x] `GET /api/ads/banners` - 배너 노출 (위치별 로테이션)
+  - [x] `POST /api/ads/banners/[id]/click` - 클릭 트래킹
+  - [x] `GET /api/admin/ads/campaigns` - 캠페인 목록
+  - [x] `POST /api/admin/ads/campaigns` - 캠페인 생성
+  - [x] `PATCH /api/admin/ads/campaigns/[id]` - 캠페인 수정
+  - [x] `GET /api/admin/ads/reports` - 성과 리포트 (노출/클릭/CTR)
+- [x] UI:
+  - [x] 메인/서브 배너 컴포넌트 (로테이션 + 클릭 트래킹)
+  - [x] 관리자: 캠페인 CRUD + 성과 리포트
 
 ### 10-2. 우선순위노출 광고 `[Wave 1, 10-1과 함께]`
-- [ ] 정책:
-  - [ ] 4단계: 프리미엄(30만/주) / 플러스업(21만/주) / 플러스(6만/주) / 루키(3만/주)
-  - [ ] 카테고리당 4줄 x 4개 = 16슬롯
-  - [ ] 주단위 상품
-  - [ ] 루키: 기간 내 3회 점프업 (1일 1회, 30분씩 프리미엄 위 노출)
-- [ ] DB: `ad_priority_slots`, `ad_priority_purchases`
-  - [ ] 마이그레이션: 위 `ad_system.sql`에 포함 또는 별도
-- [ ] Server: `app/src/server/ad/priority-{repository,service}.ts`
-- [ ] API:
-  - [ ] `GET /api/ads/priority?category=[id]` - 카테고리별 우선순위 노출 목록
-  - [ ] `POST /api/ads/priority/purchase` - 슬롯 구매
-  - [ ] `POST /api/ads/priority/[id]/jumpup` - 루키 점프업
-  - [ ] `GET /api/vendors/me/ads` - 내 광고 현황
-- [ ] UI:
-  - [ ] 카테고리 페이지: 상위 4줄 광고 영역 (등급별 배경/배지 구분)
-  - [ ] 업체 파트너센터: 광고 구매 + 현황 관리
-  - [ ] 관리자: 슬롯 현황 + 매출 리포트
+- [x] 정책:
+  - [x] 4단계: 프리미엄(30만/주) / 플러스업(21만/주) / 플러스(6만/주) / 루키(3만/주)
+  - [x] 카테고리당 4줄 x 4개 = 16슬롯
+  - [x] 주단위 상품
+  - [x] 루키: 기간 내 3회 점프업 (1일 1회, 30분씩 프리미엄 위 노출)
+- [x] DB: `ad_priority_slots`, `ad_priority_purchases`
+  - [x] 마이그레이션: `20260228140000_ad_system.sql`, `20260301100000_ad_priority_purchase_atomic.sql`
+- [x] Server: `app/src/server/ad/priority-{repository,service}.ts`
+- [x] API:
+  - [x] `GET /api/ads/priority?category=[id]` - 카테고리별 우선순위 노출 목록
+  - [x] `POST /api/ads/priority/purchase` - 슬롯 구매
+  - [x] `POST /api/ads/priority/[id]/jumpup` - 루키 점프업
+  - [x] `GET /api/vendors/me/ads` - 내 광고 현황
+- [x] UI:
+  - [x] 카테고리 페이지: 상위 4줄 광고 영역 (등급별 배경/배지 구분)
+  - [x] 업체 파트너센터: 광고 구매 + 현황 관리
+  - [x] 관리자: 슬롯 현황 + 매출 리포트
 
 ## 11) P6 — 비딩
 

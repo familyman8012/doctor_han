@@ -13,6 +13,7 @@ import { SimplePagination } from "./components/SimplePagination";
 import { useFavoriteIds } from "./hooks/useFavoriteIds";
 import type { Category } from "@/lib/schema/category";
 import type { VendorListItem } from "@/lib/schema/vendor";
+import { PriorityVendorSection } from "@/components/widgets/PriorityVendorSection";
 
 const PAGE_SIZE = 12;
 
@@ -138,6 +139,9 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
                 onReset={handleReset}
                 isFiltered={isFiltered}
             />
+
+            {/* 우선순위 광고 업체 */}
+            {currentCategory && <PriorityVendorSection categoryId={currentCategory.id} />}
 
             {/* 업체 리스트 */}
             {isLoadingVendors ? (
