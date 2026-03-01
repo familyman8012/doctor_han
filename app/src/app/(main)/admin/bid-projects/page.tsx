@@ -1,0 +1,134 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { Gavel } from "lucide-react";
+import { biddingApi } from "@/api-client/bidding";
+import { Spinner } from "@/components/ui/Spinner/Spinner";
+import { Empty } from "@/components/ui/Empty/Empty";
+import { Badge } from "@/components/ui/Badge/Badge";
+import { useQueryState } from "nuqs";
+import type { BidProjectStatus } from "@/lib/schema/bidding";
+
+const STATUS_LABELS: Record<BidProjectStatus, string> = {
+    draft: "임시저장",
+    open: "매칭중",
+    bidding: "입찰중",
+    selecting: "선정중",
+    contracted: "계약완료",
+    in_progress: "시공중",
+    completed: "완료",
+    settled: "정산완료",
+    canceled: "취소됨",
+};
+
+const STATUS_COLORS: Record<BidProjectStatus, "green" | "blue" | "orange" | "red" | "gray"> = {
+    draft: "gray",
+    open: "blue",
+    bidding: "blue",
+    selecting: "orange",
+    contracted: "green",
+    in_progress: "green",
+    completed: "green",
+    settled: "gray",
+    canceled: "red",
+};
+
+export default function AdminBidProjectsPage() {
+    const router = useRouter();
+    const [statusFilter, setStatusFilter] = useQueryState("status");
+
+    const { data, isLoading } = useQuery({
+        queryKey: ["admin", "bid-projects", statusFilter],
+        queryFn: () => biddingApi.adminList({ status: statusFilter as BidProjectStatus | undefined }),
+    });
+
+    const items = data?.data?.items ?? [];
+    const total = data?.data?.total ?? 0;
+
+    return (
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
+                    <Gavel className="w-6 h-6 text-[#62e3d5]" />
+                    비딩 프로젝트 관리
+                </h1>
+                <p className="text-gray-500 mt-1">총 {total}건</p>
+            </div>
+
+            {/* 상태 필터 */}
+            <div className="flex gap-2 flex-wrap">
+                <button
+                    onClick={() => setStatusFilter(null)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                        !statusFilter
+                            ? "bg-[#0a3b41] text-white"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                >
+                    전체
+                </button>
+                {(Object.keys(STATUS_LABELS) as BidProjectStatus[]).map((s) => (
+                    <button
+                        key={s}
+                        onClick={() => setStatusFilter(s)}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                            statusFilter === s
+                                ? "bg-[#0a3b41] text-white"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        }`}
+                    >
+                        {STATUS_LABELS[s]}
+                    </button>
+                ))}
+            </div>
+
+            {isLoading ? (
+                <div className="flex justify-center py-10">
+                    <Spinner size="lg" />
+                </div>
+            ) : items.length === 0 ? (
+                <Empty title="프로젝트가 없습니다" description="아직 등록된 비딩 프로젝트가 없습니다" />
+            ) : (
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                    <table className="w-full text-sm">
+                        <thead className="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th className="px-4 py-3 text-left font-medium text-gray-600">제목</th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-600">위치</th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-600">예산</th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-600">상태</th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-600">등록일</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {items.map((project) => (
+                                <tr
+                                    key={project.id}
+                                    onClick={() => router.push(`/admin/bid-projects/${project.id}`)}
+                                    className="hover:bg-gray-50 cursor-pointer transition-colors"
+                                >
+                                    <td className="px-4 py-3 font-medium text-[#0a3b41]">
+                                        {project.title}
+                                    </td>
+                                    <td className="px-4 py-3 text-gray-600">{project.location}</td>
+                                    <td className="px-4 py-3 text-gray-600">
+                                        {project.budgetMin.toLocaleString()}~{project.budgetMax.toLocaleString()}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <Badge color={STATUS_COLORS[project.status]}>
+                                            {STATUS_LABELS[project.status]}
+                                        </Badge>
+                                    </td>
+                                    <td className="px-4 py-3 text-gray-400">
+                                        {new Date(project.createdAt).toLocaleDateString("ko-KR")}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </div>
+    );
+}

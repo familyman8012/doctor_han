@@ -441,6 +441,274 @@ export type Database = {
           },
         ]
       }
+      bid_contracts: {
+        Row: {
+          commission_amount: number
+          commission_status: Database["public"]["Enums"]["bid_commission_status"]
+          commission_transaction_id: string | null
+          contract_amount: number
+          created_at: string
+          id: string
+          project_id: string
+          response_id: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          commission_amount?: number
+          commission_status?: Database["public"]["Enums"]["bid_commission_status"]
+          commission_transaction_id?: string | null
+          contract_amount: number
+          created_at?: string
+          id?: string
+          project_id: string
+          response_id: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          commission_amount?: number
+          commission_status?: Database["public"]["Enums"]["bid_commission_status"]
+          commission_transaction_id?: string | null
+          contract_amount?: number
+          created_at?: string
+          id?: string
+          project_id?: string
+          response_id?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bid_contracts_commission_transaction_id_fkey"
+            columns: ["commission_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "credit_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bid_contracts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "bid_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bid_contracts_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "bid_responses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bid_contracts_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bid_project_scores: {
+        Row: {
+          created_at: string
+          id: string
+          is_recommended: boolean
+          portfolio_score: number
+          price_score: number
+          project_id: string
+          rating_score: number
+          region_score: number
+          response_score: number
+          total_score: number
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_recommended?: boolean
+          portfolio_score?: number
+          price_score?: number
+          project_id: string
+          rating_score?: number
+          region_score?: number
+          response_score?: number
+          total_score?: number
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_recommended?: boolean
+          portfolio_score?: number
+          price_score?: number
+          project_id?: string
+          rating_score?: number
+          region_score?: number
+          response_score?: number
+          total_score?: number
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bid_project_scores_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "bid_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bid_project_scores_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bid_project_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          from_status: Database["public"]["Enums"]["bid_project_status"] | null
+          id: string
+          project_id: string
+          to_status: Database["public"]["Enums"]["bid_project_status"]
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["bid_project_status"] | null
+          id?: string
+          project_id: string
+          to_status: Database["public"]["Enums"]["bid_project_status"]
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["bid_project_status"] | null
+          id?: string
+          project_id?: string
+          to_status?: Database["public"]["Enums"]["bid_project_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bid_project_status_history_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "bid_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bid_projects: {
+        Row: {
+          attachments: Json
+          bid_deadline: string | null
+          budget_max: number
+          budget_min: number
+          created_at: string
+          doctor_user_id: string
+          id: string
+          location: string
+          requirements: string | null
+          schedule: string | null
+          space_size: string | null
+          status: Database["public"]["Enums"]["bid_project_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attachments?: Json
+          bid_deadline?: string | null
+          budget_max?: number
+          budget_min?: number
+          created_at?: string
+          doctor_user_id: string
+          id?: string
+          location: string
+          requirements?: string | null
+          schedule?: string | null
+          space_size?: string | null
+          status?: Database["public"]["Enums"]["bid_project_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          attachments?: Json
+          bid_deadline?: string | null
+          budget_max?: number
+          budget_min?: number
+          created_at?: string
+          doctor_user_id?: string
+          id?: string
+          location?: string
+          requirements?: string | null
+          schedule?: string | null
+          space_size?: string | null
+          status?: Database["public"]["Enums"]["bid_project_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bid_responses: {
+        Row: {
+          attachments: Json
+          created_at: string
+          estimated_days: number | null
+          id: string
+          price: number | null
+          project_id: string
+          proposal: string | null
+          status: Database["public"]["Enums"]["bid_response_status"]
+          submitted_at: string | null
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          attachments?: Json
+          created_at?: string
+          estimated_days?: number | null
+          id?: string
+          price?: number | null
+          project_id: string
+          proposal?: string | null
+          status?: Database["public"]["Enums"]["bid_response_status"]
+          submitted_at?: string | null
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          attachments?: Json
+          created_at?: string
+          estimated_days?: number | null
+          id?: string
+          price?: number | null
+          project_id?: string
+          proposal?: string | null
+          status?: Database["public"]["Enums"]["bid_response_status"]
+          submitted_at?: string | null
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bid_responses_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "bid_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bid_responses_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -2321,6 +2589,13 @@ export type Database = {
         Args: { target_lead_id: string; target_vendor_id: string }
         Returns: boolean
       }
+      charge_bid_commission: {
+        Args: { p_contract_id: string; p_vendor_id: string }
+        Returns: {
+          new_balance: number
+          transaction_id: string
+        }[]
+      }
       credit_balance_update: {
         Args: {
           p_amount: number
@@ -2352,6 +2627,13 @@ export type Database = {
       is_vendor_approved: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor_owner: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor_public: { Args: { vendor_id: string }; Returns: boolean }
+      purchase_ad_priority_slot: {
+        Args: { p_priority_slot_id: string; p_vendor_id: string }
+        Returns: {
+          purchase_id: string
+          transaction_id: string
+        }[]
+      }
       purchase_vendor_subscription: {
         Args: {
           p_auto_renew?: boolean
@@ -2365,13 +2647,6 @@ export type Database = {
           subscription_id: string
           transaction_id: string
           was_extended: boolean
-        }[]
-      }
-      purchase_ad_priority_slot: {
-        Args: { p_priority_slot_id: string; p_vendor_id: string }
-        Returns: {
-          purchase_id: string
-          transaction_id: string | null
         }[]
       }
       refresh_vendor_rating: {
@@ -2405,6 +2680,30 @@ export type Database = {
         | "refunded"
       ad_priority_tier: "premium" | "plus_up" | "plus" | "rookie"
       ad_slot_position: "main" | "sub"
+      bid_commission_status: "pending" | "charged" | "refunded" | "waived"
+      bid_contract_status:
+        | "pending"
+        | "active"
+        | "completed"
+        | "canceled"
+        | "disputed"
+      bid_project_status:
+        | "draft"
+        | "open"
+        | "bidding"
+        | "selecting"
+        | "contracted"
+        | "in_progress"
+        | "completed"
+        | "settled"
+        | "canceled"
+      bid_response_status:
+        | "invited"
+        | "submitted"
+        | "selected"
+        | "rejected"
+        | "withdrawn"
+        | "expired"
       credit_transaction_status: "pending" | "completed" | "failed" | "canceled"
       credit_transaction_type:
         | "charge"
@@ -2464,6 +2763,10 @@ export type Database = {
         | "credit_low"
         | "lead_no_response_warning"
         | "subscription_expiring"
+        | "bid_vendor_invited"
+        | "bid_response_submitted"
+        | "bid_vendor_selected"
+        | "bid_commission_charged"
       payment_method:
         | "card"
         | "virtual_account"
@@ -2647,6 +2950,33 @@ export const Constants = {
       ],
       ad_priority_tier: ["premium", "plus_up", "plus", "rookie"],
       ad_slot_position: ["main", "sub"],
+      bid_commission_status: ["pending", "charged", "refunded", "waived"],
+      bid_contract_status: [
+        "pending",
+        "active",
+        "completed",
+        "canceled",
+        "disputed",
+      ],
+      bid_project_status: [
+        "draft",
+        "open",
+        "bidding",
+        "selecting",
+        "contracted",
+        "in_progress",
+        "completed",
+        "settled",
+        "canceled",
+      ],
+      bid_response_status: [
+        "invited",
+        "submitted",
+        "selected",
+        "rejected",
+        "withdrawn",
+        "expired",
+      ],
       credit_transaction_status: ["pending", "completed", "failed", "canceled"],
       credit_transaction_type: [
         "charge",
@@ -2712,6 +3042,10 @@ export const Constants = {
         "credit_low",
         "lead_no_response_warning",
         "subscription_expiring",
+        "bid_vendor_invited",
+        "bid_response_submitted",
+        "bid_vendor_selected",
+        "bid_commission_charged",
       ],
       payment_method: [
         "card",
