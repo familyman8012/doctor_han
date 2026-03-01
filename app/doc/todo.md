@@ -8,6 +8,17 @@
 - 스키마 변경은 Supabase CLI 마이그레이션으로 관리: `app/supabase/migrations`.
 - DB 명령은 pnpm 스크립트로 통일: `pnpm db:*` (Supabase CLI 래퍼).
 
+## 운영 메모 (Vercel Cron)
+- [x] 2026-03-01 기준 Hobby(무료) 임시 설정 적용:
+  - [x] 파일: `app/vercel.json`
+  - [x] 경로: `/api/cron/lead-no-response`
+  - [x] 스케줄: `0 0 * * *` (UTC 기준 하루 1회)
+- [ ] 프로모션/트래픽 증가로 Pro 전환 시 복구 체크리스트:
+  - [ ] `app/vercel.json` 스케줄을 `0 */1 * * *`로 복구 (매시간)
+  - [ ] Vercel 재배포 후 Cron validation 에러 없는지 확인
+  - [ ] 실행 결과 모니터링: `/api/cron/lead-no-response` 응답(`warned`, `refunded`) 확인
+  - [ ] Pro 전환 전까지는 하루 1회 스케줄 유지 (Hobby 제한)
+
 ---
 
 ## 0) 킥오프(가장 먼저)
