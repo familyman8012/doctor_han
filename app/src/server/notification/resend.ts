@@ -6,12 +6,17 @@ let _resend: Resend | null = null;
 
 export function getResend(): Resend {
 	if (!_resend) {
-		if (!process.env.RESEND_API_KEY) {
+		const apiKey = process.env.RESEND_API_KEY?.trim();
+		if (!apiKey) {
 			console.warn("[Notification] RESEND_API_KEY is not set");
 		}
-		_resend = new Resend(process.env.RESEND_API_KEY ?? "re_placeholder");
+		_resend = new Resend(apiKey || "re_placeholder");
 	}
 	return _resend;
+}
+
+if (!process.env.RESEND_FROM_EMAIL) {
+	console.warn("[Notification] RESEND_FROM_EMAIL is not set, using default: noreply@medihub.kr");
 }
 
 /** @deprecated Use getResend() instead */

@@ -457,20 +457,20 @@ Wave 3 — Wave 2 완료 후 (거래 데이터 필요)
   - [x] Admin 신고 목록 API: query 파라미터 Zod 파싱 적용
 
 ### 8-2. 기간제 상품 `[Wave 2 ← 7-1 + 7-2]`
-- [ ] 정책: 30/60/90/180/365일 무제한
-- [ ] DB: `vendor_subscriptions`
-  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_subscriptions.sql`
-- [ ] Schema: `app/src/lib/schema/subscription.ts`
-- [ ] Server: `app/src/server/subscription/{repository,service}.ts`
-- [ ] API:
-  - [ ] `GET /api/vendors/me/subscriptions` - 구독 목록
-  - [ ] `POST /api/vendors/me/subscriptions` - 구독 구매
-  - [ ] `GET /api/vendors/me/subscriptions/[id]` - 구독 상세
-- [ ] 구독 중 해당 카테고리 리드 무료 처리 로직
-- [ ] 만료 7일/1일 전 알림 (Cron)
-- [ ] UI:
-  - [ ] `/partner/subscriptions` - 구독 관리 페이지
-  - [ ] 구독 구매 페이지
+- [x] 정책: 30/60/90/180/365일 무제한
+- [x] DB: `vendor_subscriptions`
+  - [x] 마이그레이션 작성: `20260228150000_subscriptions.sql` (+ `20260301100000_subscription_policy_and_purchase_rpc.sql`)
+- [x] Schema: `app/src/lib/schema/subscription.ts`
+- [x] Server: `app/src/server/subscription/{repository,service}.ts`
+- [x] API:
+  - [x] `GET /api/vendors/me/subscriptions` - 구독 목록
+  - [x] `POST /api/vendors/me/subscriptions` - 구독 구매/연장
+  - [x] `GET /api/vendors/me/subscriptions/[id]` - 구독 상세
+- [x] 구독 중 해당 카테고리 리드 무료 처리 로직 (8-1 연동 포인트: `hasActiveSubscription`)
+- [x] 만료 7일/1일 전 알림 (Cron)
+- [x] UI:
+  - [x] `/partner/subscriptions` - 구독 관리 페이지
+  - [x] 구독 구매 페이지
 
 ## 9) P4 — 입점비/연회비 (S등급)
 
