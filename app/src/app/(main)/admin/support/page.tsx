@@ -140,7 +140,7 @@ export default function AdminSupportPage() {
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <Input
-                                placeholder="제목, 사용자 이름으로 검색"
+                                placeholder="제목, 내용, 사용자 이름/이메일 검색"
                                 value={searchInput}
                                 onChange={(e) => setSearchInput(e.target.value)}
                                 className="pl-9"

@@ -10,8 +10,14 @@ import { getAdminTickets } from "@/server/support/service";
  */
 export const GET = withApi(
 	withRole(["admin"], async (ctx) => {
-		const searchParams = Object.fromEntries(ctx.req.nextUrl.searchParams);
-		const query = AdminSupportTicketListQuerySchema.parse(searchParams);
+		const query = AdminSupportTicketListQuerySchema.parse({
+			status: ctx.req.nextUrl.searchParams.get("status") ?? undefined,
+			categoryId: ctx.req.nextUrl.searchParams.get("categoryId") ?? undefined,
+			slaStatus: ctx.req.nextUrl.searchParams.get("slaStatus") ?? undefined,
+			q: ctx.req.nextUrl.searchParams.get("q")?.trim() || undefined,
+			page: ctx.req.nextUrl.searchParams.get("page") ?? undefined,
+			pageSize: ctx.req.nextUrl.searchParams.get("pageSize") ?? undefined,
+		});
 
 		const result = await getAdminTickets(ctx.supabase, query);
 

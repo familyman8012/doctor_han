@@ -19,6 +19,16 @@
   - [ ] 실행 결과 모니터링: `/api/cron/lead-no-response` 응답(`warned`, `refunded`) 확인
   - [ ] Pro 전환 전까지는 하루 1회 스케줄 유지 (Hobby 제한)
 
+## 통합 메모 (main 포트)
+- [x] 2026-03-02: 누락 기능 main 기준 포트 통합 완료
+  - [x] 감사로그 조회 (`pr-7/audit-change`)
+  - [x] 헬프데스크 (`feature/help-desk`)
+  - [x] 회귀/버그 수정
+    - [x] FAQ 링크 경로 수정 (`/help/faq/[id]`)
+    - [x] 관리자 티켓 검색 정합성 수정 (제목/내용/사용자명/이메일)
+    - [x] `audit_logs` INSERT 정책 하드닝 + 서버 `service_role` 기록 경로 보강
+    - [x] support 관련 타입 정합성 보강 (`database.types.ts`, `confirmModalStore`)
+
 ---
 
 ## 0) 킥오프(가장 먼저)

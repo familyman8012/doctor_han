@@ -36,6 +36,7 @@ export default function MypageSupportNewPage() {
         queryKey: ["help", "articles", searchQuery],
         queryFn: () =>
             helpCenterApi.getPublicArticles({
+                type: "faq",
                 q: searchQuery || undefined,
                 pageSize: 10,
             }),
@@ -153,7 +154,7 @@ export default function MypageSupportNewPage() {
                                     {articles.map((article: HelpArticleView) => (
                                         <li key={article.id}>
                                             <a
-                                                href={`/help/articles/${article.id}`}
+                                                href={`/help/faq/${article.id}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"

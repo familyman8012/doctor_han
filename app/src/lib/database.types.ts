@@ -2145,6 +2145,162 @@ export type Database = {
           },
         ]
       }
+      support_ticket_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_admin: boolean
+          read_at: string | null
+          sender_id: string
+          ticket_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          read_at?: string | null
+          sender_id: string
+          ticket_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          read_at?: string | null
+          sender_id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_ticket_status_history: {
+        Row: {
+          changed_by: string
+          created_at: string
+          from_status:
+            | Database["public"]["Enums"]["support_ticket_status"]
+            | null
+          id: string
+          note: string | null
+          ticket_id: string
+          to_status: Database["public"]["Enums"]["support_ticket_status"]
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string
+          from_status?:
+            | Database["public"]["Enums"]["support_ticket_status"]
+            | null
+          id?: string
+          note?: string | null
+          ticket_id: string
+          to_status: Database["public"]["Enums"]["support_ticket_status"]
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string
+          from_status?:
+            | Database["public"]["Enums"]["support_ticket_status"]
+            | null
+          id?: string
+          note?: string | null
+          ticket_id?: string
+          to_status?: Database["public"]["Enums"]["support_ticket_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_status_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_ticket_status_history_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          category_id: string
+          content: string
+          created_at: string
+          first_response_at: string | null
+          id: string
+          resolved_at: string | null
+          sla_first_response_due: string
+          sla_resolution_due: string
+          status: Database["public"]["Enums"]["support_ticket_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          content: string
+          created_at?: string
+          first_response_at?: string | null
+          id?: string
+          resolved_at?: string | null
+          sla_first_response_due: string
+          sla_resolution_due: string
+          status?: Database["public"]["Enums"]["support_ticket_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          content?: string
+          created_at?: string
+          first_response_at?: string | null
+          id?: string
+          resolved_at?: string | null
+          sla_first_response_due?: string
+          sla_resolution_due?: string
+          status?: Database["public"]["Enums"]["support_ticket_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "help_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           created_at: string
@@ -2922,6 +3078,9 @@ export type Database = {
         | "lead_responded"
         | "review_received"
         | "lead_message_received"
+        | "support_ticket_created"
+        | "support_ticket_response"
+        | "support_ticket_resolved"
         | "membership_expiring"
         | "subscription_expiring"
         | "lead_charged"
@@ -2967,6 +3126,7 @@ export type Database = {
       review_status: "published" | "hidden"
       sanction_status: "active" | "expired" | "revoked"
       sanction_type: "warning" | "suspension" | "permanent_ban"
+      support_ticket_status: "open" | "in_progress" | "resolved" | "closed"
       subscription_status: "active" | "expired" | "canceled"
       vendor_service_price_status: "active" | "archived"
       vendor_status: "draft" | "active" | "inactive" | "banned"
@@ -3202,6 +3362,9 @@ export const Constants = {
         "lead_responded",
         "review_received",
         "lead_message_received",
+        "support_ticket_created",
+        "support_ticket_response",
+        "support_ticket_resolved",
         "membership_expiring",
         "subscription_expiring",
         "lead_charged",
@@ -3252,6 +3415,7 @@ export const Constants = {
       review_status: ["published", "hidden"],
       sanction_status: ["active", "expired", "revoked"],
       sanction_type: ["warning", "suspension", "permanent_ban"],
+      support_ticket_status: ["open", "in_progress", "resolved", "closed"],
       subscription_status: ["active", "expired", "canceled"],
       vendor_service_price_status: ["active", "archived"],
       vendor_status: ["draft", "active", "inactive", "banned"],

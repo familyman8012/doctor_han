@@ -3,6 +3,7 @@ import "server-only";
 import type { Database, Tables, TablesInsert } from "@/lib/database.types";
 import type { SupportTicketStatus } from "@/lib/schema/support";
 import { internalServerError } from "@/server/api/errors";
+import { buildOrIlikeFilter } from "@/server/api/postgrest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // ===========================
@@ -204,11 +205,37 @@ export async function fetchAdminTickets(
 		}
 	}
 
-	// Search by title or user name/email
+	// Search by title/content/user name/email
 	if (q) {
-		// For search, we need to filter by title or user info
-		// This is a simplified approach - title search only
-		query = query.ilike("title", `%${q}%`);
+		const titleOrContentFilter = buildOrIlikeFilter(["title", "content"], q);
+
+		const userLookupFilter = buildOrIlikeFilter(["display_name", "email"], q);
+		let matchedUserIds: string[] = [];
+
+		if (userLookupFilter) {
+			const { data: matchedProfiles, error: profileError } = await supabase
+				.from("profiles")
+				.select("id")
+				.or(userLookupFilter)
+				.limit(100);
+
+			if (profileError) {
+				throw internalServerError("검색 대상 사용자를 조회할 수 없습니다.", {
+					message: profileError.message,
+					code: profileError.code,
+				});
+			}
+
+			matchedUserIds = (matchedProfiles ?? []).map((profile) => profile.id);
+		}
+
+		if (titleOrContentFilter && matchedUserIds.length > 0) {
+			query = query.or(`${titleOrContentFilter},user_id.in.(${matchedUserIds.join(",")})`);
+		} else if (titleOrContentFilter) {
+			query = query.or(titleOrContentFilter);
+		} else if (matchedUserIds.length > 0) {
+			query = query.in("user_id", matchedUserIds);
+		}
 	}
 
 	query = query.order("created_at", { ascending: false });
