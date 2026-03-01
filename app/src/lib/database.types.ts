@@ -1285,6 +1285,45 @@ export type Database = {
           },
         ]
       }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          daily_rate: number
+          discount_rate: number
+          duration_days: number
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_rate: number
+          discount_rate?: number
+          duration_days: number
+          id?: string
+          is_active?: boolean
+          name: string
+          price: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_rate?: number
+          discount_rate?: number
+          duration_days?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_onboarding_steps: {
         Row: {
           completed_at: string | null
@@ -1478,6 +1517,118 @@ export type Database = {
           },
         ]
       }
+      vendor_subscription_reminder_logs: {
+        Row: {
+          created_at: string
+          id: string
+          reminder_days_before: number
+          sent_at: string
+          subscription_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reminder_days_before: number
+          sent_at?: string
+          subscription_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reminder_days_before?: number
+          sent_at?: string
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_subscription_reminder_logs_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_subscriptions: {
+        Row: {
+          auto_renew: boolean
+          canceled_at: string | null
+          category_id: string
+          created_at: string
+          credit_transaction_id: string | null
+          expires_at: string
+          id: string
+          lead_count: number
+          plan_id: string
+          price_paid: number
+          starts_at: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          auto_renew?: boolean
+          canceled_at?: string | null
+          category_id: string
+          created_at?: string
+          credit_transaction_id?: string | null
+          expires_at: string
+          id?: string
+          lead_count?: number
+          plan_id: string
+          price_paid: number
+          starts_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          auto_renew?: boolean
+          canceled_at?: string | null
+          category_id?: string
+          created_at?: string
+          credit_transaction_id?: string | null
+          expires_at?: string
+          id?: string
+          lead_count?: number
+          plan_id?: string
+          price_paid?: number
+          starts_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_subscriptions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_subscriptions_credit_transaction_id_fkey"
+            columns: ["credit_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "credit_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_subscriptions_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_verifications: {
         Row: {
           business_license_file_id: string | null
@@ -1638,11 +1789,34 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["profile_role"]
       }
+      has_active_vendor_subscription: {
+        Args: {
+          p_category_id: string
+          p_reference_time?: string
+          p_vendor_id: string
+        }
+        Returns: boolean
+      }
       is_admin: { Args: never; Returns: boolean }
       is_approved_doctor: { Args: never; Returns: boolean }
       is_vendor_approved: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor_owner: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor_public: { Args: { vendor_id: string }; Returns: boolean }
+      purchase_vendor_subscription: {
+        Args: {
+          p_auto_renew?: boolean
+          p_category_id: string
+          p_extension_window_days?: number
+          p_plan_id: string
+          p_vendor_id: string
+        }
+        Returns: {
+          new_balance: number
+          subscription_id: string
+          transaction_id: string
+          was_extended: boolean
+        }[]
+      }
       refresh_vendor_rating: {
         Args: { target_vendor_id: string }
         Returns: undefined
@@ -1694,6 +1868,7 @@ export type Database = {
         | "lead_responded"
         | "review_received"
         | "lead_message_received"
+        | "subscription_expiring"
       payment_method:
         | "card"
         | "virtual_account"
@@ -1729,6 +1904,7 @@ export type Database = {
       review_status: "published" | "hidden"
       sanction_status: "active" | "expired" | "revoked"
       sanction_type: "warning" | "suspension" | "permanent_ban"
+      subscription_status: "active" | "expired" | "canceled"
       vendor_service_price_status: "active" | "archived"
       vendor_status: "draft" | "active" | "inactive" | "banned"
       verification_status: "pending" | "approved" | "rejected"
@@ -1897,6 +2073,7 @@ export const Constants = {
         "lead_responded",
         "review_received",
         "lead_message_received",
+        "subscription_expiring",
       ],
       payment_method: [
         "card",
@@ -1937,6 +2114,7 @@ export const Constants = {
       review_status: ["published", "hidden"],
       sanction_status: ["active", "expired", "revoked"],
       sanction_type: ["warning", "suspension", "permanent_ban"],
+      subscription_status: ["active", "expired", "canceled"],
       vendor_service_price_status: ["active", "archived"],
       vendor_status: ["draft", "active", "inactive", "banned"],
       verification_status: ["pending", "approved", "rejected"],
