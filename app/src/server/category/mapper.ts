@@ -12,6 +12,7 @@ export function mapCategoryRow(row: CategoryRow): CategoryView {
         slug: row.slug,
         sortOrder: row.sort_order,
         isActive: row.is_active,
+        tier: (row.tier as CategoryView["tier"]) ?? "standard",
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };

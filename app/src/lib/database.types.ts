@@ -451,6 +451,7 @@ export type Database = {
           parent_id: string | null
           slug: string
           sort_order: number
+          tier: string
           updated_at: string
         }
         Insert: {
@@ -462,6 +463,7 @@ export type Database = {
           parent_id?: string | null
           slug: string
           sort_order?: number
+          tier?: string
           updated_at?: string
         }
         Update: {
@@ -473,6 +475,7 @@ export type Database = {
           parent_id?: string | null
           slug?: string
           sort_order?: number
+          tier?: string
           updated_at?: string
         }
         Relationships: [
@@ -1238,6 +1241,45 @@ export type Database = {
           },
         ]
       }
+      membership_plans: {
+        Row: {
+          created_at: string
+          duration_days: number
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          promo_expires_at: string | null
+          promo_price: number | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration_days: number
+          id?: string
+          is_active?: boolean
+          name: string
+          price: number
+          promo_expires_at?: string | null
+          promo_price?: number | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration_days?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          promo_expires_at?: string | null
+          promo_price?: number | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notification_deliveries: {
         Row: {
           body_preview: string | null
@@ -1939,6 +1981,115 @@ export type Database = {
           },
         ]
       }
+      vendor_membership_reminder_logs: {
+        Row: {
+          created_at: string
+          id: string
+          membership_id: string
+          reminder_days_before: number
+          sent_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          membership_id: string
+          reminder_days_before: number
+          sent_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          membership_id?: string
+          reminder_days_before?: number
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_membership_reminder_logs_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_memberships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_memberships: {
+        Row: {
+          auto_renew: boolean
+          canceled_at: string | null
+          created_at: string
+          credit_transaction_id: string | null
+          expires_at: string
+          id: string
+          payment_id: string | null
+          plan_id: string
+          price_paid: number
+          starts_at: string
+          status: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          auto_renew?: boolean
+          canceled_at?: string | null
+          created_at?: string
+          credit_transaction_id?: string | null
+          expires_at: string
+          id?: string
+          payment_id?: string | null
+          plan_id: string
+          price_paid: number
+          starts_at?: string
+          status?: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          auto_renew?: boolean
+          canceled_at?: string | null
+          created_at?: string
+          credit_transaction_id?: string | null
+          expires_at?: string
+          id?: string
+          payment_id?: string | null
+          plan_id?: string
+          price_paid?: number
+          starts_at?: string
+          status?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_memberships_credit_transaction_id_fkey"
+            columns: ["credit_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "credit_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_memberships_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_memberships_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "membership_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_memberships_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_portfolio_assets: {
         Row: {
           created_at: string
@@ -2339,6 +2490,10 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["profile_role"]
       }
+      has_active_vendor_membership: {
+        Args: { p_reference_time?: string; p_vendor_id: string }
+        Returns: boolean
+      }
       has_active_vendor_subscription: {
         Args: {
           p_category_id: string
@@ -2352,6 +2507,22 @@ export type Database = {
       is_vendor_approved: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor_owner: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor_public: { Args: { vendor_id: string }; Returns: boolean }
+      purchase_ad_priority_slot: {
+        Args: { p_priority_slot_id: string; p_vendor_id: string }
+        Returns: {
+          purchase_id: string
+          transaction_id: string
+        }[]
+      }
+      purchase_vendor_membership: {
+        Args: { p_auto_renew?: boolean; p_plan_id: string; p_vendor_id: string }
+        Returns: {
+          membership_id: string
+          new_balance: number
+          transaction_id: string
+          was_extended: boolean
+        }[]
+      }
       purchase_vendor_subscription: {
         Args: {
           p_auto_renew?: boolean
@@ -2365,13 +2536,6 @@ export type Database = {
           subscription_id: string
           transaction_id: string
           was_extended: boolean
-        }[]
-      }
-      purchase_ad_priority_slot: {
-        Args: { p_priority_slot_id: string; p_vendor_id: string }
-        Returns: {
-          purchase_id: string
-          transaction_id: string | null
         }[]
       }
       refresh_vendor_rating: {
@@ -2459,11 +2623,12 @@ export type Database = {
         | "lead_responded"
         | "review_received"
         | "lead_message_received"
+        | "membership_expiring"
+        | "subscription_expiring"
         | "lead_charged"
         | "lead_refunded"
         | "credit_low"
         | "lead_no_response_warning"
-        | "subscription_expiring"
       payment_method:
         | "card"
         | "virtual_account"
@@ -2707,11 +2872,12 @@ export const Constants = {
         "lead_responded",
         "review_received",
         "lead_message_received",
+        "membership_expiring",
+        "subscription_expiring",
         "lead_charged",
         "lead_refunded",
         "credit_low",
         "lead_no_response_warning",
-        "subscription_expiring",
       ],
       payment_method: [
         "card",

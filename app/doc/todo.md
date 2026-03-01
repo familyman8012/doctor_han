@@ -477,26 +477,26 @@ Wave 3 — Wave 2 완료 후 (거래 데이터 필요)
 > 사업계획서 수익모델 (1) — S등급 업종 연 200만원, 1년차 예상 1.77억
 
 ### 9-1. 입점비 정책
-- [ ] 대상: S등급 업종만 (원외탕전(한약) 120개, 원외탕전(약침) 25개, 약재회사/제약사 150개 = 총 295개)
-- [ ] 금액: 연 200만원 (초기 할인 프로모션 검토)
-- [ ] 미납 업체: 무료 기본 입점 가능, 단 노출 제한 & 리드 연결 불가
-- [ ] 납부 시 풀 기능 개방
+- [x] 대상: S등급 업종만 (원외탕전(한약) 120개, 원외탕전(약침) 25개, 약재회사/제약사 150개 = 총 295개)
+- [x] 금액: 연 200만원 (초기 할인 프로모션 검토)
+- [x] 미납 업체: 무료 기본 입점 가능, 단 노출 제한 & 리드 연결 불가
+- [x] 납부 시 풀 기능 개방
 
 ### 9-2. 입점비 구현 `[Wave 2 ← 7-2]`
-- [ ] DB: `vendor_memberships` (업체별 입점 등급, 연회비 상태, 유효기간, 결제 이력)
-  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_vendor_memberships.sql`
-- [ ] Schema: `app/src/lib/schema/vendor-membership.ts`
-- [ ] Server: `app/src/server/vendor/membership-{repository,service}.ts`
-- [ ] 노출 제한 로직: 미납 S등급 업체 → 검색 결과 하위 노출 + 리드 수신 차단
-- [ ] API:
-  - [ ] `GET /api/vendors/me/membership` - 입점 상태 조회
-  - [ ] `POST /api/vendors/me/membership` - 연회비 결제 (TossPayments 연동)
-  - [ ] `GET /api/admin/memberships` - 관리자 연회비 관리
-  - [ ] `PATCH /api/admin/memberships/[id]` - 상태 변경 (승인/해지 등)
-- [ ] UI:
-  - [ ] 업체 파트너센터: 입점 상태 표시 + 연회비 결제
-  - [ ] 관리자: 연회비 납부 현황 + 업체별 상태 관리
-- [ ] 만료 알림 (30일/7일 전) — Cron
+- [x] DB: `vendor_memberships` (업체별 입점 등급, 연회비 상태, 유효기간, 결제 이력)
+  - [x] 마이그레이션 작성: `20260302000001_vendor_memberships.sql`
+- [x] Schema: `app/src/lib/schema/vendor-membership.ts`
+- [x] Server: `app/src/server/vendor/membership-{repository,service}.ts`
+- [x] 노출 제한 로직: 미납 S등급 업체 → 검색 결과 하위 노출 + 리드 수신 차단
+- [x] API:
+  - [x] `GET /api/vendors/me/membership` - 입점 상태 조회
+  - [x] `POST /api/vendors/me/membership` - 연회비 결제 (크레딧 차감, 충전은 TossPayments)
+  - [x] `GET /api/admin/memberships` - 관리자 연회비 관리
+  - [x] `PATCH /api/admin/memberships/[id]` - 상태 변경 (해지)
+- [x] UI:
+  - [x] 업체 파트너센터: 입점 상태 표시 + 연회비 결제
+  - [x] 관리자: 연회비 납부 현황 + 업체별 상태 관리
+- [x] 만료 알림 (30일/7일 전) — Cron
 
 ## 10) P5 — 광고 시스템 (배너 + 우선순위노출)
 

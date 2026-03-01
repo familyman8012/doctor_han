@@ -1,11 +1,12 @@
 import type { Tables } from "@/lib/database.types";
 import type { z } from "zod";
-import { VendorListQuerySchema } from "@/lib/schema/vendor";
+import { VendorListQuerySchema, type VendorListItem } from "@/lib/schema/vendor";
 import { internalServerError } from "@/server/api/errors";
 import { buildOrIlikeFilter } from "@/server/api/postgrest";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { mapVendorListItem } from "@/server/vendor/mapper";
+import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import type { NextRequest } from "next/server";
 
@@ -80,8 +81,52 @@ export const GET = withApi(async (req: NextRequest) => {
         });
     }
 
+    const items = (data ?? []).map((row: VendorRow) => mapVendorListItem(row));
+
+    // S등급 카테고리로 조회 시: 활성 멤버십 업체 상단, 미납 업체 하단 재정렬
+    if (query.categoryId && items.length > 0) {
+        const adminClient = createSupabaseAdminClient();
+        const { data: catRow, error: catError } = await adminClient
+            .from("categories")
+            .select("tier")
+            .eq("id", query.categoryId)
+            .maybeSingle();
+
+        if (catError) {
+            throw internalServerError("카테고리 정보를 조회할 수 없습니다.", {
+                message: catError.message,
+                code: catError.code,
+            });
+        }
+
+        if (catRow?.tier === "s_grade") {
+            const vendorIds = items.map((item: VendorListItem) => item.id);
+            const { data: membershipRows, error: membershipError } = await adminClient
+                .from("vendor_memberships")
+                .select("vendor_id")
+                .in("vendor_id", vendorIds)
+                .eq("status", "active")
+                .gt("expires_at", new Date().toISOString());
+
+            if (membershipError) {
+                throw internalServerError("멤버십 정보를 조회할 수 없습니다.", {
+                    message: membershipError.message,
+                    code: membershipError.code,
+                });
+            }
+
+            const activeVendorIds = new Set((membershipRows ?? []).map((r) => r.vendor_id));
+
+            items.sort((a: VendorListItem, b: VendorListItem) => {
+                const aActive = activeVendorIds.has(a.id) ? 1 : 0;
+                const bActive = activeVendorIds.has(b.id) ? 1 : 0;
+                return bActive - aActive;
+            });
+        }
+    }
+
     return ok({
-        items: (data ?? []).map((row: VendorRow) => mapVendorListItem(row)),
+        items,
         page: query.page,
         pageSize: query.pageSize,
         total: count ?? 0,
