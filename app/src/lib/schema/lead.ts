@@ -26,6 +26,7 @@ export const LeadListItemSchema = z.object({
     id: zUuid,
     doctorUserId: zUuid,
     vendorId: zUuid,
+    categoryIds: z.array(zUuid),
     serviceName: z.string().nullable(),
     contactName: z.string().nullable(),
     contactPhone: z.string().nullable(),
@@ -62,9 +63,126 @@ export const LeadAttachmentSchema = z.object({
 
 export type LeadAttachment = z.infer<typeof LeadAttachmentSchema>;
 
+// ============================================
+// Lead Charge
+// ============================================
+
+export const LeadChargeStatusSchema = z.enum([
+    "charged",
+    "pending",
+    "refunded",
+    "waived",
+    "failed",
+]);
+
+export type LeadChargeStatus = z.infer<typeof LeadChargeStatusSchema>;
+
+export const LeadChargeRefundReasonSchema = z.enum([
+    "duplicate_30d",
+    "no_response_72h",
+    "fraud_auto_filter",
+    "fraud_vendor_report",
+    "admin_manual",
+]);
+
+export type LeadChargeRefundReason = z.infer<typeof LeadChargeRefundReasonSchema>;
+
+export const PriceBreakdownItemSchema = z.object({
+    categoryId: zUuid,
+    categoryName: z.string(),
+    price: z.number().int(),
+});
+
+export type PriceBreakdownItem = z.infer<typeof PriceBreakdownItemSchema>;
+
+export const LeadChargeSchema = z.object({
+    id: zUuid,
+    leadId: zUuid,
+    vendorId: zUuid,
+    creditAccountId: zUuid,
+    totalAmount: z.number().int(),
+    priceBreakdown: z.array(PriceBreakdownItemSchema),
+    status: LeadChargeStatusSchema,
+    chargeTransactionId: zUuid.nullable(),
+    refundTransactionId: zUuid.nullable(),
+    refundReason: LeadChargeRefundReasonSchema.nullable(),
+    refundAmount: z.number().int().nullable(),
+    refundedAt: z.string().nullable(),
+    isDuplicate: z.boolean(),
+    duplicateOfLeadId: zUuid.nullable(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+});
+
+export type LeadCharge = z.infer<typeof LeadChargeSchema>;
+
+// ============================================
+// Lead Report
+// ============================================
+
+export const LeadReportReasonSchema = z.enum([
+    "wrong_contact",
+    "test_inquiry",
+    "competitor",
+    "inappropriate",
+    "other",
+]);
+
+export type LeadReportReason = z.infer<typeof LeadReportReasonSchema>;
+
+export const LeadReportStatusSchema = z.enum(["pending", "approved", "dismissed"]);
+
+export type LeadReportStatus = z.infer<typeof LeadReportStatusSchema>;
+
+export const LeadReportBodySchema = z
+    .object({
+        reason: LeadReportReasonSchema,
+        detail: z.string().trim().max(2000).optional(),
+    })
+    .strict();
+
+export type LeadReportBody = z.infer<typeof LeadReportBodySchema>;
+
+export const LeadReportSchema = z.object({
+    id: zUuid,
+    leadId: zUuid,
+    reporterUserId: zUuid,
+    reason: LeadReportReasonSchema,
+    detail: z.string().nullable(),
+    status: LeadReportStatusSchema,
+    reviewedBy: zUuid.nullable(),
+    reviewedAt: z.string().nullable(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+});
+
+export type LeadReport = z.infer<typeof LeadReportSchema>;
+
+export const LeadReportReviewBodySchema = z
+    .object({
+        action: z.enum(["approve", "dismiss"]),
+    })
+    .strict();
+
+export type LeadReportReviewBody = z.infer<typeof LeadReportReviewBodySchema>;
+
+export const LeadReportListQuerySchema = z
+    .object({
+        status: LeadReportStatusSchema.optional(),
+    })
+    .merge(zPaginationQuery)
+    .strict();
+
+export type LeadReportListQuery = z.infer<typeof LeadReportListQuerySchema>;
+
+// ============================================
+// Lead Detail (extended)
+// ============================================
+
 export const LeadDetailSchema = LeadListItemSchema.extend({
     statusHistory: z.array(LeadStatusHistorySchema),
     attachments: z.array(LeadAttachmentSchema),
+    charge: LeadChargeSchema.nullable(),
 });
 
 export type LeadDetail = z.infer<typeof LeadDetailSchema>;
@@ -72,6 +190,7 @@ export type LeadDetail = z.infer<typeof LeadDetailSchema>;
 export const LeadCreateBodySchema = z
     .object({
         vendorId: zUuid,
+        categoryIds: z.array(zUuid).min(1).max(10),
         serviceName: z.string().trim().min(1).optional().nullable(),
         contactName: zNonEmptyString,
         contactPhone: zNonEmptyString,
@@ -203,3 +322,30 @@ export const LeadMessageReadPatchBodySchema = z
 export type LeadMessageReadPatchBody = z.infer<
     typeof LeadMessageReadPatchBodySchema
 >;
+
+// ============================================
+// Lead Report Responses
+// ============================================
+
+export const LeadReportResponseSchema = z.object({
+    code: z.literal(API_SUCCESS_CODE),
+    data: z.object({
+        report: LeadReportSchema,
+    }),
+    message: z.string().optional(),
+});
+
+export type LeadReportResponse = z.infer<typeof LeadReportResponseSchema>;
+
+export const LeadReportListResponseSchema = z.object({
+    code: z.literal(API_SUCCESS_CODE),
+    data: z.object({
+        items: z.array(LeadReportSchema),
+        page: z.number().int(),
+        pageSize: z.number().int(),
+        total: z.number().int(),
+    }),
+    message: z.string().optional(),
+});
+
+export type LeadReportListResponse = z.infer<typeof LeadReportListResponseSchema>;

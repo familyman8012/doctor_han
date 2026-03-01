@@ -120,3 +120,73 @@ export function getLeadMessageReceivedKakaoTemplate(data: {
 		},
 	};
 }
+
+// ============================================================
+// CPL 리드 과금 관련 카카오 알림톡 템플릿
+// ============================================================
+
+/**
+ * 리드 과금 알림 카카오 알림톡 템플릿 (업체에게 발송)
+ */
+export function getKakaoLeadChargedTemplate(data: {
+	vendorName: string;
+	doctorName: string;
+	totalAmount: number;
+}): KakaoTemplate {
+	return {
+		templateId: "MEDIHUB_LEAD_CHARGED",
+		variables: {
+			"#{업체명}": data.vendorName,
+			"#{한의사명}": data.doctorName,
+			"#{과금액}": data.totalAmount.toLocaleString(),
+		},
+	};
+}
+
+/**
+ * 리드 환불 알림 카카오 알림톡 템플릿 (업체에게 발송)
+ */
+export function getKakaoLeadRefundedTemplate(data: {
+	vendorName: string;
+	refundAmount: number;
+}): KakaoTemplate {
+	return {
+		templateId: "MEDIHUB_LEAD_REFUNDED",
+		variables: {
+			"#{업체명}": data.vendorName,
+			"#{환불액}": data.refundAmount.toLocaleString(),
+		},
+	};
+}
+
+/**
+ * 크레딧 잔액 부족 카카오 알림톡 템플릿 (업체에게 발송)
+ */
+export function getKakaoCreditLowTemplate(data: {
+	vendorName: string;
+	currentBalance: number;
+}): KakaoTemplate {
+	return {
+		templateId: "MEDIHUB_CREDIT_LOW",
+		variables: {
+			"#{업체명}": data.vendorName,
+			"#{잔액}": data.currentBalance.toLocaleString(),
+		},
+	};
+}
+
+/**
+ * 미응답 문의 경고 카카오 알림톡 템플릿 (업체에게 발송)
+ */
+export function getKakaoLeadNoResponseWarningTemplate(data: {
+	vendorName: string;
+	doctorName: string;
+}): KakaoTemplate {
+	return {
+		templateId: "MEDIHUB_LEAD_NO_RESPONSE",
+		variables: {
+			"#{업체명}": data.vendorName,
+			"#{한의사명}": data.doctorName,
+		},
+	};
+}

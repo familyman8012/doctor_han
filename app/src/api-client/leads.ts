@@ -8,6 +8,8 @@ import type {
     LeadMessageResponse,
     LeadMessagesListQuery,
     LeadMessagesListResponse,
+    LeadReportBody,
+    LeadReportResponse,
     LeadStatus,
 } from "@/lib/schema/lead";
 import api from "./client";
@@ -67,5 +69,11 @@ export const leadsApi = {
         payload: LeadMessageReadPatchBody,
     ): Promise<void> => {
         await api.patch(`/api/leads/${leadId}/messages/read`, payload);
+    },
+
+    // 허위 리드 신고
+    reportLead: async (leadId: string, payload: LeadReportBody): Promise<LeadReportResponse> => {
+        const response = await api.post<LeadReportResponse>(`/api/leads/${leadId}/report`, payload);
+        return response.data;
     },
 };

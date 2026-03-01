@@ -505,6 +505,115 @@ export type Database = {
           },
         ]
       }
+      lead_charges: {
+        Row: {
+          charge_transaction_id: string | null
+          created_at: string
+          credit_account_id: string
+          duplicate_of_lead_id: string | null
+          id: string
+          is_duplicate: boolean
+          lead_id: string
+          no_response_warned_at: string | null
+          price_breakdown: Json
+          refund_amount: number | null
+          refund_reason:
+            | Database["public"]["Enums"]["lead_charge_refund_reason"]
+            | null
+          refund_transaction_id: string | null
+          refunded_at: string | null
+          status: Database["public"]["Enums"]["lead_charge_status"]
+          total_amount: number
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          charge_transaction_id?: string | null
+          created_at?: string
+          credit_account_id: string
+          duplicate_of_lead_id?: string | null
+          id?: string
+          is_duplicate?: boolean
+          lead_id: string
+          no_response_warned_at?: string | null
+          price_breakdown?: Json
+          refund_amount?: number | null
+          refund_reason?:
+            | Database["public"]["Enums"]["lead_charge_refund_reason"]
+            | null
+          refund_transaction_id?: string | null
+          refunded_at?: string | null
+          status?: Database["public"]["Enums"]["lead_charge_status"]
+          total_amount?: number
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          charge_transaction_id?: string | null
+          created_at?: string
+          credit_account_id?: string
+          duplicate_of_lead_id?: string | null
+          id?: string
+          is_duplicate?: boolean
+          lead_id?: string
+          no_response_warned_at?: string | null
+          price_breakdown?: Json
+          refund_amount?: number | null
+          refund_reason?:
+            | Database["public"]["Enums"]["lead_charge_refund_reason"]
+            | null
+          refund_transaction_id?: string | null
+          refunded_at?: string | null
+          status?: Database["public"]["Enums"]["lead_charge_status"]
+          total_amount?: number
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_charges_charge_transaction_id_fkey"
+            columns: ["charge_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "credit_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_charges_credit_account_id_fkey"
+            columns: ["credit_account_id"]
+            isOneToOne: false
+            referencedRelation: "credit_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_charges_duplicate_of_lead_id_fkey"
+            columns: ["duplicate_of_lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_charges_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: true
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_charges_refund_transaction_id_fkey"
+            columns: ["refund_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "credit_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_charges_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_message_attachments: {
         Row: {
           created_at: string
@@ -583,6 +692,53 @@ export type Database = {
           },
         ]
       }
+      lead_reports: {
+        Row: {
+          created_at: string
+          detail: string | null
+          id: string
+          lead_id: string
+          reason: Database["public"]["Enums"]["lead_report_reason"]
+          reporter_user_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["lead_report_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          lead_id: string
+          reason: Database["public"]["Enums"]["lead_report_reason"]
+          reporter_user_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["lead_report_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          lead_id?: string
+          reason?: Database["public"]["Enums"]["lead_report_reason"]
+          reporter_user_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["lead_report_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_reports_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_status_history: {
         Row: {
           changed_by: string | null
@@ -627,6 +783,7 @@ export type Database = {
       }
       leads: {
         Row: {
+          category_ids: string[] | null
           contact_email: string | null
           contact_name: string | null
           contact_phone: string | null
@@ -642,6 +799,7 @@ export type Database = {
           vendor_id: string
         }
         Insert: {
+          category_ids?: string[] | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
@@ -657,6 +815,7 @@ export type Database = {
           vendor_id: string
         }
         Update: {
+          category_ids?: string[] | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
@@ -1677,6 +1836,25 @@ export type Database = {
         | "review_photo"
         | "lead_message_attachment"
       help_article_type: "faq" | "notice" | "guide"
+      lead_charge_refund_reason:
+        | "duplicate_30d"
+        | "no_response_72h"
+        | "fraud_auto_filter"
+        | "fraud_vendor_report"
+        | "admin_manual"
+      lead_charge_status:
+        | "charged"
+        | "pending"
+        | "refunded"
+        | "waived"
+        | "failed"
+      lead_report_reason:
+        | "wrong_contact"
+        | "test_inquiry"
+        | "competitor"
+        | "inappropriate"
+        | "other"
+      lead_report_status: "pending" | "approved" | "dismissed"
       lead_status:
         | "submitted"
         | "in_progress"
@@ -1694,6 +1872,10 @@ export type Database = {
         | "lead_responded"
         | "review_received"
         | "lead_message_received"
+        | "lead_charged"
+        | "lead_refunded"
+        | "credit_low"
+        | "lead_no_response_warning"
       payment_method:
         | "card"
         | "virtual_account"
@@ -1879,6 +2061,28 @@ export const Constants = {
         "lead_message_attachment",
       ],
       help_article_type: ["faq", "notice", "guide"],
+      lead_charge_refund_reason: [
+        "duplicate_30d",
+        "no_response_72h",
+        "fraud_auto_filter",
+        "fraud_vendor_report",
+        "admin_manual",
+      ],
+      lead_charge_status: [
+        "charged",
+        "pending",
+        "refunded",
+        "waived",
+        "failed",
+      ],
+      lead_report_reason: [
+        "wrong_contact",
+        "test_inquiry",
+        "competitor",
+        "inappropriate",
+        "other",
+      ],
+      lead_report_status: ["pending", "approved", "dismissed"],
       lead_status: [
         "submitted",
         "in_progress",
@@ -1897,6 +2101,10 @@ export const Constants = {
         "lead_responded",
         "review_received",
         "lead_message_received",
+        "lead_charged",
+        "lead_refunded",
+        "credit_low",
+        "lead_no_response_warning",
       ],
       payment_method: [
         "card",
