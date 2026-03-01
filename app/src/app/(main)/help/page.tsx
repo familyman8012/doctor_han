@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";
 import { Search, ChevronDown, ChevronUp, Pin, Clock } from "lucide-react";
@@ -18,7 +18,7 @@ import type { HelpArticleView, HelpCategoryView } from "@/lib/schema/help-center
 
 type TabType = "faq" | "notice";
 
-export default function HelpCenterPage() {
+function HelpCenterContent() {
     const [tab, setTab] = useQueryState("tab", { defaultValue: "faq" });
     const [category, setCategory] = useQueryState("category", { defaultValue: "" });
     const [q, setQ] = useQueryState("q", { defaultValue: "" });
@@ -288,5 +288,33 @@ export default function HelpCenterPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+function HelpCenterSkeleton() {
+    return (
+        <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="text-center mb-8">
+                <div className="h-9 w-40 mx-auto rounded bg-gray-200 animate-pulse mb-2" />
+                <div className="h-5 w-80 max-w-full mx-auto rounded bg-gray-100 animate-pulse" />
+            </div>
+            <div className="flex justify-center mb-6">
+                <div className="h-11 w-56 rounded-lg bg-gray-100 animate-pulse" />
+            </div>
+            <div className="h-11 w-full rounded-lg bg-gray-100 animate-pulse mb-6" />
+            <div className="rounded-xl border border-gray-200 p-10">
+                <div className="flex justify-center">
+                    <Spinner size="lg" />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function HelpCenterPage() {
+    return (
+        <Suspense fallback={<HelpCenterSkeleton />}>
+            <HelpCenterContent />
+        </Suspense>
     );
 }
