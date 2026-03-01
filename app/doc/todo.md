@@ -553,22 +553,22 @@ Wave 3 — Wave 2 완료 후 (거래 데이터 필요)
 > (결정일: 26.02.07)
 
 ### 11-2. 비딩 시스템 (인테리어) `[Wave 1: 코어 | Wave 2: 결제 연동 ← 7-1 + 7-2]`
-- [ ] 정책: 자동 매칭 + 파운더 겸임 (전담 매니저 없음), 수수료 3%, 추천업체 3개
-- [ ] DB: `bid_projects`, `bid_responses`, `bid_contracts`
-  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_bidding.sql`
-- [ ] Schema: `app/src/lib/schema/bidding.ts`
-- [ ] Server: `app/src/server/bidding/{repository,service}.ts`
-- [ ] 자동 스코어링 매칭 (지역30%/평점25%/응답률20%/포트폴리오15%/가격10%)
-- [ ] API:
-  - [ ] `POST /api/bid/projects` - 프로젝트 등록 (의사)
-  - [ ] `GET /api/bid/projects` - 프로젝트 목록
-  - [ ] `GET /api/bid/projects/[id]` - 프로젝트 상세
-  - [ ] `POST /api/bid/projects/[id]/responses` - 입찰 제출 (업체)
-  - [ ] `PATCH /api/bid/projects/[id]/select` - 업체 선정 (의사)
-- [ ] UI:
-  - [ ] `/interior` - 인테리어 프로젝트 등록 (의사)
-  - [ ] `/partner/bids` - 입찰 관리 (업체)
-  - [ ] `/admin/bid-projects` - 프로젝트 현황 (분쟁/상담 대응용)
+- [x] 정책: 자동 매칭 + 파운더 겸임 (전담 매니저 없음), 수수료 3%, 추천업체 3개
+- [x] DB: `bid_projects`, `bid_responses`, `bid_contracts`
+  - [x] 마이그레이션 작성: `20260302120000_bidding.sql`
+- [x] Schema: `app/src/lib/schema/bidding.ts`
+- [x] Server: `app/src/server/bidding/{repository,service}.ts`
+- [x] 자동 스코어링 매칭 (지역30%/평점25%/응답률20%/포트폴리오15%/가격10%)
+- [x] API:
+  - [x] `POST /api/bid/projects` - 프로젝트 등록 (의사)
+  - [x] `GET /api/bid/projects` - 프로젝트 목록
+  - [x] `GET /api/bid/projects/[id]` - 프로젝트 상세
+  - [x] `POST /api/bid/projects/[id]/responses` - 입찰 제출 (업체)
+  - [x] `PATCH /api/bid/projects/[id]/select` - 업체 선정 (의사)
+- [x] UI:
+  - [x] `/interior` - 인테리어 프로젝트 등록 (의사)
+  - [x] `/partner/bids` - 입찰 관리 (업체)
+  - [x] `/admin/bid-projects` - 프로젝트 현황 (분쟁/상담 대응용)
 
 ### ~~11-3. 쇼핑몰~~ — 현 단계 제외
 > 최소 구현도 DB 8~10개, API 20개+, 화면 15개+로 별도 프로덕트 규모.

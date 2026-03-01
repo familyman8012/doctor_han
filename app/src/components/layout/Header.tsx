@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Search, Menu, X, User, Heart, FileText, LogOut } from "lucide-react";
+import { Search, Menu, X, User, Heart, FileText, LogOut, Hammer } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
 import { useAuthStore, useIsAuthenticated, useUserRole } from "@/stores/auth";
@@ -50,6 +50,7 @@ export function Header({ onMenuToggle, isMobileMenuOpen }: HeaderProps) {
             return [
                 ...baseItems,
                 { href: "/mypage/leads", label: "내 문의함", icon: FileText },
+                { href: "/interior", label: "인테리어", icon: Hammer },
             ];
         }
 

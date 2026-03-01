@@ -3,7 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Building2, Inbox, FolderOpen, Settings, ChevronRight, Bell, Wallet, DollarSign, CalendarClock, Megaphone, Shield } from "lucide-react";
+import { Building2, Inbox, FolderOpen, Settings, ChevronRight, Bell, Wallet, DollarSign, CalendarClock, Megaphone, Shield, Gavel } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useIsAuthenticated, useUserRole, useAuthStore, useProfile } from "@/stores/auth";
 import { creditsApi } from "@/api-client/credits";
@@ -13,6 +13,7 @@ import { cn } from "@/components/utils";
 const NAV_ITEMS = [
     { href: "/partner", label: "업체 프로필", icon: Building2, exact: true },
     { href: "/partner/leads", label: "받은 리드함", icon: Inbox },
+    { href: "/partner/bids", label: "입찰 관리", icon: Gavel },
     { href: "/partner/credits", label: "크레딧", icon: Wallet },
     { href: "/partner/pricing", label: "서비스 단가", icon: DollarSign },
     { href: "/partner/ads", label: "광고 관리", icon: Megaphone },

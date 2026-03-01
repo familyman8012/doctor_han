@@ -45,6 +45,10 @@ export const NotificationTypeSchema = z.enum([
 	"review_received",
 	"lead_message_received",
 	"subscription_expiring",
+	"bid_vendor_invited",
+	"bid_response_submitted",
+	"bid_vendor_selected",
+	"bid_commission_charged",
 ]);
 
 export type NotificationType = z.infer<typeof NotificationTypeSchema>;
