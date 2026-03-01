@@ -1,5 +1,5 @@
 import { LeadCreateBodySchema, LeadListQuerySchema } from "@/lib/schema/lead";
-import { internalServerError, notFound, tooManyRequests } from "@/server/api/errors";
+import { badRequest, internalServerError, notFound, tooManyRequests } from "@/server/api/errors";
 import { created, ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withApprovedDoctor, withAuth } from "@/server/auth/guards";
@@ -11,6 +11,7 @@ import { sendVendorNotification } from "@/server/notification/service";
 import { getLeadChargedTemplate } from "@/server/notification/templates";
 import { checkRateLimit, incrementRateLimit, logRateLimitExceeded } from "@/server/rate-limit";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
+import { hasActiveMembership } from "@/server/vendor/membership-service";
 
 export const GET = withApi(
     withAuth(async (ctx) => {
@@ -81,6 +82,34 @@ export const POST = withApi(
 
         if (!vendor) {
             throw notFound("업체를 찾을 수 없습니다.");
+        }
+
+        // S등급 업체 멤버십 확인: 미납 && 유예기간 아니면 리드 차단
+        const admin = createSupabaseAdminClient();
+        const { data: vendorSGradeCategories, error: vendorSGradeCategoriesError } = await admin
+            .from("vendor_categories")
+            .select("category_id, categories!inner(tier)")
+            .eq("vendor_id", body.vendorId)
+            .eq("categories.tier", "s_grade")
+            .limit(1);
+
+        if (vendorSGradeCategoriesError) {
+            throw internalServerError("업체 S등급 여부를 확인할 수 없습니다.", {
+                message: vendorSGradeCategoriesError.message,
+                code: vendorSGradeCategoriesError.code,
+            });
+        }
+
+        if (vendorSGradeCategories && vendorSGradeCategories.length > 0) {
+            const MEMBERSHIP_GRACE_PERIOD_END = "2026-04-01T00:00:00+09:00";
+            const inGracePeriod = new Date().getTime() < new Date(MEMBERSHIP_GRACE_PERIOD_END).getTime();
+
+            if (!inGracePeriod) {
+                const hasMembership = await hasActiveMembership(ctx.supabase, body.vendorId);
+                if (!hasMembership) {
+                    throw badRequest("입점비 미납 상태로 리드를 받을 수 없습니다.");
+                }
+            }
         }
 
         // 카테고리/단가 서버 검증 (잘못된 categoryIds 요청 차단)

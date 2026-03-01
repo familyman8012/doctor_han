@@ -2,6 +2,9 @@ import { API_SUCCESS_CODE } from "@/lib/api/types";
 import { z } from "zod";
 import { zUuid } from "./common";
 
+export const CategoryTierSchema = z.enum(["standard", "s_grade"]);
+export type CategoryTier = z.infer<typeof CategoryTierSchema>;
+
 export const CategoryViewSchema = z.object({
     id: zUuid,
     parentId: zUuid.nullable(),
@@ -10,6 +13,7 @@ export const CategoryViewSchema = z.object({
     slug: z.string(),
     sortOrder: z.number().int(),
     isActive: z.boolean(),
+    tier: CategoryTierSchema.default("standard"),
     createdAt: z.string(),
     updatedAt: z.string(),
 });
@@ -34,4 +38,5 @@ export interface Category {
     parentId: string | null;
     depth: number;
     sortOrder: number;
+    tier?: CategoryTier;
 }
