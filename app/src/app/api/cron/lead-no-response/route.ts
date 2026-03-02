@@ -3,8 +3,20 @@ import { getUnrespondedChargedLeads, markLeadChargeNoResponseWarned } from "@/se
 import { getKakaoLeadNoResponseWarningTemplate } from "@/server/notification/kakao-templates";
 import { sendVendorNotification } from "@/server/notification/service";
 import { getLeadNoResponseWarningTemplate } from "@/server/notification/templates";
+import { generateMonthlySettlements } from "@/server/settlement/service";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import { NextRequest } from "next/server";
+
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+function getKstNow(date = new Date()): { year: number; month: number; day: number } {
+    const kstDate = new Date(date.getTime() + KST_OFFSET_MS);
+    return {
+        year: kstDate.getUTCFullYear(),
+        month: kstDate.getUTCMonth() + 1,
+        day: kstDate.getUTCDate(),
+    };
+}
 
 export async function GET(req: NextRequest) {
     // Verify cron secret
@@ -79,9 +91,36 @@ export async function GET(req: NextRequest) {
         }
     }
 
+    let settlementResult:
+        | {
+              year: number;
+              month: number;
+              created: number;
+              skipped: number;
+              total: number;
+          }
+        | null = null;
+
+    // 매월 1일(KST) 자동 정산 생성: 대상은 전월.
+    const kstNow = getKstNow();
+    if (kstNow.day === 1) {
+        const targetYear = kstNow.month === 1 ? kstNow.year - 1 : kstNow.year;
+        const targetMonth = kstNow.month === 1 ? 12 : kstNow.month - 1;
+
+        const generated = await generateMonthlySettlements(targetYear, targetMonth);
+        settlementResult = {
+            year: targetYear,
+            month: targetMonth,
+            created: generated.created,
+            skipped: generated.skipped,
+            total: generated.total,
+        };
+    }
+
     return Response.json({
         ok: true,
         warned: warningOnly.length,
         refunded: refundedCount,
+        settlement: settlementResult,
     });
 }

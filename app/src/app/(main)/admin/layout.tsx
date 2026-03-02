@@ -17,6 +17,7 @@ import {
     Gavel,
     FileText,
     MessageCircle,
+    Receipt,
 } from "lucide-react";
 import { useIsAuthenticated, useUserRole, useAuthStore } from "@/stores/auth";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
@@ -34,6 +35,7 @@ const NAV_ITEMS = [
     { href: "/admin/ads", label: "광고 관리", icon: Megaphone },
     { href: "/admin/memberships", label: "입점 멤버십", icon: Crown },
     { href: "/admin/bid-projects", label: "비딩 프로젝트", icon: Gavel },
+    { href: "/admin/settlements", label: "정산 관리", icon: Receipt },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

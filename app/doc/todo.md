@@ -598,18 +598,18 @@ Wave 3 — Wave 2 완료 후 (거래 데이터 필요)
 ## 12) P7 — 정산/환불/리포트..
 
 ### 12-1. 정산 관리 `[Wave 3 ← 8-1 + 8-2 + 9-2]`
-- [ ] DB: `settlements`, `settlement_items`
-  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_settlements.sql`
-- [ ] Schema: `app/src/lib/schema/settlement.ts`
-- [ ] Server: `app/src/server/settlement/{repository,service}.ts`
-- [ ] 월별 정산 자동 생성 (Cron)
-- [ ] API:
-  - [ ] `GET /api/admin/settlements` - 정산 목록
-  - [ ] `GET /api/admin/settlements/[id]` - 정산 상세
-  - [ ] `POST /api/admin/settlements/[id]/approve` - 정산 승인
-  - [ ] `POST /api/admin/settlements/[id]/payout` - 지급 처리
-- [ ] UI:
-  - [ ] `/admin/settlements` - 정산 관리 페이지
+- [x] DB: `settlements`, `settlement_items`
+  - [x] 마이그레이션 작성: `20260302140000_settlements.sql`, `20260302153000_settlement_atomic_rpc.sql`
+- [x] Schema: `app/src/lib/schema/settlement.ts`
+- [x] Server: `app/src/server/settlement/{repository,service}.ts`
+- [x] 월별 정산 자동 생성 (Cron)
+- [x] API:
+  - [x] `GET /api/admin/settlements` - 정산 목록
+  - [x] `GET /api/admin/settlements/[id]` - 정산 상세
+  - [x] `POST /api/admin/settlements/[id]/approve` - 정산 승인
+  - [x] `POST /api/admin/settlements/[id]/payout` - 지급 처리
+- [x] UI:
+  - [x] `/admin/settlements` - 정산 관리 페이지
 
 ### 12-2. 환불/보상 `[Wave 3 ← 7-1 + 8-1]`
 - [ ] 정책: SLA/무응답/허위 리드 기준

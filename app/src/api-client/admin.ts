@@ -36,6 +36,15 @@ import type {
     SupportMessageCreateBody,
     SupportMessageCreateResponse,
 } from "@/lib/schema/support";
+import type {
+    SettlementListQuery,
+    SettlementListResponse,
+    SettlementDetailResponse,
+    SettlementGenerateBody,
+    SettlementGenerateResponse,
+    SettlementActionBody,
+    SettlementActionResponse,
+} from "@/lib/schema/settlement";
 import api from "./client";
 
 export const adminApi = {
@@ -199,6 +208,43 @@ export const adminApi = {
             `/api/admin/support/tickets/${ticketId}/messages`,
             body,
         );
+        return response.data;
+    },
+
+    // ===========================
+    // 정산 관리
+    // ===========================
+
+    // 정산 목록 조회
+    getSettlements: async (params: Omit<SettlementListQuery, "format">): Promise<SettlementListResponse> => {
+        const response = await api.get<SettlementListResponse>("/api/admin/settlements", { params });
+        return response.data;
+    },
+
+    // 정산 상세 조회
+    getSettlement: async (
+        id: string,
+        params?: { itemType?: string; itemPage?: number; itemPageSize?: number },
+    ): Promise<SettlementDetailResponse> => {
+        const response = await api.get<SettlementDetailResponse>(`/api/admin/settlements/${id}`, { params });
+        return response.data;
+    },
+
+    // 정산 생성
+    generateSettlements: async (body: SettlementGenerateBody): Promise<SettlementGenerateResponse> => {
+        const response = await api.post<SettlementGenerateResponse>("/api/admin/settlements/generate", body);
+        return response.data;
+    },
+
+    // 정산 승인
+    approveSettlement: async (id: string, body?: SettlementActionBody): Promise<SettlementActionResponse> => {
+        const response = await api.post<SettlementActionResponse>(`/api/admin/settlements/${id}/approve`, body ?? {});
+        return response.data;
+    },
+
+    // 정산 지급완료
+    payoutSettlement: async (id: string, body?: SettlementActionBody): Promise<SettlementActionResponse> => {
+        const response = await api.post<SettlementActionResponse>(`/api/admin/settlements/${id}/payout`, body ?? {});
         return response.data;
     },
 };
