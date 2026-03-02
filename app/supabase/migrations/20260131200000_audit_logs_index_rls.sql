@@ -5,27 +5,27 @@
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- 1. 인덱스 추가 (CONCURRENTLY로 잠금 최소화)
+-- 1. 인덱스 추가
 -- -----------------------------------------------------------------------------
 
 -- 기간별 조회용 인덱스
-create index concurrently if not exists idx_audit_logs_created_at
+create index if not exists idx_audit_logs_created_at
 on public.audit_logs (created_at desc);
 
 -- 액션 유형별 조회용 인덱스
-create index concurrently if not exists idx_audit_logs_action
+create index if not exists idx_audit_logs_action
 on public.audit_logs (action);
 
 -- 대상 유형별 조회용 인덱스
-create index concurrently if not exists idx_audit_logs_target_type
+create index if not exists idx_audit_logs_target_type
 on public.audit_logs (target_type);
 
 -- 행위자별 조회용 인덱스
-create index concurrently if not exists idx_audit_logs_actor
+create index if not exists idx_audit_logs_actor
 on public.audit_logs (actor_user_id);
 
 -- 대상별 조회용 복합 인덱스
-create index concurrently if not exists idx_audit_logs_target
+create index if not exists idx_audit_logs_target
 on public.audit_logs (target_type, target_id);
 
 -- -----------------------------------------------------------------------------

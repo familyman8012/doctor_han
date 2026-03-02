@@ -58,6 +58,24 @@ async function getLocalSupabaseEnv(): Promise<{ url: string; serviceRoleKey: str
 	return { url, serviceRoleKey };
 }
 
+function getRemoteSupabaseEnv(): { url: string; serviceRoleKey: string } {
+	const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+	const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+	if (!url || !serviceRoleKey) {
+		throw new Error(
+			[
+				"Missing remote Supabase env.",
+				"",
+				"Run with .env loaded, for example:",
+				"  cd app && set -a && source .env && set +a && pnpm db:seed -- --remote",
+			].join("\n"),
+		);
+	}
+
+	return { url, serviceRoleKey };
+}
+
 function sleep(ms: number) {
 	return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
@@ -310,7 +328,12 @@ type SeedUserSpec = {
 };
 
 async function main() {
-	const { url, serviceRoleKey } = await getLocalSupabaseEnv();
+	const args = new Set(process.argv.slice(2).filter((arg) => arg !== "--"));
+	const isRemote = args.has("--remote");
+	const { url, serviceRoleKey } = isRemote ? getRemoteSupabaseEnv() : await getLocalSupabaseEnv();
+
+	console.info(isRemote ? "🌐 Seeding remote Supabase..." : "🏠 Seeding local Supabase...");
+
 	const supabase = createClient<Database>(url, serviceRoleKey, {
 		auth: { persistSession: false, autoRefreshToken: false },
 	});
