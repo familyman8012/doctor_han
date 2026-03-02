@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { Settlement, SettlementItem, SettlementItemListQuery, SettlementListQuery } from "@/lib/schema/settlement";
+import { toCsvRow } from "@/server/api/csv";
 import { badRequest, internalServerError, notFound } from "@/server/api/errors";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import { mapSettlementItemRow, mapSettlementRow } from "./mapper";
@@ -392,9 +393,8 @@ export async function exportSettlementsCsv(
     };
 
     const csvRows = rows.map((row) => {
-        const vendorName = (vendorNameMap.get(row.vendor_id) ?? "").replace(/,/g, " ");
-        return [
-            vendorName,
+        return toCsvRow([
+            vendorNameMap.get(row.vendor_id) ?? "",
             row.period_start,
             row.period_end,
             statusLabels[row.status] ?? row.status,
@@ -408,7 +408,7 @@ export async function exportSettlementsCsv(
             row.ad_purchase_revenue,
             row.bid_commission_revenue,
             row.total_item_count,
-        ].join(",");
+        ]);
     });
 
     return [header, ...csvRows].join("\n");

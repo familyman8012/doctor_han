@@ -643,11 +643,11 @@ Wave 3 — Wave 2 완료 후 (거래 데이터 필요)
   - [x] `/admin/refunds` - 환불 관리 페이지
 
 ### 12-3. 데이터 내보내기 `[Wave 3 ← 전체]`
-- [ ] 결제/정산/리드 CSV Export 기능
-- [ ] API:
-  - [ ] `GET /api/exports/payments` - 결제 내역 CSV
-  - [ ] `GET /api/exports/settlements` - 정산 내역 CSV
-  - [ ] `GET /api/exports/leads` - 리드 내역 CSV
+- [x] 결제/정산/리드 CSV Export 기능
+- [x] API:
+  - [x] `GET /api/exports/payments` - 결제 내역 CSV
+  - [x] `GET /api/exports/settlements` - 정산 내역 CSV
+  - [x] `GET /api/exports/leads` - 리드 내역 CSV
 
 ## 13) P8 — 데이터/성장(통계/외부연동) `[Wave 3]`
 - [ ] 관리자 대시보드/통계 고도화: DAU/MAU, 신규회원, 리드/응답률/SLA, 퍼널/이탈, 광고 성과

@@ -1,8 +1,10 @@
 import "server-only";
 
 import type { Database } from "@/lib/database.types";
+import type { ExportPaymentsQuery } from "@/lib/schema/export";
 import type { Payment } from "@/lib/schema/payment";
-import { badRequest, notFound } from "@/server/api/errors";
+import { toCsvRow } from "@/server/api/csv";
+import { badRequest, internalServerError, notFound } from "@/server/api/errors";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { mapPaymentRow } from "./mapper";
@@ -160,6 +162,84 @@ export async function handleWebhook(
         await markWebhookProcessed(admin, webhookId, errorMessage);
         throw error;
     }
+}
+
+export async function exportPaymentsCsv(
+    query: ExportPaymentsQuery,
+): Promise<string> {
+    const admin = createSupabaseAdminClient();
+
+    let qb = admin.from("payments").select("*");
+
+    if (query.status) {
+        qb = qb.eq("status", query.status);
+    }
+    if (query.dateFrom) {
+        qb = qb.gte("created_at", `${query.dateFrom}T00:00:00+09:00`);
+    }
+    if (query.dateTo) {
+        qb = qb.lte("created_at", `${query.dateTo}T23:59:59+09:00`);
+    }
+
+    qb = qb.order("created_at", { ascending: false });
+
+    const { data, error } = await qb;
+
+    if (error) {
+        throw internalServerError("결제 목록을 조회할 수 없습니다.", {
+            message: error.message,
+            code: error.code,
+        });
+    }
+
+    const rows = data ?? [];
+
+    const header = "주문번호,업체명,결제금액,결제수단,상태,결제일시";
+
+    if (rows.length === 0) {
+        return header + "\n";
+    }
+
+    // Batch fetch vendor names
+    const vendorIds = [...new Set(rows.map((r) => r.vendor_id))];
+    const { data: vendorRows } = await admin
+        .from("vendors")
+        .select("id, name")
+        .in("id", vendorIds);
+
+    const vendorNameMap = new Map((vendorRows ?? []).map((v) => [v.id, v.name]));
+
+    const methodLabels: Record<string, string> = {
+        card: "카드",
+        virtual_account: "가상계좌",
+        transfer: "계좌이체",
+        mobile: "휴대폰",
+        easy_pay: "간편결제",
+        etc: "기타",
+    };
+
+    const statusLabels: Record<string, string> = {
+        ready: "준비",
+        in_progress: "진행중",
+        done: "완료",
+        canceled: "취소",
+        partial_canceled: "부분취소",
+        aborted: "중단",
+        expired: "만료",
+    };
+
+    const csvRows = rows.map((row) => {
+        return toCsvRow([
+            row.order_id,
+            vendorNameMap.get(row.vendor_id) ?? "",
+            row.amount,
+            methodLabels[row.method ?? ""] ?? (row.method ?? ""),
+            statusLabels[row.status] ?? row.status,
+            row.created_at,
+        ]);
+    });
+
+    return [header, ...csvRows].join("\n");
 }
 
 async function getCurrentBalance(
