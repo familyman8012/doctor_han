@@ -628,19 +628,19 @@ Wave 3 — Wave 2 완료 후 (거래 데이터 필요)
 
 
 ### 12-2. 환불/보상 `[Wave 3 ← 7-1 + 8-1]`
-- [ ] 정책: SLA/무응답/허위 리드 기준
-- [ ] DB: `refund_requests`
-  - [ ] 마이그레이션 작성: `YYYYMMDDHHMMSS_refunds.sql`
-- [ ] Schema: `app/src/lib/schema/refund.ts`
-- [ ] Server: `app/src/server/refund/{repository,service}.ts`
-- [ ] API:
-  - [ ] `POST /api/refunds` - 환불 요청 (업체)
-  - [ ] `GET /api/refunds` - 환불 요청 목록
-  - [ ] `GET /api/admin/refunds` - 관리자 환불 목록
-  - [ ] `PATCH /api/admin/refunds/[id]` - 환불 심사/처리
-- [ ] UI:
-  - [ ] `/partner/refunds` - 환불 요청 페이지
-  - [ ] `/admin/refunds` - 환불 관리 페이지
+- [x] 정책: SLA/무응답/허위 리드 기준
+- [x] DB: `refund_requests`
+  - [x] 마이그레이션 작성: `YYYYMMDDHHMMSS_refunds.sql`
+- [x] Schema: `app/src/lib/schema/refund.ts`
+- [x] Server: `app/src/server/refund/{repository,service}.ts`
+- [x] API:
+  - [x] `POST /api/refunds` - 환불 요청 (업체)
+  - [x] `GET /api/refunds` - 환불 요청 목록
+  - [x] `GET /api/admin/refunds` - 관리자 환불 목록
+  - [x] `PATCH /api/admin/refunds/[id]` - 환불 심사/처리
+- [x] UI:
+  - [x] `/partner/refunds` - 환불 요청 페이지
+  - [x] `/admin/refunds` - 환불 관리 페이지
 
 ### 12-3. 데이터 내보내기 `[Wave 3 ← 전체]`
 - [ ] 결제/정산/리드 CSV Export 기능
