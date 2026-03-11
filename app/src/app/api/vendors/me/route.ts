@@ -125,6 +125,12 @@ export const POST = withApi(
                 description: body.description ?? null,
                 region_primary: body.regionPrimary ?? null,
                 region_secondary: body.regionSecondary ?? null,
+                road_address: body.roadAddress ?? null,
+                jibun_address: body.jibunAddress ?? null,
+                address_detail: body.addressDetail ?? null,
+                zonecode: body.zonecode ?? null,
+                latitude: body.latitude ?? null,
+                longitude: body.longitude ?? null,
                 price_min: body.priceMin ?? null,
                 price_max: body.priceMax ?? null,
             })
@@ -193,6 +199,12 @@ export const PATCH = withApi(
         if (typeof body.description !== "undefined") update.description = body.description;
         if (typeof body.regionPrimary !== "undefined") update.region_primary = body.regionPrimary;
         if (typeof body.regionSecondary !== "undefined") update.region_secondary = body.regionSecondary;
+        if (typeof body.roadAddress !== "undefined") update.road_address = body.roadAddress;
+        if (typeof body.jibunAddress !== "undefined") update.jibun_address = body.jibunAddress;
+        if (typeof body.addressDetail !== "undefined") update.address_detail = body.addressDetail;
+        if (typeof body.zonecode !== "undefined") update.zonecode = body.zonecode;
+        if (typeof body.latitude !== "undefined") update.latitude = body.latitude;
+        if (typeof body.longitude !== "undefined") update.longitude = body.longitude;
         if (typeof body.priceMin !== "undefined") update.price_min = body.priceMin;
         if (typeof body.priceMax !== "undefined") update.price_max = body.priceMax;
         if (typeof body.status !== "undefined") update.status = body.status;

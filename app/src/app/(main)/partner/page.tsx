@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { Building2, MapPin, Tag, CheckCircle, Clock, XCircle, AlertCircle, User, Mail, Phone } from "lucide-react";
@@ -11,6 +11,7 @@ import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { useAuthStore, useProfile, useProfileCompletion } from "@/stores/auth";
 import { toast } from "sonner";
 import { ProfileCompletionBanner } from "@/components/widgets/ProfileCompletionBanner";
+import { VendorAddressSearch, type VendorAddressData } from "@/components/widgets/VendorAddressSearch";
 import type { VendorDetail } from "@/lib/schema/vendor";
 import type { MeData } from "@/lib/schema/profile";
 
@@ -32,6 +33,32 @@ interface VendorFormData {
     priceMax: string;
 }
 
+interface AddressState {
+    roadAddress: string | null;
+    jibunAddress: string | null;
+    addressDetail: string;
+    zonecode: string | null;
+    latitude: number | null;
+    longitude: number | null;
+}
+
+/**
+ * Parse region_primary (city/province) and region_secondary (district)
+ * from a Korean road address string.
+ */
+function parseRegionFromAddress(roadAddress: string): { regionPrimary: string; regionSecondary: string } {
+    const parts = roadAddress.trim().split(/\s+/);
+    return {
+        regionPrimary: parts[0] ?? "",
+        regionSecondary: parts[1] ?? "",
+    };
+}
+
+function normalizeOptionalText(value: string | null | undefined): string | null {
+    const trimmed = value?.trim();
+    return trimmed ? trimmed : null;
+}
+
 interface AccountFormData {
     displayName: string;
     phone: string;
@@ -45,6 +72,14 @@ export default function PartnerProfilePage() {
     const setAuth = useAuthStore((state) => state.setAuth);
     const profileCompletion = useProfileCompletion();
     const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+    const [addressState, setAddressState] = useState<AddressState>({
+        roadAddress: null,
+        jibunAddress: null,
+        addressDetail: "",
+        zonecode: null,
+        latitude: null,
+        longitude: null,
+    });
 
     // 내 업체 정보 조회
     const { data: vendorData, isLoading: vendorLoading } = useQuery({
@@ -63,6 +98,50 @@ export default function PartnerProfilePage() {
             return res.data.data.items;
         },
     });
+
+    // Geocode mutation: address -> coordinates
+    const geocodeMutation = useMutation({
+        mutationFn: async (address: string) => {
+            const res = await api.post<{ data: { latitude: number; longitude: number } }>("/api/geocode", { address });
+            return res.data.data;
+        },
+    });
+
+    // Handle address selection from VendorAddressSearch
+    const handleAddressSelect = useCallback(
+        (data: VendorAddressData) => {
+            setAddressState((prev) => ({
+                ...prev,
+                roadAddress: data.roadAddress,
+                jibunAddress: data.jibunAddress,
+                zonecode: data.zonecode,
+                latitude: null,
+                longitude: null,
+            }));
+
+            // Auto-geocode using the road address
+            const addressToGeocode = data.roadAddress || data.jibunAddress;
+            if (addressToGeocode) {
+                geocodeMutation.mutate(addressToGeocode, {
+                    onSuccess: (coords) => {
+                        setAddressState((prev) => ({
+                            ...prev,
+                            latitude: coords.latitude,
+                            longitude: coords.longitude,
+                        }));
+                    },
+                    onError: () => {
+                        toast.info("좌표 변환에 실패했습니다. 주소는 정상 저장됩니다.");
+                    },
+                });
+            }
+        },
+        [geocodeMutation],
+    );
+
+    const handleAddressDetailChange = useCallback((value: string) => {
+        setAddressState((prev) => ({ ...prev, addressDetail: value }));
+    }, []);
 
     const {
         register: registerAccount,
@@ -88,7 +167,7 @@ export default function PartnerProfilePage() {
         },
     });
 
-    // 폼 초기값 설정: vendorData가 변경될 때 폼을 리셋하고 카테고리도 동기화
+    // 폼 초기값 설정: vendorData가 변경될 때 폼을 리셋하고 카테고리/주소도 동기화
     useEffect(() => {
         if (vendorData) {
             reset({
@@ -103,6 +182,14 @@ export default function PartnerProfilePage() {
             const newCategoryIds = vendorData.categories?.map((c) => c.id) ?? [];
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setSelectedCategoryIds(newCategoryIds);
+            setAddressState({
+                roadAddress: vendorData.roadAddress ?? null,
+                jibunAddress: vendorData.jibunAddress ?? null,
+                addressDetail: vendorData.addressDetail ?? "",
+                zonecode: vendorData.zonecode ?? null,
+                latitude: vendorData.latitude ?? null,
+                longitude: vendorData.longitude ?? null,
+            });
         }
     }, [vendorData, reset]);
 
@@ -117,12 +204,28 @@ export default function PartnerProfilePage() {
     // 업체 프로필 생성/수정
     const saveMutation = useMutation({
         mutationFn: async (data: VendorFormData) => {
+            // Auto-fill region from structured address if available
+            let regionPrimary = data.regionPrimary || null;
+            let regionSecondary = data.regionSecondary || null;
+            const normalizedRoadAddress = normalizeOptionalText(addressState.roadAddress);
+            if (normalizedRoadAddress) {
+                const parsed = parseRegionFromAddress(normalizedRoadAddress);
+                regionPrimary = parsed.regionPrimary || regionPrimary;
+                regionSecondary = parsed.regionSecondary || regionSecondary;
+            }
+
             const payload = {
                 name: data.name,
                 summary: data.summary || null,
                 description: data.description || null,
-                regionPrimary: data.regionPrimary || null,
-                regionSecondary: data.regionSecondary || null,
+                regionPrimary,
+                regionSecondary,
+                roadAddress: normalizedRoadAddress,
+                jibunAddress: normalizeOptionalText(addressState.jibunAddress),
+                addressDetail: normalizeOptionalText(addressState.addressDetail),
+                zonecode: normalizeOptionalText(addressState.zonecode),
+                latitude: addressState.latitude,
+                longitude: addressState.longitude,
                 priceMin: data.priceMin ? parseInt(data.priceMin, 10) : null,
                 priceMax: data.priceMax ? parseInt(data.priceMax, 10) : null,
                 categoryIds: selectedCategoryIds,
@@ -172,6 +275,10 @@ export default function PartnerProfilePage() {
     };
 
     const onSubmit = (data: VendorFormData) => {
+        if (geocodeMutation.isPending) {
+            toast.info("좌표 변환이 끝난 뒤 저장해주세요.");
+            return;
+        }
         saveMutation.mutate(data);
     };
 
@@ -364,31 +471,46 @@ export default function PartnerProfilePage() {
                     </div>
                 </div>
 
-                {/* 지역 정보 */}
+                {/* 업체 주소 */}
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
                     <h2 className="text-lg font-semibold text-[#0a3b41] mb-5 flex items-center gap-2">
                         <MapPin className="w-5 h-5 text-[#62e3d5]" />
-                        서비스 지역
+                        업체 주소
                     </h2>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                주요 지역
-                            </label>
-                            <Input
-                                {...register("regionPrimary")}
-                                placeholder="예: 서울"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                세부 지역
-                            </label>
-                            <Input
-                                {...register("regionSecondary")}
-                                placeholder="예: 강남구, 서초구"
-                            />
+                    <VendorAddressSearch
+                        currentAddress={addressState}
+                        addressDetail={addressState.addressDetail}
+                        onAddressSelect={handleAddressSelect}
+                        onAddressDetailChange={handleAddressDetailChange}
+                        isGeocoding={geocodeMutation.isPending}
+                        disabled={saveMutation.isPending || geocodeMutation.isPending}
+                    />
+
+                    {/* Fallback: region text inputs (always available) */}
+                    <div className="mt-5 pt-5 border-t border-gray-100">
+                        <p className="text-sm text-gray-500 mb-3">
+                            서비스 가능 지역 (주소와 별도로 설정할 수 있습니다)
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                    주요 지역
+                                </label>
+                                <Input
+                                    {...register("regionPrimary")}
+                                    placeholder="예: 서울"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                    세부 지역
+                                </label>
+                                <Input
+                                    {...register("regionSecondary")}
+                                    placeholder="예: 강남구, 서초구"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -461,7 +583,7 @@ export default function PartnerProfilePage() {
                         type="submit"
                         variant="primary"
                         size="lg"
-                        disabled={saveMutation.isPending}
+                        disabled={saveMutation.isPending || geocodeMutation.isPending}
                         isLoading={saveMutation.isPending}
                     >
                         {vendorData ? "저장하기" : "업체 프로필 등록"}

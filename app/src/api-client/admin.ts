@@ -45,6 +45,15 @@ import type {
     SettlementActionBody,
     SettlementActionResponse,
 } from "@/lib/schema/settlement";
+import type {
+    OverviewResponse,
+    UserAnalyticsResponse,
+    LeadAnalyticsResponse,
+    RevenueAnalyticsResponse,
+    AdAnalyticsResponse,
+    FunnelAnalyticsResponse,
+    OperationsAnalyticsResponse,
+} from "@/lib/schema/analytics";
 import api from "./client";
 
 export const adminApi = {
@@ -245,6 +254,45 @@ export const adminApi = {
     // 정산 지급완료
     payoutSettlement: async (id: string, body?: SettlementActionBody): Promise<SettlementActionResponse> => {
         const response = await api.post<SettlementActionResponse>(`/api/admin/settlements/${id}/payout`, body ?? {});
+        return response.data;
+    },
+
+    // ===========================
+    // 대시보드 통계
+    // ===========================
+
+    getAnalyticsOverview: async (params: { from: string; to: string; granularity?: string }): Promise<OverviewResponse> => {
+        const response = await api.get<OverviewResponse>("/api/admin/analytics/overview", { params });
+        return response.data;
+    },
+
+    getAnalyticsUsers: async (params: { from: string; to: string; granularity?: string }): Promise<UserAnalyticsResponse> => {
+        const response = await api.get<UserAnalyticsResponse>("/api/admin/analytics/users", { params });
+        return response.data;
+    },
+
+    getAnalyticsLeads: async (params: { from: string; to: string; granularity?: string }): Promise<LeadAnalyticsResponse> => {
+        const response = await api.get<LeadAnalyticsResponse>("/api/admin/analytics/leads", { params });
+        return response.data;
+    },
+
+    getAnalyticsRevenue: async (params: { from: string; to: string; granularity?: string }): Promise<RevenueAnalyticsResponse> => {
+        const response = await api.get<RevenueAnalyticsResponse>("/api/admin/analytics/revenue", { params });
+        return response.data;
+    },
+
+    getAnalyticsAds: async (params: { from: string; to: string; granularity?: string }): Promise<AdAnalyticsResponse> => {
+        const response = await api.get<AdAnalyticsResponse>("/api/admin/analytics/ads", { params });
+        return response.data;
+    },
+
+    getAnalyticsFunnel: async (params: { from: string; to: string; granularity?: string }): Promise<FunnelAnalyticsResponse> => {
+        const response = await api.get<FunnelAnalyticsResponse>("/api/admin/analytics/funnel", { params });
+        return response.data;
+    },
+
+    getAnalyticsOperations: async (params: { from: string; to: string; granularity?: string }): Promise<OperationsAnalyticsResponse> => {
+        const response = await api.get<OperationsAnalyticsResponse>("/api/admin/analytics/operations", { params });
         return response.data;
     },
 };

@@ -9,6 +9,7 @@ import { Empty } from "@/components/ui/Empty/Empty";
 import { useIsAuthenticated, useUser, useUserRole } from "@/stores/auth";
 import { VendorHeader } from "./components/VendorHeader";
 import { VendorInfo } from "./components/VendorInfo";
+import { VendorMapSection } from "./components/VendorMapSection";
 import { PortfolioSection } from "./components/PortfolioSection";
 import { ReviewSection } from "./components/ReviewSection";
 import type { VendorDetail } from "@/lib/schema/vendor";
@@ -109,9 +110,10 @@ export default function VendorDetailPage({ vendorId }: VendorDetailPageProps) {
                     />
                 </div>
 
-                {/* 오른쪽: 정보 + CTA */}
+                {/* 오른쪽: 정보 + 위치 + CTA */}
                 <div className="space-y-6">
                     <VendorInfo vendor={vendor} />
+                    <VendorMapSection vendor={vendor} />
                 </div>
             </div>
         </div>

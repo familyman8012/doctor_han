@@ -12,6 +12,12 @@ export const VendorListItemSchema = z.object({
     summary: z.string().nullable(),
     regionPrimary: z.string().nullable(),
     regionSecondary: z.string().nullable(),
+    roadAddress: z.string().nullable(),
+    jibunAddress: z.string().nullable(),
+    addressDetail: z.string().nullable(),
+    zonecode: z.string().nullable(),
+    latitude: z.number().nullable(),
+    longitude: z.number().nullable(),
     priceMin: z.number().int().nullable(),
     priceMax: z.number().int().nullable(),
     ratingAvg: z.number().nullable(),
@@ -80,6 +86,12 @@ export const VendorUpsertBodySchema = z
         description: z.string().trim().min(1).optional().nullable(),
         regionPrimary: z.string().trim().min(1).optional().nullable(),
         regionSecondary: z.string().trim().min(1).optional().nullable(),
+        roadAddress: z.string().trim().min(1).optional().nullable(),
+        jibunAddress: z.string().trim().min(1).optional().nullable(),
+        addressDetail: z.string().trim().min(1).optional().nullable(),
+        zonecode: z.string().trim().min(1).optional().nullable(),
+        latitude: z.number().min(-90).max(90).optional().nullable(),
+        longitude: z.number().min(-180).max(180).optional().nullable(),
         priceMin: z.number().int().min(0).optional().nullable(),
         priceMax: z.number().int().min(0).optional().nullable(),
         categoryIds: z.array(zUuid).max(50).optional(),
@@ -104,6 +116,12 @@ export const VendorPatchBodySchema = z
         description: z.string().trim().min(1).optional().nullable(),
         regionPrimary: z.string().trim().min(1).optional().nullable(),
         regionSecondary: z.string().trim().min(1).optional().nullable(),
+        roadAddress: z.string().trim().min(1).optional().nullable(),
+        jibunAddress: z.string().trim().min(1).optional().nullable(),
+        addressDetail: z.string().trim().min(1).optional().nullable(),
+        zonecode: z.string().trim().min(1).optional().nullable(),
+        latitude: z.number().min(-90).max(90).optional().nullable(),
+        longitude: z.number().min(-180).max(180).optional().nullable(),
         priceMin: z.number().int().min(0).optional().nullable(),
         priceMax: z.number().int().min(0).optional().nullable(),
         status: z.enum(["draft", "active", "inactive"]).optional(),
@@ -125,6 +143,12 @@ export const VendorPatchBodySchema = z
             value.description !== undefined ||
             value.regionPrimary !== undefined ||
             value.regionSecondary !== undefined ||
+            value.roadAddress !== undefined ||
+            value.jibunAddress !== undefined ||
+            value.addressDetail !== undefined ||
+            value.zonecode !== undefined ||
+            value.latitude !== undefined ||
+            value.longitude !== undefined ||
             value.priceMin !== undefined ||
             value.priceMax !== undefined ||
             value.status !== undefined ||

@@ -64,6 +64,17 @@ export function VendorHeader({ vendor, isFavorited }: VendorHeaderProps) {
     };
 
     const getRegion = () => {
+        // Prefer structured address over free-text region
+        if (vendor.roadAddress) {
+            return vendor.addressDetail
+                ? `${vendor.roadAddress} ${vendor.addressDetail}`
+                : vendor.roadAddress;
+        }
+        if (vendor.jibunAddress) {
+            return vendor.addressDetail
+                ? `${vendor.jibunAddress} ${vendor.addressDetail}`
+                : vendor.jibunAddress;
+        }
         if (vendor.regionPrimary && vendor.regionSecondary) {
             return `${vendor.regionPrimary} ${vendor.regionSecondary}`;
         }

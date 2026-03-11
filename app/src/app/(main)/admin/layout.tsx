@@ -19,12 +19,14 @@ import {
     MessageCircle,
     Receipt,
     Download,
+    BarChart3,
 } from "lucide-react";
 import { useIsAuthenticated, useUserRole, useAuthStore } from "@/stores/auth";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { cn } from "@/components/utils";
 
 const NAV_ITEMS = [
+    { href: "/admin/dashboard", label: "대시보드", icon: BarChart3 },
     { href: "/admin/verifications", label: "인증 승인 관리", icon: CheckCircle },
     { href: "/admin/reports", label: "신고 관리", icon: Flag },
     { href: "/admin/support", label: "고객지원", icon: MessageCircle },
