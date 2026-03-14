@@ -3,7 +3,8 @@ import { zUuid } from "@/lib/schema/common";
 import { internalServerError, notFound } from "@/server/api/errors";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
-import { mapReviewRow } from "@/server/review/mapper";
+import { mapReviewRow, mapReviewReplyRow } from "@/server/review/mapper";
+import { getRepliesByReviewIds, getVendorSubRatingSummary } from "@/server/review/repository";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import type { NextRequest } from "next/server";
 
@@ -33,9 +34,7 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
         });
     }
 
-    if (!vendor) {
-        throw notFound("업체를 찾을 수 없습니다.");
-    }
+    if (!vendor) throw notFound("업체를 찾을 수 없습니다.");
 
     const from = (query.page - 1) * query.pageSize;
     const to = from + query.pageSize - 1;
@@ -61,7 +60,10 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
               .order("created_at", { ascending: false })
               .order("id", { ascending: false });
 
-    const { data: rows, error, count } = await sortedQuery.range(from, to);
+    const [{ data: rows, error, count }, subRatingSummary] = await Promise.all([
+        sortedQuery.range(from, to),
+        getVendorSubRatingSummary(supabase, vendorId),
+    ]);
 
     if (error) {
         throw internalServerError("리뷰를 조회할 수 없습니다.", {
@@ -70,10 +72,23 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
         });
     }
 
+    const reviewRows = rows ?? [];
+    const reviewIds = reviewRows.map((r) => r.id);
+    const repliesMap = await getRepliesByReviewIds(supabase, reviewIds);
+
+    const items = reviewRows.map((row) => {
+        const replyRow = repliesMap.get(row.id);
+        return {
+            ...mapReviewRow(row),
+            reply: replyRow ? mapReviewReplyRow(replyRow) : null,
+        };
+    });
+
     return ok({
-        items: (rows ?? []).map(mapReviewRow),
+        items,
         page: query.page,
         pageSize: query.pageSize,
         total: count ?? 0,
+        subRatingSummary,
     });
 });

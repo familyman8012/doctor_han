@@ -6,6 +6,8 @@ const zDateString = z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD 형식이어야 합니다.");
 
+const zSubRating = z.number().int().min(1).max(5);
+
 export const ReviewStatusSchema = z.enum(["published", "hidden"]);
 export type ReviewStatus = z.infer<typeof ReviewStatusSchema>;
 
@@ -17,6 +19,9 @@ export const ReviewViewSchema = z.object({
     doctorUserId: zUuid,
     leadId: zUuid.nullable(),
     rating: z.number().int().min(1).max(5),
+    qualityRating: zSubRating.nullable(),
+    communicationRating: zSubRating.nullable(),
+    speedRating: zSubRating.nullable(),
     content: z.string(),
     amount: z.number().int().nullable(),
     workedAt: zDateString.nullable(),
@@ -33,6 +38,9 @@ export const ReviewCreateBodySchema = z
         vendorId: zUuid,
         leadId: zUuid,
         rating: z.number().int().min(1).max(5),
+        qualityRating: zSubRating.optional(),
+        communicationRating: zSubRating.optional(),
+        speedRating: zSubRating.optional(),
         content: zNonEmptyString,
         amount: z.number().int().min(0).optional().nullable(),
         workedAt: zDateString.optional().nullable(),
@@ -95,6 +103,9 @@ export type AdminReviewUnhideBody = z.infer<typeof AdminReviewUnhideBodySchema>;
 export const ReviewPatchBodySchema = z
     .object({
         rating: z.number().int().min(1).max(5).optional(),
+        qualityRating: zSubRating.optional().nullable(),
+        communicationRating: zSubRating.optional().nullable(),
+        speedRating: zSubRating.optional().nullable(),
         content: zNonEmptyString.optional(),
         amount: z.number().int().min(0).optional().nullable(),
         workedAt: zDateString.optional().nullable(),
@@ -105,6 +116,9 @@ export const ReviewPatchBodySchema = z
     .refine(
         (value) =>
             value.rating !== undefined ||
+            value.qualityRating !== undefined ||
+            value.communicationRating !== undefined ||
+            value.speedRating !== undefined ||
             value.content !== undefined ||
             value.amount !== undefined ||
             value.workedAt !== undefined ||
@@ -137,6 +151,53 @@ export const MyReviewListItemSchema = ReviewViewSchema.extend({
 
 export type MyReviewListItem = z.infer<typeof MyReviewListItemSchema>;
 
+// --- 리뷰 답변 ---
+
+export const ReviewReplyViewSchema = z.object({
+    id: zUuid,
+    reviewId: zUuid,
+    vendorUserId: zUuid,
+    content: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+});
+
+export type ReviewReplyView = z.infer<typeof ReviewReplyViewSchema>;
+
+export const ReviewReplyCreateBodySchema = z
+    .object({
+        content: zNonEmptyString.max(2000),
+    })
+    .strict();
+
+export type ReviewReplyCreateBody = z.infer<typeof ReviewReplyCreateBodySchema>;
+
+export const ReviewReplyPatchBodySchema = z
+    .object({
+        content: zNonEmptyString.max(2000),
+    })
+    .strict();
+
+export type ReviewReplyPatchBody = z.infer<typeof ReviewReplyPatchBodySchema>;
+
+// --- 벤더 리뷰 리스트 확장 ---
+
+export const VendorReviewListItemSchema = ReviewViewSchema.extend({
+    reply: ReviewReplyViewSchema.nullable(),
+});
+
+export type VendorReviewListItem = z.infer<typeof VendorReviewListItemSchema>;
+
+export const SubRatingSummarySchema = z.object({
+    qualityRatingAvg: z.number().nullable(),
+    communicationRatingAvg: z.number().nullable(),
+    speedRatingAvg: z.number().nullable(),
+});
+
+export type SubRatingSummary = z.infer<typeof SubRatingSummarySchema>;
+
+// --- 응답 스키마 ---
+
 export const ReviewCreateResponseSchema = z.object({
     code: z.literal(API_SUCCESS_CODE),
     data: z.object({
@@ -152,6 +213,7 @@ export const ReviewDetailResponseSchema = z.object({
     data: z.object({
         review: ReviewViewSchema,
         vendor: ReviewVendorSummarySchema.nullable(),
+        reply: ReviewReplyViewSchema.nullable(),
     }),
     message: z.string().optional(),
 });
@@ -174,10 +236,11 @@ export type MyReviewListResponse = z.infer<typeof MyReviewListResponseSchema>;
 export const VendorReviewListResponseSchema = z.object({
     code: z.literal(API_SUCCESS_CODE),
     data: z.object({
-        items: z.array(ReviewViewSchema),
+        items: z.array(VendorReviewListItemSchema),
         page: z.number().int(),
         pageSize: z.number().int(),
         total: z.number().int(),
+        subRatingSummary: SubRatingSummarySchema,
     }),
     message: z.string().optional(),
 });

@@ -1,70 +1,14 @@
-import { MAX_REVIEW_PHOTOS, MyReviewListQuerySchema, ReviewCreateBodySchema } from "@/lib/schema/review";
-import { badRequest, conflict, internalServerError, notFound, tooManyRequests } from "@/server/api/errors";
+import { MyReviewListQuerySchema, ReviewCreateBodySchema } from "@/lib/schema/review";
+import { badRequest, internalServerError, notFound, tooManyRequests } from "@/server/api/errors";
 import { created, ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withApprovedDoctor, withRole } from "@/server/auth/guards";
 import { mapReviewRow } from "@/server/review/mapper";
+import { insertReview, validateReviewPhotoFileIds } from "@/server/review/repository";
 import { checkRateLimit, incrementRateLimit, logRateLimitExceeded } from "@/server/rate-limit";
-import type { AuthedContext } from "@/server/auth/guards";
-import type { Tables, TablesInsert } from "@/lib/database.types";
-
-function uniqueIdsInOrder(ids: string[]): string[] {
-    const seen = new Set<string>();
-    const result: string[] = [];
-    for (const id of ids) {
-        if (seen.has(id)) continue;
-        seen.add(id);
-        result.push(id);
-    }
-    return result;
-}
-
-async function validateReviewPhotoFileIds(
-    ctx: AuthedContext,
-    input: string[] | undefined,
-): Promise<{ photoFileIds: string[]; photoFileIdsOrNull: string[] | null }> {
-    if (!input || input.length === 0) {
-        return { photoFileIds: [], photoFileIdsOrNull: null };
-    }
-
-    const photoFileIds = uniqueIdsInOrder(input);
-    if (photoFileIds.length > MAX_REVIEW_PHOTOS) {
-        throw badRequest(`리뷰 사진은 최대 ${MAX_REVIEW_PHOTOS}개까지 업로드할 수 있습니다.`);
-    }
-
-    const { data: files, error } = await ctx.supabase
-        .from("files")
-        .select("id, purpose")
-        .in("id", photoFileIds);
-
-    if (error) {
-        throw internalServerError("리뷰 사진을 확인할 수 없습니다.", {
-            message: error.message,
-            code: error.code,
-        });
-    }
-
-    const byId = new Map((files ?? []).map((row) => [row.id, row]));
-    if (byId.size !== photoFileIds.length) {
-        throw notFound("리뷰 사진을 찾을 수 없습니다.");
-    }
-
-    for (const fileId of photoFileIds) {
-        const fileRow = byId.get(fileId);
-        if (!fileRow) {
-            throw notFound("리뷰 사진을 찾을 수 없습니다.");
-        }
-        const purpose = (fileRow as unknown as { purpose: string }).purpose;
-        if (purpose !== "review_photo") {
-            throw badRequest("리뷰 사진 용도로 업로드된 파일만 첨부할 수 있습니다.");
-        }
-    }
-
-    return { photoFileIds, photoFileIdsOrNull: photoFileIds };
-}
+import type { Tables } from "@/lib/database.types";
 
 type ReviewRow = Tables<"reviews">;
-type ReviewInsertWithPhotos = TablesInsert<"reviews"> & { photo_file_ids?: string[] };
 type ReviewRowWithVendor = ReviewRow & { vendor?: { id: string; name: string } | null };
 function mapReviewVendorSummary(input: { id: string; name: string } | null | undefined): { id: string; name: string } | null {
     if (!input) return null;
@@ -85,7 +29,7 @@ export const POST = withApi(
             });
         }
 
-        const { photoFileIdsOrNull } = await validateReviewPhotoFileIds(ctx, body.photoFileIds);
+        const photoFileIds = await validateReviewPhotoFileIds(ctx.supabase, body.photoFileIds);
 
         const { data: lead, error: leadError } = await ctx.supabase
             .from("leads")
@@ -100,17 +44,9 @@ export const POST = withApi(
             });
         }
 
-        if (!lead) {
-            throw notFound("리드를 찾을 수 없습니다.");
-        }
-
-        if (lead.vendor_id !== body.vendorId) {
-            throw badRequest("leadId와 vendorId가 일치하지 않습니다.");
-        }
-
-        if (lead.status === "canceled") {
-            throw badRequest("취소된 문의로는 리뷰를 작성할 수 없습니다.");
-        }
+        if (!lead) throw notFound("리드를 찾을 수 없습니다.");
+        if (lead.vendor_id !== body.vendorId) throw badRequest("leadId와 vendorId가 일치하지 않습니다.");
+        if (lead.status === "canceled") throw badRequest("취소된 문의로는 리뷰를 작성할 수 없습니다.");
 
         const { data: vendor, error: vendorError } = await ctx.supabase
             .from("vendors")
@@ -125,40 +61,26 @@ export const POST = withApi(
             });
         }
 
-        if (!vendor) {
-            throw notFound("업체를 찾을 수 없습니다.");
-        }
+        if (!vendor) throw notFound("업체를 찾을 수 없습니다.");
 
-        const insertPayload: ReviewInsertWithPhotos = {
+        const insertPayload: Parameters<typeof insertReview>[1] = {
             vendor_id: body.vendorId,
             doctor_user_id: ctx.user.id,
             lead_id: body.leadId,
             rating: body.rating,
+            quality_rating: body.qualityRating ?? null,
+            communication_rating: body.communicationRating ?? null,
+            speed_rating: body.speedRating ?? null,
             content: body.content,
             amount: body.amount ?? null,
             worked_at: body.workedAt ?? null,
             status: "published",
         };
-        if (photoFileIdsOrNull) {
-            insertPayload.photo_file_ids = photoFileIdsOrNull;
+        if (photoFileIds) {
+            insertPayload.photo_file_ids = photoFileIds;
         }
 
-        const { data: review, error } = await ctx.supabase
-            .from("reviews")
-            .insert(insertPayload)
-            .select("*")
-            .single();
-
-        if (error) {
-            if (error.code === "23505") {
-                throw conflict("이미 리뷰를 작성했습니다.");
-            }
-
-            throw internalServerError("리뷰 작성에 실패했습니다.", {
-                message: error.message,
-                code: error.code,
-            });
-        }
+        const review = await insertReview(ctx.supabase, insertPayload);
 
         // 성공 시 rate limit 카운트 증가
         await incrementRateLimit(ctx.user.id, "review_create");
