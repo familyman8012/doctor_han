@@ -131,17 +131,17 @@ export const AllCheckBox: React.FC<{ label?: string; className?: string }> = ({ 
                         "appearance-none bg-white bg-no-repeat bg-center bg-contain border rounded cursor-pointer transition-colors",
                         size === "sm" ? "w-4 h-4" : "w-6 h-6",
                         "border-gray-300",
-                        "checked:border-[#62e3d5] checked:bg-[#62e3d5]",
+                        "checked:border-primary checked:bg-primary",
                         !isIndeterminate &&
                             "checked:bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMiAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwLjY2NjcgMS41TDQuNSA3LjY2NjY3TDEuNDE2NjcgNC41ODMzMyIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+')]",
-                        "focus:outline-none focus:ring-0 focus:shadow-[0_0_0_2px_#62e3d5]",
+                        "focus:outline-none focus:ring-0 focus:shadow-[0_0_0_2px_var(--color-primary)]",
                         disabled && "border-gray-200 bg-gray-50 pointer-events-none",
                     )}
                     style={{
                         ...(isIndeterminate && {
                             backgroundImage: `url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMiIgdmlld0JveD0iMCAwIDEyIDIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMiIgaGVpZ2h0PSIyIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4=")`,
-                            backgroundColor: "#62e3d5",
-                            borderColor: "#62e3d5",
+                            backgroundColor: "var(--color-primary)",
+                            borderColor: "var(--color-primary)",
                         }),
                     }}
                 />

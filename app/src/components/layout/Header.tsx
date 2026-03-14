@@ -85,7 +85,7 @@ export function Header({ onMenuToggle, isMobileMenuOpen }: HeaderProps) {
                             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>
                         <Link href="/" className="flex items-center gap-2">
-                            <span className="text-xl font-bold text-[#0a3b41]">메디허브</span>
+                            <span className="text-xl font-bold text-content-primary">메디허브</span>
                         </Link>
                     </div>
 
@@ -105,7 +105,7 @@ export function Header({ onMenuToggle, isMobileMenuOpen }: HeaderProps) {
                             />
                             <button
                                 type="submit"
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#62e3d5]"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary"
                             >
                                 <Search className="w-5 h-5" />
                             </button>
@@ -131,7 +131,7 @@ export function Header({ onMenuToggle, isMobileMenuOpen }: HeaderProps) {
                                     onClick={() => setShowUserMenu(!showUserMenu)}
                                     className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50"
                                 >
-                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-[#62e3d5]/20 flex items-center justify-center">
+                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-primary-100 flex items-center justify-center">
                                         {profile?.avatarUrl ? (
                                             // eslint-disable-next-line @next/next/no-img-element
                                             <img
@@ -140,10 +140,10 @@ export function Header({ onMenuToggle, isMobileMenuOpen }: HeaderProps) {
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (
-                                            <User className="w-4 h-4 text-[#0a3b41]" />
+                                            <User className="w-4 h-4 text-content-primary" />
                                         )}
                                     </div>
-                                    <span className="hidden sm:block text-sm font-medium text-[#0a3b41]">
+                                    <span className="hidden sm:block text-sm font-medium text-content-primary">
                                         {profile?.displayName || "사용자"}
                                     </span>
                                 </button>

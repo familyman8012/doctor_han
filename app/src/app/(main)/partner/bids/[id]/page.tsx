@@ -116,8 +116,8 @@ export default function PartnerBidDetailPage() {
                     <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
-                        <Gavel className="w-6 h-6 text-[#62e3d5]" />
+                    <h1 className="text-2xl font-bold text-content-primary flex items-center gap-2">
+                        <Gavel className="w-6 h-6 text-primary" />
                         {project.title}
                     </h1>
                 </div>
@@ -128,34 +128,34 @@ export default function PartnerBidDetailPage() {
 
             {/* 프로젝트 정보 */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-[#0a3b41] mb-4">프로젝트 정보</h2>
+                <h2 className="text-lg font-semibold text-content-primary mb-4">프로젝트 정보</h2>
                 <dl className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                         <dt className="text-gray-500">위치</dt>
-                        <dd className="font-medium text-[#0a3b41]">{project.location}</dd>
+                        <dd className="font-medium text-content-primary">{project.location}</dd>
                     </div>
                     <div>
                         <dt className="text-gray-500">예산</dt>
-                        <dd className="font-medium text-[#0a3b41]">
+                        <dd className="font-medium text-content-primary">
                             {project.budgetMin.toLocaleString()}~{project.budgetMax.toLocaleString()}원
                         </dd>
                     </div>
                     {project.spaceSize && (
                         <div>
                             <dt className="text-gray-500">공간 크기</dt>
-                            <dd className="font-medium text-[#0a3b41]">{project.spaceSize}</dd>
+                            <dd className="font-medium text-content-primary">{project.spaceSize}</dd>
                         </div>
                     )}
                     {project.schedule && (
                         <div>
                             <dt className="text-gray-500">희망 일정</dt>
-                            <dd className="font-medium text-[#0a3b41]">{project.schedule}</dd>
+                            <dd className="font-medium text-content-primary">{project.schedule}</dd>
                         </div>
                     )}
                     {project.bidDeadline && (
                         <div>
                             <dt className="text-gray-500">입찰 마감</dt>
-                            <dd className="font-medium text-[#0a3b41]">
+                            <dd className="font-medium text-content-primary">
                                 {new Date(project.bidDeadline).toLocaleDateString("ko-KR")}
                             </dd>
                         </div>
@@ -164,7 +164,7 @@ export default function PartnerBidDetailPage() {
                 {project.requirements && (
                     <div className="mt-4 pt-4 border-t border-gray-100">
                         <p className="text-sm text-gray-500 mb-1">요구사항</p>
-                        <p className="text-sm text-[#0a3b41] whitespace-pre-wrap">
+                        <p className="text-sm text-content-primary whitespace-pre-wrap">
                             {project.requirements}
                         </p>
                     </div>
@@ -174,7 +174,7 @@ export default function PartnerBidDetailPage() {
             {/* 내 입찰 상태 */}
             {myResponse && (
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-[#0a3b41] mb-4">내 입찰 현황</h2>
+                    <h2 className="text-lg font-semibold text-content-primary mb-4">내 입찰 현황</h2>
                     <div className="flex items-center gap-3 mb-4">
                         <Badge
                             color={
@@ -190,7 +190,7 @@ export default function PartnerBidDetailPage() {
                             {RESPONSE_STATUS_LABELS[myResponse.status]}
                         </Badge>
                         {myResponse.price != null && myResponse.status === "submitted" && (
-                            <span className="text-lg font-bold text-[#0a3b41]">
+                            <span className="text-lg font-bold text-content-primary">
                                 {myResponse.price.toLocaleString()}원
                             </span>
                         )}
@@ -206,7 +206,7 @@ export default function PartnerBidDetailPage() {
             {/* 입찰 제출 폼 */}
             {canSubmit && (
                 <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-                    <h2 className="text-lg font-semibold text-[#0a3b41]">입찰 제출</h2>
+                    <h2 className="text-lg font-semibold text-content-primary">입찰 제출</h2>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -219,7 +219,7 @@ export default function PartnerBidDetailPage() {
                                 setBidForm((prev) => ({ ...prev, price: Number(e.target.value) }))
                             }
                             placeholder="견적 금액을 입력하세요"
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent"
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             min={0}
                             required
                         />
@@ -236,7 +236,7 @@ export default function PartnerBidDetailPage() {
                             }
                             placeholder="프로젝트에 대한 제안 내용을 작성해주세요"
                             rows={6}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent resize-none"
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                             required
                         />
                     </div>
@@ -255,7 +255,7 @@ export default function PartnerBidDetailPage() {
                                 }))
                             }
                             placeholder="예: 30"
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent"
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             min={1}
                         />
                     </div>
@@ -263,7 +263,7 @@ export default function PartnerBidDetailPage() {
                     <button
                         type="submit"
                         disabled={submitMutation.isPending}
-                        className="w-full py-3 bg-[#0a3b41] text-white rounded-lg text-sm font-medium hover:bg-[#0a3b41]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full py-3 bg-primary-900 text-white rounded-lg text-sm font-medium hover:bg-primary-900/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                         <Send className="w-4 h-4" />
                         {submitMutation.isPending ? "제출 중..." : "입찰 제출"}

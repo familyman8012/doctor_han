@@ -45,8 +45,8 @@ export default function DashboardNav() {
                         className={cn(
                             "flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors -mb-px",
                             active
-                                ? "text-[#0a3b41] border-[#62e3d5]"
-                                : "text-gray-500 border-transparent hover:text-[#0a3b41] hover:border-gray-300",
+                                ? "text-content-primary border-primary"
+                                : "text-gray-500 border-transparent hover:text-content-primary hover:border-gray-300",
                         )}
                     >
                         <Icon className="w-4 h-4" />

@@ -104,8 +104,8 @@ export function SupplyContractSelect({
             label: contract.name,
             description: contract.contractNo ? `계약번호 ${contract.contractNo}` : undefined,
             icon: (
-                <div className="flex h-6 w-6 items-center justify-center rounded bg-[#62e3d5]/20">
-                    <Handshake className="h-3.5 w-3.5 text-[#0a3b41]" />
+                <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/20">
+                    <Handshake className="h-3.5 w-3.5 text-content-primary" />
                 </div>
             ),
             status: contract.status,
@@ -131,8 +131,8 @@ export function SupplyContractSelect({
             label: selectedDetail.name,
             description: selectedDetail.contractNo ? `계약번호 ${selectedDetail.contractNo}` : undefined,
             icon: (
-                <div className="flex h-6 w-6 items-center justify-center rounded bg-[#62e3d5]/20">
-                    <Handshake className="h-3.5 w-3.5 text-[#0a3b41]" />
+                <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/20">
+                    <Handshake className="h-3.5 w-3.5 text-content-primary" />
                 </div>
             ),
             status: selectedDetail.status,
@@ -164,7 +164,7 @@ export function SupplyContractSelect({
     return (
         <div className={className}>
             {label ? (
-                <label className="mb-1.5 block text-sm font-medium text-[#0a3b41]">
+                <label className="mb-1.5 block text-sm font-medium text-content-primary">
                     {label}
                     {required ? <span className="ml-0.5 text-red-500">*</span> : null}
                 </label>

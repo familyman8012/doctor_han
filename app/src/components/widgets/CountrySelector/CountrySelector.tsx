@@ -85,7 +85,7 @@ export function CountrySelector({
                 state.menuIsOpen || state.isFocused
                     ? "1px solid transparent !important"
                     : "1px solid #e5e7eb !important",
-            boxShadow: state.menuIsOpen || state.isFocused ? "0 0 0 2px #62e3d5" : "none",
+            boxShadow: state.menuIsOpen || state.isFocused ? "0 0 0 2px var(--color-primary)" : "none",
             backgroundColor: disabled ? "#f9fafb" : "white",
             "&:hover": {
                 borderColor: state.menuIsOpen || state.isFocused ? "transparent" : "#d1d5db",
@@ -120,7 +120,7 @@ export function CountrySelector({
             ...provided,
             padding: "8px 12px",
             backgroundColor: state.isFocused ? "#f3f4f6" : state.isSelected ? "#ecfdf7" : "white",
-            color: "#0a3b41",
+            color: "var(--color-content-primary)",
         }),
         placeholder: (provided) => ({
             ...provided,
@@ -162,8 +162,8 @@ export function CountrySelector({
         return (
             <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs text-[#5f6b6d]">[{typedOption.value}]</span>
-                    <span className="text-sm text-[#0a3b41]">{typedOption.label}</span>
+                    <span className="font-mono text-xs text-content-secondary">[{typedOption.value}]</span>
+                    <span className="text-sm text-content-primary">{typedOption.label}</span>
                 </div>
                 {context === "menu" && typedOption.description && (
                     <span className="text-xs text-[#7a8587]">{typedOption.description}</span>
@@ -175,7 +175,7 @@ export function CountrySelector({
     return (
         <div className={cn("w-full text-left", className)}>
             {label && (
-                <label className="mb-1 block text-xs font-semibold text-[#0a3b41]">
+                <label className="mb-1 block text-xs font-semibold text-content-primary">
                     {label}
                     {required && <span className="ml-0.5 text-red-500">*</span>}
                 </label>

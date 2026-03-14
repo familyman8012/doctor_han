@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/components/utils";
 
 export const toggleVariants = cva(
-    "relative inline-flex cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#62e3d5]/20 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+    "relative inline-flex cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
     {
         variants: {
             size: {
@@ -12,7 +12,7 @@ export const toggleVariants = cva(
                 md: "h-6 w-11", // 24px x 44px
             },
             variant: {
-                primary: "data-[state=checked]:bg-[#62e3d5]",
+                primary: "data-[state=checked]:bg-primary",
                 red: "data-[state=checked]:bg-red-500",
                 green: "data-[state=checked]:bg-green-500",
             },
@@ -58,10 +58,10 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
                 <span
                     className={cn(
                         "absolute inset-0 rounded-full bg-gray-300 transition-colors",
-                        "peer-checked:bg-[#62e3d5]",
+                        "peer-checked:bg-primary",
                         variant === "red" && "peer-checked:bg-red-500",
                         variant === "green" && "peer-checked:bg-green-500",
-                        "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-[#62e3d5]/20 peer-focus-visible:ring-offset-2",
+                        "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-primary/20 peer-focus-visible:ring-offset-2",
                         className,
                     )}
                 />

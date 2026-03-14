@@ -73,7 +73,7 @@ export default function VerificationPage() {
                         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-yellow-100 flex items-center justify-center">
                             <Clock className="w-8 h-8 text-yellow-600" />
                         </div>
-                        <h1 className="text-xl font-bold text-[#0a3b41] mb-2">승인 대기 중</h1>
+                        <h1 className="text-xl font-bold text-content-primary mb-2">승인 대기 중</h1>
                         <p className="text-gray-500 mb-6">
                             제출하신 정보를 검토하고 있습니다.
                             <br />
@@ -92,7 +92,7 @@ export default function VerificationPage() {
                         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
                             <XCircle className="w-8 h-8 text-red-600" />
                         </div>
-                        <h1 className="text-xl font-bold text-[#0a3b41] mb-2">승인 반려</h1>
+                        <h1 className="text-xl font-bold text-content-primary mb-2">승인 반려</h1>
                         {verification.rejectReason && (
                             <div className="bg-red-50 rounded-lg p-4 mb-4 text-left">
                                 <p className="text-sm font-medium text-red-800 mb-1">반려 사유</p>
@@ -115,7 +115,7 @@ export default function VerificationPage() {
                         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
                             <CheckCircle className="w-8 h-8 text-green-600" />
                         </div>
-                        <h1 className="text-xl font-bold text-[#0a3b41] mb-2">승인 완료</h1>
+                        <h1 className="text-xl font-bold text-content-primary mb-2">승인 완료</h1>
                         <p className="text-gray-500 mb-6">
                             축하합니다! 이제 모든 기능을 이용하실 수 있습니다.
                         </p>

@@ -49,8 +49,8 @@ export default function AdminBidProjectsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
-                    <Gavel className="w-6 h-6 text-[#62e3d5]" />
+                <h1 className="text-2xl font-bold text-content-primary flex items-center gap-2">
+                    <Gavel className="w-6 h-6 text-primary" />
                     비딩 프로젝트 관리
                 </h1>
                 <p className="text-gray-500 mt-1">총 {total}건</p>
@@ -62,7 +62,7 @@ export default function AdminBidProjectsPage() {
                     onClick={() => setStatusFilter(null)}
                     className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                         !statusFilter
-                            ? "bg-[#0a3b41] text-white"
+                            ? "bg-primary-900 text-white"
                             : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
                 >
@@ -74,7 +74,7 @@ export default function AdminBidProjectsPage() {
                         onClick={() => setStatusFilter(s)}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                             statusFilter === s
-                                ? "bg-[#0a3b41] text-white"
+                                ? "bg-primary-900 text-white"
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         }`}
                     >
@@ -108,7 +108,7 @@ export default function AdminBidProjectsPage() {
                                     onClick={() => router.push(`/admin/bid-projects/${project.id}`)}
                                     className="hover:bg-gray-50 cursor-pointer transition-colors"
                                 >
-                                    <td className="px-4 py-3 font-medium text-[#0a3b41]">
+                                    <td className="px-4 py-3 font-medium text-content-primary">
                                         {project.title}
                                     </td>
                                     <td className="px-4 py-3 text-gray-600">{project.location}</td>

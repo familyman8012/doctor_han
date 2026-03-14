@@ -300,7 +300,7 @@ export default function PartnerProfilePage() {
         <div className="space-y-6">
             {/* 헤더 */}
             <div>
-                <h1 className="text-2xl font-bold text-[#0a3b41]">업체 프로필</h1>
+                <h1 className="text-2xl font-bold text-content-primary">업체 프로필</h1>
                 <p className="text-gray-500 mt-1">업체 정보를 관리하고 고객에게 노출되는 정보를 수정할 수 있습니다</p>
             </div>
 
@@ -312,8 +312,8 @@ export default function PartnerProfilePage() {
                 onSubmit={handleSubmitAccount((data) => updateAccountMutation.mutate(data))}
                 className="bg-white rounded-xl border border-gray-200 p-6 space-y-5"
             >
-                <h2 className="text-lg font-semibold text-[#0a3b41] flex items-center gap-2">
-                    <User className="w-5 h-5 text-[#62e3d5]" />
+                <h2 className="text-lg font-semibold text-content-primary flex items-center gap-2">
+                    <User className="w-5 h-5 text-primary" />
                     내 계정 정보
                 </h2>
 
@@ -425,8 +425,8 @@ export default function PartnerProfilePage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* 기본 정보 */}
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-[#0a3b41] mb-5 flex items-center gap-2">
-                        <Building2 className="w-5 h-5 text-[#62e3d5]" />
+                    <h2 className="text-lg font-semibold text-content-primary mb-5 flex items-center gap-2">
+                        <Building2 className="w-5 h-5 text-primary" />
                         기본 정보
                     </h2>
 
@@ -464,7 +464,7 @@ export default function PartnerProfilePage() {
                             <textarea
                                 {...register("description")}
                                 rows={5}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent resize-none"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                                 placeholder="업체에 대해 자세히 설명해주세요"
                             />
                         </div>
@@ -473,8 +473,8 @@ export default function PartnerProfilePage() {
 
                 {/* 업체 주소 */}
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-[#0a3b41] mb-5 flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-[#62e3d5]" />
+                    <h2 className="text-lg font-semibold text-content-primary mb-5 flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-primary" />
                         업체 주소
                     </h2>
 
@@ -517,7 +517,7 @@ export default function PartnerProfilePage() {
 
                 {/* 가격 정보 */}
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-[#0a3b41] mb-5">가격 범위</h2>
+                    <h2 className="text-lg font-semibold text-content-primary mb-5">가격 범위</h2>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
@@ -548,8 +548,8 @@ export default function PartnerProfilePage() {
 
                 {/* 카테고리 */}
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-[#0a3b41] mb-5 flex items-center gap-2">
-                        <Tag className="w-5 h-5 text-[#62e3d5]" />
+                    <h2 className="text-lg font-semibold text-content-primary mb-5 flex items-center gap-2">
+                        <Tag className="w-5 h-5 text-primary" />
                         서비스 카테고리
                     </h2>
 
@@ -563,7 +563,7 @@ export default function PartnerProfilePage() {
                                     onClick={() => toggleCategory(category.id)}
                                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                                         isSelected
-                                            ? "bg-[#62e3d5] text-white"
+                                            ? "bg-primary text-white"
                                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                                     }`}
                                 >

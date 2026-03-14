@@ -58,7 +58,7 @@ export function ReviewCard({
                     <div className="flex items-center gap-2 flex-wrap">
                         <button
                             onClick={() => review.vendor && router.push(`/vendors/${review.vendor.id}`)}
-                            className="text-lg font-semibold text-[#0a3b41] hover:text-[#62e3d5] transition-colors truncate"
+                            className="text-lg font-semibold text-content-primary hover:text-primary transition-colors truncate"
                         >
                             {review.vendor?.name ?? "삭제된 업체"}
                         </button>

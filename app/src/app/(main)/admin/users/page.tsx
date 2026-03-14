@@ -92,7 +92,7 @@ export default function AdminUsersPage() {
         <div className="space-y-6">
             {/* 헤더 */}
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">사용자 관리</h1>
+                <h1 className="text-xl font-bold text-content-primary">사용자 관리</h1>
                 <p className="text-sm text-gray-500 mt-1">전체 사용자를 조회하고 관리합니다.</p>
             </div>
 
@@ -190,7 +190,7 @@ export default function AdminUsersPage() {
                                                 {dayjs(user.createdAt).format("YYYY.MM.DD")}
                                             </span>
                                         </div>
-                                        <p className="font-medium text-[#0a3b41]">
+                                        <p className="font-medium text-content-primary">
                                             {user.displayName ?? "이름 없음"}
                                         </p>
                                         <p className="text-sm text-gray-500">
@@ -214,7 +214,7 @@ export default function AdminUsersPage() {
                                                 )}
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="font-medium text-[#0a3b41] truncate">
+                                                <p className="font-medium text-content-primary truncate">
                                                     {user.displayName ?? "이름 없음"}
                                                 </p>
                                                 <p className="text-xs text-gray-500 truncate">
@@ -249,7 +249,7 @@ export default function AdminUsersPage() {
 
             {/* 통계 */}
             <div className="text-sm text-gray-500 text-center">
-                총 <span className="font-medium text-[#0a3b41]">{total}</span>명의 사용자
+                총 <span className="font-medium text-content-primary">{total}</span>명의 사용자
             </div>
         </div>
     );

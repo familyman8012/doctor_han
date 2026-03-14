@@ -78,7 +78,7 @@ function PurchaseCard({ purchase }: { purchase: AdPriorityPurchase }) {
                         {new Date(purchase.startsAt).toLocaleDateString("ko-KR")} ~ {endsAt.toLocaleDateString("ko-KR")}
                     </p>
                     {purchase.status === "active" && (
-                        <p className="text-sm text-[#62e3d5] font-medium mt-1">
+                        <p className="text-sm text-primary font-medium mt-1">
                             남은 기간: {daysRemaining}일
                         </p>
                     )}
@@ -130,12 +130,12 @@ export default function PartnerAdsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <Megaphone className="w-6 h-6 text-[#62e3d5]" />
-                    <h1 className="text-2xl font-bold text-[#0a3b41]">광고 관리</h1>
+                    <Megaphone className="w-6 h-6 text-primary" />
+                    <h1 className="text-2xl font-bold text-content-primary">광고 관리</h1>
                 </div>
                 <Link
                     href="/partner/ads/purchase"
-                    className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-white bg-[#0a3b41] hover:bg-[#0a3b41]/90 rounded-lg transition-colors"
+                    className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-white bg-primary-900 hover:bg-primary-900/90 rounded-lg transition-colors"
                 >
                     <Plus className="w-4 h-4" />
                     광고 구매하기
@@ -151,7 +151,7 @@ export default function PartnerAdsPage() {
                 <>
                     {activePurchases.length > 0 && (
                         <div className="space-y-3">
-                            <h2 className="text-lg font-semibold text-[#0a3b41]">활성 광고</h2>
+                            <h2 className="text-lg font-semibold text-content-primary">활성 광고</h2>
                             <div className="space-y-3">
                                 {activePurchases.map((p) => (
                                     <PurchaseCard key={p.id} purchase={p} />

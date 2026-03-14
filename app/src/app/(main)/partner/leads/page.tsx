@@ -54,8 +54,8 @@ export default function PartnerLeadsPage() {
             {/* 헤더 */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
-                        <Inbox className="w-6 h-6 text-[#62e3d5]" />
+                    <h1 className="text-2xl font-bold text-content-primary flex items-center gap-2">
+                        <Inbox className="w-6 h-6 text-primary" />
                         받은 리드함
                     </h1>
                     <p className="text-gray-500 mt-1">총 {total}건의 문의</p>

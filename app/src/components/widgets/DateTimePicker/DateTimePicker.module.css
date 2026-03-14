@@ -10,7 +10,7 @@
     gap: 0.25rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #0a3b41;
+    color: var(--color-content-primary);
 }
 
 .controls {
@@ -39,5 +39,5 @@
 
 .helperText {
     font-size: 0.75rem;
-    color: #5f6b6d;
+    color: var(--color-content-secondary);
 }

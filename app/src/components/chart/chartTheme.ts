@@ -2,11 +2,11 @@
 export const chartColors = {
     // 부드럽고 현대적인 메인 팔레트
     modern: [
-        "#62e3d5", // Primary teal
-        "#4dd4c5", // Primary teal dark
+        "var(--color-primary)", // Primary teal
+        "var(--color-primary-hover)", // Primary teal dark
         "#7CEEDE", // Light teal
-        "#0a3b41", // Dark text
-        "#5a6376", // Gray text
+        "var(--color-content-primary)", // Dark text
+        "var(--color-content-secondary)", // Gray text
         "#94a3b8", // Light gray
     ],
 
@@ -72,12 +72,12 @@ export const chartColors = {
 
     // 비즈니스/대시보드용
     business: [
-        "#62e3d5", // Primary teal
-        "#0a3b41", // Dark text
+        "var(--color-primary)", // Primary teal
+        "var(--color-content-primary)", // Dark text
         "#059669", // Emerald 600
         "#D97706", // Amber 600
         "#DC2626", // Red 600
-        "#5a6376", // Gray text
+        "var(--color-content-secondary)", // Gray text
     ],
 };
 

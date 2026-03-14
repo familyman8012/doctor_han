@@ -242,18 +242,18 @@ const Upload: React.FC<UploadProps> = ({
         }
 
         .dropzone:hover:not(.disabled) {
-          border-color: #62e3d5;
-          background-color: rgba(98, 227, 213, 0.05);
+          border-color: var(--color-primary);
+          background-color: color-mix(in srgb, var(--color-primary) 5%, transparent);
         }
 
         .dropzone:focus:not(.disabled) {
-          border-color: #62e3d5;
-          box-shadow: 0 0 0 2px rgba(98, 227, 213, 0.2);
+          border-color: var(--color-primary);
+          box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
         }
 
         .dropzone.dragging {
-          border-color: #62e3d5;
-          background-color: rgba(98, 227, 213, 0.05);
+          border-color: var(--color-primary);
+          background-color: color-mix(in srgb, var(--color-primary) 5%, transparent);
         }
 
         .dropzone.reject {
@@ -275,12 +275,12 @@ const Upload: React.FC<UploadProps> = ({
         }
 
         .dropzone-content .icon {
-          color: #5a6376;
+          color: var(--color-content-secondary);
           margin-bottom: 0.75rem;
         }
 
         .dropzone.dragging .icon {
-          color: #62e3d5;
+          color: var(--color-primary);
         }
 
         .dropzone.reject .icon {
@@ -289,13 +289,13 @@ const Upload: React.FC<UploadProps> = ({
 
         .message {
           font-size: 14px;
-          color: #0a3b41;
+          color: var(--color-content-primary);
           margin-bottom: 0.5rem;
         }
 
         .hint {
           font-size: 12px;
-          color: #5a6376;
+          color: var(--color-content-secondary);
         }
 
         .rejected-files {
@@ -334,13 +334,13 @@ const Upload: React.FC<UploadProps> = ({
         .file-list-header h4 {
           font-size: 14px;
           font-weight: 600;
-          color: #0a3b41;
+          color: var(--color-content-primary);
           margin: 0;
         }
 
         .clear-button {
           font-size: 12px;
-          color: #5a6376;
+          color: var(--color-content-secondary);
           background: none;
           border: none;
           cursor: pointer;
@@ -351,7 +351,7 @@ const Upload: React.FC<UploadProps> = ({
 
         .clear-button:hover {
           background-color: #f3f4f6;
-          color: #0a3b41;
+          color: var(--color-content-primary);
         }
 
         .file-item {
@@ -382,7 +382,7 @@ const Upload: React.FC<UploadProps> = ({
         }
 
         .file-icon {
-          color: #5a6376;
+          color: var(--color-content-secondary);
         }
 
         .file-details {
@@ -392,7 +392,7 @@ const Upload: React.FC<UploadProps> = ({
 
         .file-name {
           font-size: 13px;
-          color: #0a3b41;
+          color: var(--color-content-primary);
           margin: 0;
           max-width: 300px;
           overflow: hidden;
@@ -402,7 +402,7 @@ const Upload: React.FC<UploadProps> = ({
 
         .file-size {
           font-size: 11px;
-          color: #5a6376;
+          color: var(--color-content-secondary);
           margin: 0;
         }
 
@@ -413,7 +413,7 @@ const Upload: React.FC<UploadProps> = ({
         }
 
         .success-icon {
-          color: #62e3d5;
+          color: var(--color-primary);
         }
 
         .error-icon {
@@ -428,7 +428,7 @@ const Upload: React.FC<UploadProps> = ({
           background: none;
           border: none;
           cursor: pointer;
-          color: #5a6376;
+          color: var(--color-content-secondary);
           border-radius: 4px;
           transition: all 0.15s;
         }

@@ -30,7 +30,7 @@ export const Tab: FC<TabProps> = ({ title, label, isActive = false, onClick, lay
             className={cn(
                 "flex items-center relative h-8 px-3 pb-2",
                 "text-sm font-medium cursor-pointer transition-colors",
-                isActive ? "text-[#0a3b41]" : "text-[#5f6b6d] hover:text-[#0a3b41]",
+                isActive ? "text-content-primary" : "text-content-secondary hover:text-content-primary",
             )}
             onClick={onClick}
         >
@@ -42,7 +42,7 @@ export const Tab: FC<TabProps> = ({ title, label, isActive = false, onClick, lay
             )}
             {isActive && (
                 <motion.div
-                    className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#62e3d5]"
+                    className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"
                     layoutId={layoutId}
                     transition={{
                         type: "spring",

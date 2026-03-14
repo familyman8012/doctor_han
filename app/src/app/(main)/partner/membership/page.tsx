@@ -87,8 +87,8 @@ export default function PartnerMembershipPage() {
         return (
             <div className="space-y-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
-                        <Shield className="w-6 h-6 text-[#62e3d5]" />
+                    <h1 className="text-2xl font-bold text-content-primary flex items-center gap-2">
+                        <Shield className="w-6 h-6 text-primary" />
                         입점 멤버십
                     </h1>
                     <p className="text-gray-500 mt-1">S등급 업종 입점비 관리</p>
@@ -109,8 +109,8 @@ export default function PartnerMembershipPage() {
             {/* 헤더 */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
-                        <Shield className="w-6 h-6 text-[#62e3d5]" />
+                    <h1 className="text-2xl font-bold text-content-primary flex items-center gap-2">
+                        <Shield className="w-6 h-6 text-primary" />
                         입점 멤버십
                     </h1>
                     <p className="text-gray-500 mt-1">S등급 업종 연간 입점비</p>
@@ -162,7 +162,7 @@ export default function PartnerMembershipPage() {
                                 <Badge color={getStatusColor(membership.status)} size="xs">
                                     {getStatusLabel(membership.status)}
                                 </Badge>
-                                <span className="font-semibold text-[#0a3b41]">
+                                <span className="font-semibold text-content-primary">
                                     {membership.plan?.name ?? "입점 멤버십"}
                                 </span>
                             </div>
@@ -174,7 +174,7 @@ export default function PartnerMembershipPage() {
                             </p>
                         </div>
                         <div className="text-right">
-                            <p className="text-2xl font-bold text-[#0a3b41]">
+                            <p className="text-2xl font-bold text-content-primary">
                                 D-{getRemainingDays(membership.expiresAt)}
                             </p>
                             <p className="text-xs text-gray-400">
@@ -213,11 +213,11 @@ export default function PartnerMembershipPage() {
             {/* 구매 패널 */}
             {showPurchase && (
                 <div className="bg-white rounded-xl border border-gray-200 p-5">
-                    <h2 className="text-lg font-bold text-[#0a3b41] mb-4">멤버십 구매</h2>
+                    <h2 className="text-lg font-bold text-content-primary mb-4">멤버십 구매</h2>
 
                     <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                         <p className="text-sm text-gray-500">보유 크레딧</p>
-                        <p className="text-lg font-bold text-[#0a3b41]">{formatKRW(creditBalance)}</p>
+                        <p className="text-lg font-bold text-content-primary">{formatKRW(creditBalance)}</p>
                     </div>
 
                     {plansLoading ? (
@@ -236,7 +236,7 @@ export default function PartnerMembershipPage() {
                                         className="border border-gray-200 rounded-lg p-4 flex items-center justify-between"
                                     >
                                         <div>
-                                            <p className="font-medium text-[#0a3b41]">{plan.name}</p>
+                                            <p className="font-medium text-content-primary">{plan.name}</p>
                                             <p className="text-sm text-gray-500">{plan.durationDays}일</p>
                                             <div className="flex items-center gap-2 mt-1">
                                                 {hasPromo && (
@@ -244,7 +244,7 @@ export default function PartnerMembershipPage() {
                                                         {formatKRW(plan.price)}
                                                     </span>
                                                 )}
-                                                <span className="text-lg font-bold text-[#0a3b41]">
+                                                <span className="text-lg font-bold text-content-primary">
                                                     {formatKRW(plan.effectivePrice)}
                                                 </span>
                                                 {hasPromo && (

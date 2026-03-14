@@ -29,10 +29,10 @@ const AlertModal = ({ isOpen, title, content, onClose, className }: AlertModalPr
                 )}
             >
                 {title && (
-                    <h4 className="text-center text-base leading-relaxed font-semibold text-[#0a3b41]">{title}</h4>
+                    <h4 className="text-center text-base leading-relaxed font-semibold text-content-primary">{title}</h4>
                 )}
                 {content && (
-                    <p className="text-sm leading-normal font-normal text-[#5a6376] whitespace-pre-wrap">{content}</p>
+                    <p className="text-sm leading-normal font-normal text-content-secondary whitespace-pre-wrap">{content}</p>
                 )}
             </div>
         </Modal>

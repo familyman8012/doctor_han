@@ -36,7 +36,7 @@ function SidebarUserInfo({ session }: { session?: AuthGuardSession | null }) {
     return (
         <div className="border-b border-white/10 px-4 py-4">
             <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#62e3d5] text-xs font-semibold text-[#0a3b41]">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">
                     {initials}
                 </div>
                 <div className="opacity-100 transition-opacity duration-200 group-[.collapsed]:w-0 group-[.collapsed]:opacity-0">
@@ -171,7 +171,7 @@ const SidebarNav = ({ pathname, isCollapsed, expandedItems, onToggle }: SidebarN
                             <div
                                 className={`flex items-center rounded-lg px-3 py-2.5 text-sm transition-colors ${
                                     active
-                                        ? "bg-[#0d4f56] text-[#62e3d5]"
+                                        ? "bg-primary-800 text-primary-300"
                                         : `${canNavigateSelf ? "text-white/80 hover:bg-white/10 hover:text-white cursor-pointer" : "text-white/50 cursor-not-allowed"}`
                                 }`}
                                 role="button"
@@ -212,7 +212,7 @@ const SidebarNav = ({ pathname, isCollapsed, expandedItems, onToggle }: SidebarN
 
                             {isCollapsed && hasSubItems && hoveredItem === item.id && hoveredRect && (
                                 <div
-                                    className="fixed z-[60] rounded-lg border border-white/10 bg-[#0a3b41] shadow-xl"
+                                    className="fixed z-[60] rounded-lg border border-white/10 bg-primary-900 shadow-xl"
                                     style={{ left: hoveredRect.right + 8, top: hoveredRect.top, minWidth: 200 }}
                                 >
                                     <div className="border-b border-white/10 px-3 py-2 text-xs font-semibold text-white/70">
@@ -230,7 +230,7 @@ const SidebarNav = ({ pathname, isCollapsed, expandedItems, onToggle }: SidebarN
                                                     onClick={() => subClickable && router.push(subItem.path)}
                                                     className={`block w-full px-4 py-2 text-left text-sm transition-colors ${
                                                         subActive
-                                                            ? "bg-[#0d4f56] text-[#62e3d5]"
+                                                            ? "bg-primary-800 text-primary-300"
                                                             : `${subClickable ? "text-white/80 hover:bg-white/10 hover:text-white" : "text-white/50 cursor-not-allowed"}`
                                                     }`}
                                                     aria-disabled={!subClickable}
@@ -257,7 +257,7 @@ const SidebarNav = ({ pathname, isCollapsed, expandedItems, onToggle }: SidebarN
                                                 onClick={() => subClickable && router.push(subItem.path)}
                                                 className={`block w-full whitespace-nowrap rounded-md px-3 py-2 text-left text-sm transition-colors ${
                                                     subActive
-                                                        ? "bg-[#0d4f56]/70 text-[#62e3d5]"
+                                                        ? "bg-primary-800/70 text-primary-300"
                                                         : `${subClickable ? "text-white/60 hover:bg-white/10 hover:text-white" : "text-white/50 cursor-not-allowed"}`
                                                 }`}
                                                 aria-disabled={!subClickable}
@@ -339,7 +339,7 @@ export default function Sidebar({ session }: { session?: AuthGuardSession | null
 
     return (
         <div
-            className={`group sticky top-0 z-40 flex h-screen flex-col bg-[#0a3b41] text-white transition-all duration-300 ${
+            className={`group sticky top-0 z-40 flex h-screen flex-col bg-primary-900 text-white transition-all duration-300 ${
                 isSidebarCollapsed ? "w-16 collapsed" : "w-60"
             }`}
         >

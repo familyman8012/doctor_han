@@ -74,14 +74,14 @@ const Pagination: FC<PaginationProps> = ({ pageInfo, totalCount, handlePageChang
           font-size: 12px;
           line-height: 1;
           border-radius: 6px;
-          color: #0a3b41;
+          color: var(--color-content-primary);
           cursor: pointer;
           transition: all 0.15s ease;
         }
 
         .pagination-wrap .page-item:hover:not(.disabled):not(.active) {
           background-color: #f3f3f3;
-          border-color: #0a3b41;
+          border-color: var(--color-content-primary);
         }
 
         .pagination-wrap .page-item svg {
@@ -103,9 +103,9 @@ const Pagination: FC<PaginationProps> = ({ pageInfo, totalCount, handlePageChang
         }
 
         .pagination-wrap .page-item.active {
-          background-color: #0a3b41;
+          background-color: var(--color-content-primary);
           color: white;
-          border: 2px solid #0a3b41;
+          border: 2px solid var(--color-content-primary);
           font-weight: 500;
         }
 
@@ -127,7 +127,7 @@ const Pagination: FC<PaginationProps> = ({ pageInfo, totalCount, handlePageChang
 
         .jump-to-page label {
           font-size: 12px;
-          color: #0a3b41;
+          color: var(--color-content-primary);
         }
 
         .jump-to-page input {
@@ -143,7 +143,7 @@ const Pagination: FC<PaginationProps> = ({ pageInfo, totalCount, handlePageChang
         .jump-to-page input:focus {
           outline: none;
           border-color: transparent;
-          box-shadow: 0 0 0 2px #62e3d5;
+          box-shadow: 0 0 0 2px var(--color-primary);
         }
 
         .jump-to-page button {
@@ -152,7 +152,7 @@ const Pagination: FC<PaginationProps> = ({ pageInfo, totalCount, handlePageChang
           font-size: 12px;
           font-weight: 500;
           color: white;
-          background-color: #62e3d5;
+          background-color: var(--color-primary);
           border: none;
           border-radius: 6px;
           cursor: pointer;
@@ -160,7 +160,7 @@ const Pagination: FC<PaginationProps> = ({ pageInfo, totalCount, handlePageChang
         }
 
         .jump-to-page button:hover {
-          background-color: #4dd4c5;
+          background-color: var(--color-primary-hover);
         }
 
         .jump-to-page button:disabled {
@@ -170,7 +170,7 @@ const Pagination: FC<PaginationProps> = ({ pageInfo, totalCount, handlePageChang
 
         .page-info {
           font-size: 12px;
-          color: #5a6376;
+          color: var(--color-content-secondary);
         }
       `}</style>
             <div className={`pagination-wrap ${isOnlyOnePage ? "single-page" : ""}`}>

@@ -68,7 +68,7 @@ export function ReviewSection({ vendorId, ratingAvg, reviewCount, currentUserId 
     return (
         <div className="bg-white rounded-xl border border-gray-100 p-6">
             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-[#0a3b41]">리뷰</h2>
+                <h2 className="text-lg font-bold text-content-primary">리뷰</h2>
                 <div className="flex items-center gap-4">
                     {/* 정렬 드롭다운 */}
                     {reviewCount > 0 && (
@@ -108,7 +108,7 @@ export function ReviewSection({ vendorId, ratingAvg, reviewCount, currentUserId 
                         {ratingAvg !== null && ratingAvg > 0 ? (
                             <>
                                 <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                                <span className="text-lg font-bold text-[#0a3b41]">
+                                <span className="text-lg font-bold text-content-primary">
                                     {ratingAvg.toFixed(1)}
                                 </span>
                                 <span className="text-gray-500">({reviewCount}개)</span>
@@ -124,7 +124,7 @@ export function ReviewSection({ vendorId, ratingAvg, reviewCount, currentUserId 
             {ratingAvg !== null && ratingAvg > 0 && (
                 <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
                     <div className="text-center">
-                        <p className="text-4xl font-bold text-[#0a3b41]">
+                        <p className="text-4xl font-bold text-content-primary">
                             {ratingAvg.toFixed(1)}
                         </p>
                         <div className="flex items-center justify-center gap-0.5 mt-1">
@@ -181,7 +181,7 @@ export function ReviewSection({ vendorId, ratingAvg, reviewCount, currentUserId 
                                                 </button>
                                             )}
                                         </div>
-                                        <p className="text-[#0a3b41] whitespace-pre-wrap">
+                                        <p className="text-content-primary whitespace-pre-wrap">
                                             {review.content}
                                         </p>
                                         {(hasAmount || hasWorkedAt) && (

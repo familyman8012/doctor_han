@@ -88,7 +88,7 @@ export function SocialAccountLinking({ returnUrl }: SocialAccountLinkingProps) {
 
     return (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-[#0a3b41] mb-4">소셜 계정 연결</h3>
+            <h3 className="text-lg font-semibold text-content-primary mb-4">소셜 계정 연결</h3>
 
             {isLoading ? (
                 <div className="flex justify-center py-8">
@@ -106,7 +106,7 @@ export function SocialAccountLinking({ returnUrl }: SocialAccountLinkingProps) {
                                 key={provider.id}
                                 className={cn(
                                     "flex items-center justify-between p-4 rounded-lg border",
-                                    connected ? "border-[#62e3d5] bg-[#62e3d5]/5" : "border-gray-200"
+                                    connected ? "border-primary bg-primary-25" : "border-gray-200"
                                 )}
                             >
                                 <div className="flex items-center gap-3">
@@ -121,7 +121,7 @@ export function SocialAccountLinking({ returnUrl }: SocialAccountLinkingProps) {
                                         <ProviderIcon providerId={provider.id} />
                                     </div>
                                     <div>
-                                        <p className="font-medium text-[#0a3b41]">{provider.name}</p>
+                                        <p className="font-medium text-content-primary">{provider.name}</p>
                                         {connected ? (
                                             <p className="text-sm text-gray-500">{identityEmail ?? "연결됨"}</p>
                                         ) : (
@@ -131,7 +131,7 @@ export function SocialAccountLinking({ returnUrl }: SocialAccountLinkingProps) {
                                 </div>
 
                                 {connected ? (
-                                    <span className="text-sm text-[#62e3d5] font-medium flex items-center gap-1">
+                                    <span className="text-sm text-primary font-medium flex items-center gap-1">
                                         <Link2 className="w-4 h-4" />
                                         연결됨
                                     </span>

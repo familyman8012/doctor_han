@@ -37,7 +37,7 @@ export default function FavoritesPage() {
                 <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                     <Heart className="w-10 h-10 text-gray-400" />
                 </div>
-                <h2 className="text-xl font-bold text-[#0a3b41] mb-2">
+                <h2 className="text-xl font-bold text-content-primary mb-2">
                     로그인이 필요합니다
                 </h2>
                 <p className="text-gray-500 mb-6">
@@ -75,7 +75,7 @@ export default function FavoritesPage() {
         <div className="space-y-6">
             {/* 헤더 */}
             <div>
-                <h1 className="text-2xl font-bold text-[#0a3b41] mb-2">찜 목록</h1>
+                <h1 className="text-2xl font-bold text-content-primary mb-2">찜 목록</h1>
                 <p className="text-gray-500">
                     {favoritesData?.length ?? 0}개의 업체를 찜했습니다
                 </p>

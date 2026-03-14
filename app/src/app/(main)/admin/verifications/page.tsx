@@ -124,7 +124,7 @@ export default function AdminVerificationsPage() {
         <div className="space-y-6">
             {/* 헤더 */}
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">인증 승인 관리</h1>
+                <h1 className="text-xl font-bold text-content-primary">인증 승인 관리</h1>
                 <p className="text-sm text-gray-500 mt-1">한의사 및 업체 인증 요청을 검토하고 승인/반려합니다.</p>
             </div>
 
@@ -214,7 +214,7 @@ export default function AdminVerificationsPage() {
                                                     {dayjs(verification.createdAt).format("YYYY.MM.DD HH:mm")}
                                                 </span>
                                             </div>
-                                            <p className="font-medium text-[#0a3b41] truncate">
+                                            <p className="font-medium text-content-primary truncate">
                                                 {user.displayName ?? user.email ?? "이름 없음"}
                                             </p>
                                             {type === "doctor" && "licenseNo" in verification && (

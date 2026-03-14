@@ -38,7 +38,7 @@ function UsersContent() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">사용자 통계</h1>
+                <h1 className="text-xl font-bold text-content-primary">사용자 통계</h1>
                 <p className="text-sm text-gray-500 mt-1">사용자 현황과 가입 추이를 분석합니다.</p>
             </div>
 
@@ -80,7 +80,7 @@ function UsersContent() {
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <ChartPanel title="신규 가입 추이" isLoading={isLoading}>
-                    {data && <BarChartView data={data.newUsersTrend} color="#62e3d5" label="신규 가입" />}
+                    {data && <BarChartView data={data.newUsersTrend} color="var(--color-primary)" label="신규 가입" />}
                 </ChartPanel>
 
                 <ChartPanel title="역할별 분포" isLoading={isLoading}>

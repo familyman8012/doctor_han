@@ -44,7 +44,7 @@ export default function PartnerSupportPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-xl font-bold text-[#0a3b41]">고객지원</h1>
+                    <h1 className="text-xl font-bold text-content-primary">고객지원</h1>
                     <p className="text-sm text-gray-500 mt-1">문의 내역을 확인하고 새 문의를 등록하세요.</p>
                 </div>
                 <Link href="/partner/support/new">

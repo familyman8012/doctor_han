@@ -68,15 +68,15 @@ export default function InteriorPage() {
         <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
-                        <Hammer className="w-6 h-6 text-[#62e3d5]" />
+                    <h1 className="text-2xl font-bold text-content-primary flex items-center gap-2">
+                        <Hammer className="w-6 h-6 text-primary" />
                         인테리어 프로젝트
                     </h1>
                     <p className="text-gray-500 mt-1">총 {total}건</p>
                 </div>
                 <button
                     onClick={() => router.push("/interior/create")}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-[#0a3b41] text-white rounded-lg text-sm font-medium hover:bg-[#0a3b41]/90 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-primary-900 text-white rounded-lg text-sm font-medium hover:bg-primary-900/90 transition-colors"
                 >
                     <Plus className="w-4 h-4" />
                     프로젝트 등록
@@ -89,7 +89,7 @@ export default function InteriorPage() {
                     onClick={() => setStatusFilter(null)}
                     className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                         !statusFilter
-                            ? "bg-[#0a3b41] text-white"
+                            ? "bg-primary-900 text-white"
                             : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
                 >
@@ -102,7 +102,7 @@ export default function InteriorPage() {
                             onClick={() => setStatusFilter(s)}
                             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                                 statusFilter === s
-                                    ? "bg-[#0a3b41] text-white"
+                                    ? "bg-primary-900 text-white"
                                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                             }`}
                         >
@@ -127,7 +127,7 @@ export default function InteriorPage() {
                         <div
                             key={project.id}
                             onClick={() => router.push(`/interior/${project.id}`)}
-                            className="bg-white rounded-xl border border-gray-200 p-5 hover:border-[#62e3d5] transition-colors cursor-pointer"
+                            className="bg-white rounded-xl border border-gray-200 p-5 hover:border-primary transition-colors cursor-pointer"
                         >
                             <div className="flex items-start justify-between">
                                 <div className="min-w-0 flex-1">
@@ -136,7 +136,7 @@ export default function InteriorPage() {
                                             {STATUS_LABELS[project.status]}
                                         </Badge>
                                     </div>
-                                    <h3 className="font-semibold text-[#0a3b41] truncate">
+                                    <h3 className="font-semibold text-content-primary truncate">
                                         {project.title}
                                     </h3>
                                     <p className="text-sm text-gray-500 mt-1">

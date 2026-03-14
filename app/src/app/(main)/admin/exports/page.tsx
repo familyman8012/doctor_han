@@ -55,7 +55,7 @@ const LEAD_STATUS_OPTIONS: { value: LeadStatus | "all"; label: string }[] = [
 ];
 
 const selectClass =
-    "px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]";
+    "px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 
 // ── page ──
 
@@ -64,7 +64,7 @@ export default function AdminExportsPage() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">데이터 내보내기</h1>
+                <h1 className="text-xl font-bold text-content-primary">데이터 내보내기</h1>
                 <p className="text-sm text-gray-500 mt-1">결제, 정산, 리드 데이터를 CSV로 내보냅니다.</p>
             </div>
 
@@ -105,11 +105,11 @@ function PaymentsCard() {
     return (
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
             <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-[#62e3d5]/10 flex items-center justify-center">
-                    <CreditCard className="w-5 h-5 text-[#0a3b41]" />
+                <div className="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center">
+                    <CreditCard className="w-5 h-5 text-content-primary" />
                 </div>
                 <div>
-                    <h2 className="text-base font-semibold text-[#0a3b41]">결제 내역</h2>
+                    <h2 className="text-base font-semibold text-content-primary">결제 내역</h2>
                     <p className="text-xs text-gray-500">결제 상태 및 날짜 범위로 필터링</p>
                 </div>
             </div>
@@ -174,11 +174,11 @@ function SettlementsCard() {
     return (
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
             <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-[#62e3d5]/10 flex items-center justify-center">
-                    <Receipt className="w-5 h-5 text-[#0a3b41]" />
+                <div className="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center">
+                    <Receipt className="w-5 h-5 text-content-primary" />
                 </div>
                 <div>
-                    <h2 className="text-base font-semibold text-[#0a3b41]">정산 내역</h2>
+                    <h2 className="text-base font-semibold text-content-primary">정산 내역</h2>
                     <p className="text-xs text-gray-500">정산 상태 및 기간으로 필터링</p>
                 </div>
             </div>
@@ -246,11 +246,11 @@ function LeadsCard() {
     return (
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
             <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-[#62e3d5]/10 flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-[#0a3b41]" />
+                <div className="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-content-primary" />
                 </div>
                 <div>
-                    <h2 className="text-base font-semibold text-[#0a3b41]">리드 내역</h2>
+                    <h2 className="text-base font-semibold text-content-primary">리드 내역</h2>
                     <p className="text-xs text-gray-500">리드 상태 및 날짜 범위로 필터링</p>
                 </div>
             </div>

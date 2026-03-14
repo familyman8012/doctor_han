@@ -135,7 +135,7 @@ export default function LeadDetailPage() {
         <div className="max-w-3xl mx-auto space-y-6">
             {/* 브레드크럼 */}
             <nav className="flex items-center gap-2 text-sm text-gray-500">
-                <Link href="/mypage/leads" className="hover:text-[#0a3b41] flex items-center gap-1">
+                <Link href="/mypage/leads" className="hover:text-content-primary flex items-center gap-1">
                     <ArrowLeft className="w-4 h-4" />
                     내 문의함
                 </Link>
@@ -146,7 +146,7 @@ export default function LeadDetailPage() {
                 <div className="flex items-start justify-between mb-4">
                     <div>
                         <Badge color={statusConfig.color} size="md">{statusConfig.label}</Badge>
-                        <h1 className="text-xl font-bold text-[#0a3b41] mt-2 flex items-center gap-2">
+                        <h1 className="text-xl font-bold text-content-primary mt-2 flex items-center gap-2">
                             <Building2 className="w-5 h-5 text-gray-400" />
                             {lead.vendor?.name ?? "업체 정보 없음"}
                         </h1>
@@ -188,13 +188,13 @@ export default function LeadDetailPage() {
                         <div className="space-y-6">
                             {/* 문의 내용 */}
                             <div>
-                                <h2 className="text-lg font-bold text-[#0a3b41] mb-4">문의 내용</h2>
+                                <h2 className="text-lg font-bold text-content-primary mb-4">문의 내용</h2>
                                 <p className="text-gray-700 whitespace-pre-wrap">{lead.content}</p>
                             </div>
 
                             {/* 연락처 정보 */}
                             <div>
-                                <h2 className="text-lg font-bold text-[#0a3b41] mb-4">연락처 정보</h2>
+                                <h2 className="text-lg font-bold text-content-primary mb-4">연락처 정보</h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
@@ -202,7 +202,7 @@ export default function LeadDetailPage() {
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500">연락처</p>
-                                            <p className="text-[#0a3b41] font-medium">{lead.contactPhone}</p>
+                                            <p className="text-content-primary font-medium">{lead.contactPhone}</p>
                                         </div>
                                     </div>
                                     {lead.contactEmail && (
@@ -212,7 +212,7 @@ export default function LeadDetailPage() {
                                             </div>
                                             <div>
                                                 <p className="text-sm text-gray-500">이메일</p>
-                                                <p className="text-[#0a3b41] font-medium">{lead.contactEmail}</p>
+                                                <p className="text-content-primary font-medium">{lead.contactEmail}</p>
                                             </div>
                                         </div>
                                     )}
@@ -223,7 +223,7 @@ export default function LeadDetailPage() {
                                             </div>
                                             <div>
                                                 <p className="text-sm text-gray-500">선호 연락 방법</p>
-                                                <p className="text-[#0a3b41] font-medium">
+                                                <p className="text-content-primary font-medium">
                                                     {CHANNEL_LABELS[lead.preferredChannel] ?? lead.preferredChannel}
                                                 </p>
                                             </div>
@@ -236,7 +236,7 @@ export default function LeadDetailPage() {
                                             </div>
                                             <div>
                                                 <p className="text-sm text-gray-500">선호 연락 시간</p>
-                                                <p className="text-[#0a3b41] font-medium">
+                                                <p className="text-content-primary font-medium">
                                                     {TIME_LABELS[lead.preferredTime] ?? lead.preferredTime}
                                                 </p>
                                             </div>

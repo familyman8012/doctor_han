@@ -60,8 +60,8 @@ export default function PartnerBidsPage() {
     return (
         <div className="max-w-4xl mx-auto space-y-6">
             <div>
-                <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
-                    <Gavel className="w-6 h-6 text-[#62e3d5]" />
+                <h1 className="text-2xl font-bold text-content-primary flex items-center gap-2">
+                    <Gavel className="w-6 h-6 text-primary" />
                     입찰 관리
                 </h1>
                 <p className="text-gray-500 mt-1">총 {total}건의 프로젝트</p>
@@ -73,7 +73,7 @@ export default function PartnerBidsPage() {
                     onClick={() => setStatusFilter(null)}
                     className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                         !statusFilter
-                            ? "bg-[#0a3b41] text-white"
+                            ? "bg-primary-900 text-white"
                             : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
                 >
@@ -85,7 +85,7 @@ export default function PartnerBidsPage() {
                         onClick={() => setStatusFilter(s)}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                             statusFilter === s
-                                ? "bg-[#0a3b41] text-white"
+                                ? "bg-primary-900 text-white"
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         }`}
                     >
@@ -109,7 +109,7 @@ export default function PartnerBidsPage() {
                         <div
                             key={project.id}
                             onClick={() => router.push(`/partner/bids/${project.id}`)}
-                            className="bg-white rounded-xl border border-gray-200 p-5 hover:border-[#62e3d5] transition-colors cursor-pointer"
+                            className="bg-white rounded-xl border border-gray-200 p-5 hover:border-primary transition-colors cursor-pointer"
                         >
                             <div className="flex items-start justify-between">
                                 <div className="min-w-0 flex-1">
@@ -118,7 +118,7 @@ export default function PartnerBidsPage() {
                                             {STATUS_LABELS[project.status]}
                                         </Badge>
                                     </div>
-                                    <h3 className="font-semibold text-[#0a3b41] truncate">
+                                    <h3 className="font-semibold text-content-primary truncate">
                                         {project.title}
                                     </h3>
                                     <p className="text-sm text-gray-500 mt-1">

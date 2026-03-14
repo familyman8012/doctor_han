@@ -124,7 +124,7 @@ export function ReviewEditModal({ review, onClose, onSuccess }: ReviewEditModalP
             <div className="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
                 {/* 헤더 */}
                 <div className="sticky top-0 bg-white flex items-center justify-between p-4 border-b border-gray-200">
-                    <h2 className="text-lg font-semibold text-[#0a3b41]">리뷰 수정</h2>
+                    <h2 className="text-lg font-semibold text-content-primary">리뷰 수정</h2>
                     <button
                         onClick={onClose}
                         className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"
@@ -138,7 +138,7 @@ export function ReviewEditModal({ review, onClose, onSuccess }: ReviewEditModalP
                     {/* 업체명 */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">업체</label>
-                        <p className="text-[#0a3b41] font-medium">{review.vendor?.name ?? "삭제된 업체"}</p>
+                        <p className="text-content-primary font-medium">{review.vendor?.name ?? "삭제된 업체"}</p>
                     </div>
 
                     {/* 별점 */}
@@ -182,7 +182,7 @@ export function ReviewEditModal({ review, onClose, onSuccess }: ReviewEditModalP
                         <textarea
                             {...register("content", { required: "리뷰 내용을 입력해주세요" })}
                             rows={4}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent resize-none"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                             placeholder="업체 이용 경험을 자세히 작성해주세요"
                         />
                         {errors.content && (
@@ -218,7 +218,7 @@ export function ReviewEditModal({ review, onClose, onSuccess }: ReviewEditModalP
                                     type="button"
                                     onClick={() => fileInputRef.current?.click()}
                                     disabled={isUploading}
-                                    className="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-[#62e3d5] hover:text-[#62e3d5] transition-colors disabled:opacity-50"
+                                    className="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
                                 >
                                     {isUploading ? (
                                         <Spinner size="sm" />

@@ -13,19 +13,19 @@ export function Footer() {
                     <div className="flex gap-6 text-sm">
                         <Link
                             href="/help"
-                            className="text-gray-500 hover:text-[#0a3b41] transition-colors"
+                            className="text-gray-500 hover:text-content-primary transition-colors"
                         >
                             헬프센터
                         </Link>
                         <Link
                             href="/legal/terms"
-                            className="text-gray-500 hover:text-[#0a3b41] transition-colors"
+                            className="text-gray-500 hover:text-content-primary transition-colors"
                         >
                             이용약관
                         </Link>
                         <Link
                             href="/legal/privacy"
-                            className="text-gray-500 hover:text-[#0a3b41] transition-colors"
+                            className="text-gray-500 hover:text-content-primary transition-colors"
                         >
                             개인정보처리방침
                         </Link>

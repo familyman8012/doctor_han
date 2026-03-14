@@ -80,15 +80,15 @@ export default function PartnerCreditsPage() {
         <div className="space-y-6">
             {/* 헤더 */}
             <div>
-                <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
-                    <Wallet className="w-6 h-6 text-[#62e3d5]" />
+                <h1 className="text-2xl font-bold text-content-primary flex items-center gap-2">
+                    <Wallet className="w-6 h-6 text-primary" />
                     크레딧 관리
                 </h1>
                 <p className="text-gray-500 mt-1">크레딧을 충전하고 관리하세요</p>
             </div>
 
             {/* 잔액 카드 */}
-            <div className="bg-gradient-to-r from-[#0a3b41] to-[#145a63] rounded-xl p-6 text-white">
+            <div className="bg-gradient-to-r from-primary-900 to-[#145a63] rounded-xl p-6 text-white">
                 <p className="text-sm text-white/70">현재 잔액</p>
                 <p className="text-3xl font-bold mt-1">
                     {formatKRW(account?.balance ?? 0)}
@@ -99,9 +99,9 @@ export default function PartnerCreditsPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Zap className="w-5 h-5 text-[#62e3d5]" />
+                        <Zap className="w-5 h-5 text-primary" />
                         <div>
-                            <p className="font-semibold text-[#0a3b41]">자동충전</p>
+                            <p className="font-semibold text-content-primary">자동충전</p>
                             <p className="text-xs text-gray-500">
                                 잔액이 1만원 이하일 때 자동으로 충전합니다 (MVP: 알림만 제공)
                             </p>
@@ -129,7 +129,7 @@ export default function PartnerCreditsPage() {
                                     type="button"
                                     className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
                                         (account?.autoChargeAmount ?? autoChargeAmount) === amt
-                                            ? "border-[#62e3d5] bg-[#62e3d5]/10 text-[#0a3b41]"
+                                            ? "border-primary bg-primary-50 text-content-primary"
                                             : "border-gray-200 text-gray-600 hover:bg-gray-50"
                                     }`}
                                     onClick={() => {
@@ -147,16 +147,16 @@ export default function PartnerCreditsPage() {
 
             {/* 충전 패키지 */}
             <div>
-                <h2 className="text-lg font-semibold text-[#0a3b41] mb-3">충전하기</h2>
+                <h2 className="text-lg font-semibold text-content-primary mb-3">충전하기</h2>
                 <div className="grid grid-cols-2 gap-3">
                     {packages.map((pkg) => (
                         <button
                             key={pkg.id}
                             type="button"
-                            className="bg-white rounded-xl border border-gray-200 p-4 text-left hover:border-[#62e3d5] hover:shadow-sm transition-all"
+                            className="bg-white rounded-xl border border-gray-200 p-4 text-left hover:border-primary hover:shadow-sm transition-all"
                             onClick={() => router.push(`/partner/credits/charge?packageId=${pkg.id}`)}
                         >
-                            <p className="text-lg font-bold text-[#0a3b41]">{pkg.name}</p>
+                            <p className="text-lg font-bold text-content-primary">{pkg.name}</p>
                             <p className="text-sm text-gray-500 mt-1">{formatKRW(pkg.amount)}</p>
                             <Button variant="primary" size="sm" className="mt-3 w-full">
                                 충전
@@ -169,10 +169,10 @@ export default function PartnerCreditsPage() {
             {/* 최근 거래 내역 */}
             <div>
                 <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-lg font-semibold text-[#0a3b41]">최근 거래</h2>
+                    <h2 className="text-lg font-semibold text-content-primary">최근 거래</h2>
                     <button
                         type="button"
-                        className="text-sm text-gray-500 hover:text-[#0a3b41] flex items-center gap-1"
+                        className="text-sm text-gray-500 hover:text-content-primary flex items-center gap-1"
                         onClick={() => router.push("/partner/credits/transactions")}
                     >
                         전체보기 <ChevronRight className="w-4 h-4" />
@@ -200,7 +200,7 @@ export default function PartnerCreditsPage() {
                                     </span>
                                 </div>
                                 <div className="text-right">
-                                    <p className={`text-sm font-medium ${tx.amount > 0 ? "text-[#62e3d5]" : "text-red-500"}`}>
+                                    <p className={`text-sm font-medium ${tx.amount > 0 ? "text-primary" : "text-red-500"}`}>
                                         {tx.amount > 0 ? "+" : ""}{formatKRW(tx.amount)}
                                     </p>
                                     <p className="text-xs text-gray-400">

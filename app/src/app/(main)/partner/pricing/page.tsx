@@ -132,7 +132,7 @@ export default function PartnerPricingPage() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h2 className="text-xl font-bold text-[#0a3b41]">서비스 단가 설정</h2>
+                <h2 className="text-xl font-bold text-content-primary">서비스 단가 설정</h2>
                 <p className="text-sm text-gray-500 mt-1">
                     카테고리별 서비스 단가를 설정하세요. 리드 발생 시 설정된 단가 기준으로 크레딧이 차감됩니다.
                 </p>
@@ -141,7 +141,7 @@ export default function PartnerPricingPage() {
             {/* 단가 목록 */}
             <div className="bg-white rounded-xl border border-gray-200">
                 <div className="px-5 py-4 border-b border-gray-100">
-                    <h3 className="text-sm font-semibold text-[#0a3b41]">설정된 단가</h3>
+                    <h3 className="text-sm font-semibold text-content-primary">설정된 단가</h3>
                 </div>
 
                 {prices.length === 0 ? (
@@ -155,7 +155,7 @@ export default function PartnerPricingPage() {
                                 {editingId === item.id ? (
                                     /* 수정 모드 */
                                     <div className="space-y-3">
-                                        <p className="text-sm font-medium text-[#0a3b41]">
+                                        <p className="text-sm font-medium text-content-primary">
                                             {item.category?.name ?? "카테고리"}
                                         </p>
                                         <div className="flex items-end gap-3 flex-wrap">
@@ -200,7 +200,7 @@ export default function PartnerPricingPage() {
                                     /* 보기 모드 */
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-6">
-                                            <span className="text-sm font-medium text-[#0a3b41] min-w-[100px]">
+                                            <span className="text-sm font-medium text-content-primary min-w-[100px]">
                                                 {item.category?.name ?? "카테고리"}
                                             </span>
                                             <span className="text-sm text-gray-700">
@@ -215,7 +215,7 @@ export default function PartnerPricingPage() {
                                         <div className="flex items-center gap-1">
                                             <button
                                                 type="button"
-                                                className="p-2 text-gray-400 hover:text-[#0a3b41] transition-colors"
+                                                className="p-2 text-gray-400 hover:text-content-primary transition-colors"
                                                 onClick={() => startEdit(item)}
                                             >
                                                 <Pencil className="w-4 h-4" />
@@ -241,18 +241,18 @@ export default function PartnerPricingPage() {
             {availableCategories.length > 0 && (
                 <div className="bg-white rounded-xl border border-gray-200">
                     <div className="px-5 py-4 border-b border-gray-100">
-                        <h3 className="text-sm font-semibold text-[#0a3b41]">단가 추가</h3>
+                        <h3 className="text-sm font-semibold text-content-primary">단가 추가</h3>
                     </div>
                     <div className="px-5 py-4 space-y-4">
                         <div className="flex items-end gap-3 flex-wrap">
                             <div>
-                                <label className="block text-sm font-medium text-[#0a3b41] mb-1.5">
+                                <label className="block text-sm font-medium text-content-primary mb-1.5">
                                     카테고리
                                 </label>
                                 <select
                                     value={newCategoryId}
                                     onChange={(e) => setNewCategoryId(e.target.value)}
-                                    className="h-[38px] px-3 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                                    className="h-[38px] px-3 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary"
                                 >
                                     <option value="">카테고리 선택</option>
                                     {availableCategories.map((cat) => (

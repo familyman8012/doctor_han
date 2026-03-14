@@ -125,7 +125,7 @@ export default function AdminSupportDetailPage() {
                             </span>
                         )}
                     </div>
-                    <h1 className="text-lg font-bold text-[#0a3b41] truncate">{ticket.title}</h1>
+                    <h1 className="text-lg font-bold text-content-primary truncate">{ticket.title}</h1>
                 </div>
             </div>
 
@@ -133,11 +133,11 @@ export default function AdminSupportDetailPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
                 {/* User Info */}
                 <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-                    <div className="w-10 h-10 rounded-full bg-[#62e3d5]/20 flex items-center justify-center">
-                        <User className="w-5 h-5 text-[#62e3d5]" />
+                    <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                        <User className="w-5 h-5 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="font-medium text-[#0a3b41]">{ticket.user.displayName}</p>
+                        <p className="font-medium text-content-primary">{ticket.user.displayName}</p>
                         <div className="flex items-center gap-3 text-sm text-gray-500">
                             {ticket.user.email && (
                                 <span className="flex items-center gap-1">
@@ -183,7 +183,7 @@ export default function AdminSupportDetailPage() {
                             value={statusNote}
                             onChange={(e) => setStatusNote(e.target.value)}
                             placeholder="상태 변경 메모 (선택)"
-                            className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                            className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             maxLength={500}
                         />
                         <div className="flex gap-2">
@@ -222,7 +222,7 @@ export default function AdminSupportDetailPage() {
                         onClick={() => setShowStatusHistory(!showStatusHistory)}
                         className="flex items-center justify-between w-full p-4 hover:bg-gray-50 transition-colors"
                     >
-                        <span className="font-medium text-[#0a3b41]">상태 변경 이력 ({statusHistory.length})</span>
+                        <span className="font-medium text-content-primary">상태 변경 이력 ({statusHistory.length})</span>
                         {showStatusHistory ? (
                             <ChevronUp className="w-5 h-5 text-gray-400" />
                         ) : (

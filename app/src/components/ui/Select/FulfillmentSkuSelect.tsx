@@ -50,9 +50,9 @@ export function FulfillmentSkuSelect({
             className="w-full"
             formatOptionLabel={(option) => (
                 <div className="flex flex-col">
-                    <span className="text-sm font-medium text-[#0a3b41]">{option.label}</span>
+                    <span className="text-sm font-medium text-content-primary">{option.label}</span>
                     {option.description && (
-                        <span className="text-xs text-[#5f6b6d]">{option.description}</span>
+                        <span className="text-xs text-content-secondary">{option.description}</span>
                     )}
                 </div>
             )}

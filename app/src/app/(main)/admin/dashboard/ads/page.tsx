@@ -31,7 +31,7 @@ function AdsContent() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">광고 성과</h1>
+                <h1 className="text-xl font-bold text-content-primary">광고 성과</h1>
                 <p className="text-sm text-gray-500 mt-1">배너 노출, 클릭, CTR을 분석합니다.</p>
             </div>
 
@@ -77,8 +77,8 @@ function AdsContent() {
                         <MultiLineChartView
                             data={mergedTrend}
                             lines={[
-                                { dataKey: "impressions", color: "#62e3d5", name: "노출" },
-                                { dataKey: "clicks", color: "#0a3b41", name: "클릭" },
+                                { dataKey: "impressions", color: "var(--color-primary)", name: "노출" },
+                                { dataKey: "clicks", color: "var(--color-primary-900)", name: "클릭" },
                             ]}
                         />
                     )}
@@ -86,7 +86,7 @@ function AdsContent() {
 
                 <ChartPanel title="광고 수익" isLoading={isLoading}>
                     <div className="flex flex-col items-center justify-center h-full">
-                        <p className="text-3xl font-bold text-[#0a3b41]">
+                        <p className="text-3xl font-bold text-content-primary">
                             {(data?.adRevenue ?? 0).toLocaleString()}
                         </p>
                         <p className="text-sm text-gray-500 mt-1">원</p>

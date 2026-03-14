@@ -93,14 +93,14 @@ export default function DateRangeFilter({
                             type="date"
                             value={qs.from}
                             onChange={(e) => setQs({ from: e.target.value })}
-                            className="border border-gray-200 rounded-lg px-2 py-1 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#62e3d5]"
+                            className="border border-gray-200 rounded-lg px-2 py-1 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-primary"
                         />
                         <span className="text-gray-400 text-sm">~</span>
                         <input
                             type="date"
                             value={qs.to}
                             onChange={(e) => setQs({ to: e.target.value })}
-                            className="border border-gray-200 rounded-lg px-2 py-1 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#62e3d5]"
+                            className="border border-gray-200 rounded-lg px-2 py-1 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-primary"
                         />
                     </div>
                 </div>

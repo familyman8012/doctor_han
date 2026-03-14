@@ -40,7 +40,7 @@ export function CategoryScroller({ categories }: CategoryScrollerProps) {
                 <h2 className="text-lg font-bold text-gray-900">카테고리</h2>
                 <Link
                     href="/categories"
-                    className="text-sm text-gray-500 hover:text-[#0a3b41] flex items-center gap-1"
+                    className="text-sm text-gray-500 hover:text-content-primary flex items-center gap-1"
                 >
                     전체보기 <ChevronRight className="w-4 h-4" />
                 </Link>
@@ -52,7 +52,7 @@ export function CategoryScroller({ categories }: CategoryScrollerProps) {
                         href={`/categories/${category.slug}`}
                         className="flex-shrink-0 flex flex-col items-center gap-2 p-3 min-w-[72px]"
                     >
-                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#f0faf9] to-[#e0f5f3] flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary-25 to-primary-50 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
                             <span className="text-2xl">
                                 {categoryIconsBySlug[category.slug] ??
                                     categoryIconsByName[category.name] ??

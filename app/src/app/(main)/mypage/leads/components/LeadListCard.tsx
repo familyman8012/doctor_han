@@ -27,7 +27,7 @@ export function LeadListCard({ lead, onClick }: LeadListCardProps) {
     return (
         <div
             onClick={onClick}
-            className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:border-[#62e3d5] hover:shadow-sm cursor-pointer transition-all"
+            className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:border-primary hover:shadow-sm cursor-pointer transition-all"
         >
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
@@ -39,7 +39,7 @@ export function LeadListCard({ lead, onClick }: LeadListCardProps) {
 
                 <div className="flex items-center gap-2 mb-1">
                     <Building2 className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <span className="font-medium text-[#0a3b41] truncate">
+                    <span className="font-medium text-content-primary truncate">
                         {lead.vendor?.name ?? "업체 정보 없음"}
                     </span>
                 </div>

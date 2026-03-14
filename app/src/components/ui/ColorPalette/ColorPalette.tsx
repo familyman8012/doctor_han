@@ -28,8 +28,8 @@ export const ColorBox: React.FC<ColorBoxProps> = ({ color, className }) => {
                 style={{ backgroundColor: color.value || `var(${color.variable})` }}
             />
             <div className="p-3 bg-white rounded-b-lg border border-t-0 border-gray-200">
-                <h3 className="text-xs font-semibold text-[#0a3b41] mb-1">{color.name}</h3>
-                <p className="text-xs text-[#5a6376] font-mono">{hexValue || color.value || ""}</p>
+                <h3 className="text-xs font-semibold text-content-primary mb-1">{color.name}</h3>
+                <p className="text-xs text-content-secondary font-mono">{hexValue || color.value || ""}</p>
                 <p className="text-[10px] text-gray-400 font-mono mt-1">{color.variable}</p>
             </div>
         </div>
@@ -45,7 +45,7 @@ interface ColorGroupProps {
 export const ColorGroup: React.FC<ColorGroupProps> = ({ title, colors, columns = 4 }) => {
     return (
         <div className="mb-8">
-            <h2 className="text-lg font-semibold text-[#0a3b41] mb-4">{title}</h2>
+            <h2 className="text-lg font-semibold text-content-primary mb-4">{title}</h2>
             <div
                 className={cn(
                     "grid gap-4",
@@ -67,14 +67,14 @@ export const ColorGroup: React.FC<ColorGroupProps> = ({ title, colors, columns =
 // Color definitions from globals.css
 export const colorGroups = {
     theme: [
-        { name: "Primary Teal", variable: "--color-theme-primary", value: "#62e3d5" },
-        { name: "Primary Dark", variable: "--color-theme-primary-dark", value: "#4dd4c5" },
-        { name: "Primary Light", variable: "--color-theme-primary-light", value: "#7ceede" },
-        { name: "Dark Text", variable: "--color-theme-text-dark", value: "#0a3b41" },
-        { name: "Gray Text", variable: "--color-theme-text-gray", value: "#5a6376" },
-        { name: "Light Gray", variable: "--color-theme-gray-light", value: "#94a3b8" },
-        { name: "Border Gray", variable: "--color-theme-border", value: "#e5e7eb" },
-        { name: "Background Light", variable: "--color-theme-bg-light", value: "#fafbfc" },
+        { name: "Primary Blue", variable: "--color-primary", value: "#2563EB" },
+        { name: "Primary Hover", variable: "--color-primary-hover", value: "#1D4ED8" },
+        { name: "Primary Light", variable: "--color-primary-300", value: "#93C5FD" },
+        { name: "Content Primary", variable: "--color-content-primary", value: "#111827" },
+        { name: "Content Secondary", variable: "--color-content-secondary", value: "#4B5563" },
+        { name: "Content Tertiary", variable: "--color-content-tertiary", value: "#9CA3AF" },
+        { name: "Border", variable: "--color-border", value: "#E5E7EB" },
+        { name: "Surface", variable: "--color-surface", value: "#F9FAFB" },
     ],
     gray: [
         { name: "Gray 0", variable: "--color-gray-0" },

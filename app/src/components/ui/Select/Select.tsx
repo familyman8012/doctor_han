@@ -89,7 +89,7 @@ const CustomOption = ({ showCheckmark }: { showCheckmark: boolean }) => {
                         {data.icon && <span className="flex-shrink-0">{data.icon}</span>}
                         <span>{children}</span>
                     </div>
-                    {showCheckmark && isSelected && <Check className="h-4 w-4 text-[#62e3d5] flex-shrink-0" />}
+                    {showCheckmark && isSelected && <Check className="h-4 w-4 text-primary flex-shrink-0" />}
                 </div>
             </components.Option>
         );
@@ -152,7 +152,7 @@ export const Select: FC<SelectProps> = ({
                 state.menuIsOpen || state.isFocused
                     ? "1px solid transparent !important"
                     : "1px solid #e5e7eb !important",
-            boxShadow: state.menuIsOpen || state.isFocused ? "0 0 0 2px #62e3d5" : "none",
+            boxShadow: state.menuIsOpen || state.isFocused ? "0 0 0 2px var(--color-primary)" : "none",
             borderRadius: "8px",
             backgroundColor: isDisabled ? "#f9fafb" : "white",
             "&:hover": {
@@ -190,28 +190,28 @@ export const Select: FC<SelectProps> = ({
             fontSize: "14px",
             lineHeight: "20px",
             padding: "8px 12px",
-            backgroundColor: state.isFocused ? "#f3f4f6" : state.isSelected ? "#62e3d5/10" : "transparent",
-            color: state.isSelected ? "#0a3b41" : state.isFocused ? "#0a3b41" : "#374151",
+            backgroundColor: state.isFocused ? "#f3f4f6" : state.isSelected ? "var(--color-primary-50)" : "transparent",
+            color: state.isSelected ? "var(--color-content-primary)" : state.isFocused ? "var(--color-content-primary)" : "#374151",
             cursor: state.isDisabled ? "not-allowed" : "pointer",
             opacity: state.isDisabled ? 0.5 : 1,
             "&:active": {
-                backgroundColor: state.isDisabled ? "transparent" : "#62e3d5/20",
+                backgroundColor: state.isDisabled ? "transparent" : "var(--color-primary-100)",
             },
         }),
         placeholder: (provided) => ({
             ...provided,
-            color: "#9ca3af",
+            color: "var(--color-content-tertiary)",
             fontSize: "14px",
         }),
         singleValue: (provided) => ({
             ...provided,
             fontSize: "14px",
-            color: "#0a3b41",
+            color: "var(--color-content-primary)",
         }),
         input: (provided) => ({
             ...provided,
             fontSize: "14px",
-            color: "#0a3b41",
+            color: "var(--color-content-primary)",
         }),
         multiValue: (provided) => ({
             ...provided,

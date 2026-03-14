@@ -139,7 +139,7 @@ export default function SubscriptionPurchasePage() {
                     <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold text-[#0a3b41]">구독 구매</h1>
+                    <h1 className="text-2xl font-bold text-content-primary">구독 구매</h1>
                     <p className="text-sm text-gray-500">
                         {step === "category" && "카테고리를 선택하세요"}
                         {step === "plan" && "플랜을 선택하세요"}
@@ -156,7 +156,7 @@ export default function SubscriptionPurchasePage() {
                         <div
                             className={`px-3 py-1 rounded-full text-xs font-medium ${
                                 step === s
-                                    ? "bg-[#62e3d5]/20 text-[#0a3b41]"
+                                    ? "bg-primary-100 text-content-primary"
                                     : "bg-gray-100 text-gray-400"
                             }`}
                         >
@@ -184,14 +184,14 @@ export default function SubscriptionPurchasePage() {
                                 <button
                                     key={cat.id}
                                     type="button"
-                                    className="w-full bg-white rounded-xl border border-gray-200 p-4 text-left hover:border-[#62e3d5] hover:shadow-sm transition-all flex items-center justify-between"
+                                    className="w-full bg-white rounded-xl border border-gray-200 p-4 text-left hover:border-primary hover:shadow-sm transition-all flex items-center justify-between"
                                     onClick={() => {
                                         setSelectedCategory(cat);
                                         setStep("plan");
                                     }}
                                 >
                                     <div className="flex flex-col gap-1">
-                                        <span className="font-medium text-[#0a3b41]">{cat.name}</span>
+                                        <span className="font-medium text-content-primary">{cat.name}</span>
                                         {isExtension && (
                                             <span className="text-xs text-amber-600">
                                                 연장 가능 (만료까지 D-{remainingDays})
@@ -215,8 +215,8 @@ export default function SubscriptionPurchasePage() {
                             type="button"
                             className={`w-full bg-white rounded-xl border p-5 text-left transition-all ${
                                 selectedPlan?.id === plan.id
-                                    ? "border-[#62e3d5] shadow-sm ring-1 ring-[#62e3d5]"
-                                    : "border-gray-200 hover:border-[#62e3d5] hover:shadow-sm"
+                                    ? "border-primary shadow-sm ring-1 ring-primary"
+                                    : "border-gray-200 hover:border-primary hover:shadow-sm"
                             }`}
                             onClick={() => {
                                 setSelectedPlan(plan);
@@ -226,7 +226,7 @@ export default function SubscriptionPurchasePage() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-lg font-bold text-[#0a3b41]">
+                                        <span className="text-lg font-bold text-content-primary">
                                             {plan.name}
                                         </span>
                                         {plan.discountRate > 0 && (
@@ -239,7 +239,7 @@ export default function SubscriptionPurchasePage() {
                                         일 {formatKRW(plan.dailyRate)} · {plan.durationDays}일
                                     </p>
                                 </div>
-                                <p className="text-xl font-bold text-[#0a3b41]">
+                                <p className="text-xl font-bold text-content-primary">
                                     {formatKRW(plan.price)}
                                 </p>
                             </div>
@@ -253,7 +253,7 @@ export default function SubscriptionPurchasePage() {
                 <div className="space-y-4">
                     {/* 구매 요약 */}
                     <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-                        <h3 className="font-semibold text-[#0a3b41]">구매 요약</h3>
+                        <h3 className="font-semibold text-content-primary">구매 요약</h3>
                         <div className="space-y-3 text-sm">
                             {isExtensionPurchase && (
                                 <div className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
@@ -262,25 +262,25 @@ export default function SubscriptionPurchasePage() {
                             )}
                             <div className="flex justify-between">
                                 <span className="text-gray-500">카테고리</span>
-                                <span className="font-medium text-[#0a3b41]">
+                                <span className="font-medium text-content-primary">
                                     {selectedCategory.name}
                                 </span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-500">플랜</span>
-                                <span className="font-medium text-[#0a3b41]">
+                                <span className="font-medium text-content-primary">
                                     {selectedPlan.name}
                                 </span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-500">기간</span>
-                                <span className="font-medium text-[#0a3b41]">
+                                <span className="font-medium text-content-primary">
                                     {selectedPlan.durationDays}일
                                 </span>
                             </div>
                             <div className="border-t border-gray-100 pt-3 flex justify-between">
                                 <span className="text-gray-700 font-medium">결제 금액</span>
-                                <span className="text-lg font-bold text-[#0a3b41]">
+                                <span className="text-lg font-bold text-content-primary">
                                     {formatKRW(selectedPlan.price)}
                                 </span>
                             </div>
@@ -294,7 +294,7 @@ export default function SubscriptionPurchasePage() {
                             <span
                                 className={`text-lg font-bold ${
                                     creditBalance >= selectedPlan.price
-                                        ? "text-[#0a3b41]"
+                                        ? "text-content-primary"
                                         : "text-red-500"
                                 }`}
                             >
@@ -317,7 +317,7 @@ export default function SubscriptionPurchasePage() {
                         )}
                         {creditBalance >= selectedPlan.price && (
                             <div className="mt-2 flex items-center gap-1 text-sm text-gray-400">
-                                <CheckCircle2 className="w-4 h-4 text-[#62e3d5]" />
+                                <CheckCircle2 className="w-4 h-4 text-primary" />
                                 결제 후 잔액: {formatKRW(creditBalance - selectedPlan.price)}
                             </div>
                         )}

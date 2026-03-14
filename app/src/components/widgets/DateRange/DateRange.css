@@ -19,16 +19,16 @@
     .react-datepicker__month-text--in-selecting-range:not(.react-datepicker__month-text--in-range),
     .react-datepicker__quarter-text--in-selecting-range:not(.react-datepicker__quarter-text--in-range),
     .react-datepicker__year-text--in-selecting-range:not(.react-datepicker__year-text--in-range) {
-        background-color: rgba(98, 227, 213, 0.2) !important;
-        color: #0a3b41 !important;
+        background-color: color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
+        color: var(--color-content-primary) !important;
     }
 
     .react-datepicker__day--in-selecting-range:not(.react-datepicker__day--in-range):hover,
     .react-datepicker__month-text--in-selecting-range:not(.react-datepicker__month-text--in-range):hover,
     .react-datepicker__quarter-text--in-selecting-range:not(.react-datepicker__quarter-text--in-range):hover,
     .react-datepicker__year-text--in-selecting-range:not(.react-datepicker__year-text--in-range):hover {
-        background-color: rgba(98, 227, 213, 0.3) !important;
-        color: #0a3b41 !important;
+        background-color: color-mix(in srgb, var(--color-primary) 30%, transparent) !important;
+        color: var(--color-content-primary) !important;
     }
 
     .react-datepicker__day--in-range:not(.react-datepicker__day--range-start):not(.react-datepicker__day--range-end),
@@ -41,8 +41,8 @@
     .react-datepicker__year-text--in-range:not(.react-datepicker__year-text--range-start):not(
             .react-datepicker__year-text--range-end
         ) {
-        background-color: rgba(98, 227, 213, 0.1) !important;
-        color: #0a3b41 !important;
+        background-color: color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
+        color: var(--color-content-primary) !important;
     }
 
     .react-datepicker__day--in-range:not(.react-datepicker__day--range-start):not(
@@ -57,8 +57,8 @@
     .react-datepicker__year-text--in-range:not(.react-datepicker__year-text--range-start):not(
             .react-datepicker__year-text--range-end
         ):hover {
-        background-color: rgba(98, 227, 213, 0.2) !important;
-        color: #0a3b41 !important;
+        background-color: color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
+        color: var(--color-content-primary) !important;
     }
 
     &:has(.react-datepicker__month-dropdown),
@@ -221,7 +221,7 @@
         /* 선택된 드롭다운 옵션 */
         .react-datepicker__month-option--selected_month,
         .react-datepicker__year-option--selected_year {
-            background-color: #62e3d5 !important;
+            background-color: var(--color-primary) !important;
             color: #ffffff !important;
 
             /* 기본 V 체크 아이콘 숨김 */
@@ -267,13 +267,13 @@
                 cursor: pointer;
                 background: #fafbfc;
                 font-size: 12px;
-                color: #0a3b41;
+                color: var(--color-content-primary);
                 border: 1px solid #e5e7eb;
                 transition: all 0.15s ease;
 
                 &:hover {
-                    background: #62e3d5 / 10;
-                    border-color: #62e3d5;
+                    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+                    border-color: var(--color-primary);
                 }
             }
         }
@@ -285,7 +285,7 @@
 
         dl {
             dt {
-                color: #5a6376;
+                color: var(--color-content-secondary);
                 font-size: 12px;
                 font-weight: 400;
                 line-height: 14.4px;
@@ -304,7 +304,7 @@
 
         .bar {
             margin: 36px 12px 0;
-            color: #5a6376;
+            color: var(--color-content-secondary);
             font-size: 14px;
             font-weight: 400;
             line-height: 16.8px;

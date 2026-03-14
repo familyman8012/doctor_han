@@ -110,7 +110,7 @@ export default function PartnerRefundsPage() {
             {/* 헤더 */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-[#0a3b41]">환불 요청</h1>
+                    <h1 className="text-2xl font-bold text-content-primary">환불 요청</h1>
                     <p className="text-gray-500 mt-1 text-sm">과금된 리드에 대한 환불을 요청하세요</p>
                 </div>
                 <Button variant="primary" size="md" onClick={() => setShowModal(true)}>
@@ -137,7 +137,7 @@ export default function PartnerRefundsPage() {
                         type="button"
                         className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
                             status === opt.value
-                                ? "border-[#0a3b41] text-[#0a3b41]"
+                                ? "border-primary-900 text-content-primary"
                                 : "border-transparent text-gray-500 hover:text-gray-700"
                         }`}
                         onClick={() => {
@@ -227,7 +227,7 @@ export default function PartnerRefundsPage() {
                 >
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
                         <div className="px-6 py-4 border-b border-gray-200">
-                            <h2 className="text-lg font-semibold text-[#0a3b41]">환불 요청</h2>
+                            <h2 className="text-lg font-semibold text-content-primary">환불 요청</h2>
                         </div>
 
                         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
@@ -247,7 +247,7 @@ export default function PartnerRefundsPage() {
                                     onChange={(e) => setLeadChargeId(e.target.value)}
                                     placeholder="과금 ID를 입력하세요"
                                     required
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent"
+                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 />
                             </div>
 
@@ -264,7 +264,7 @@ export default function PartnerRefundsPage() {
                                     id="reason"
                                     value={reason}
                                     onChange={(e) => setReason(e.target.value as RefundRequestReason)}
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent"
+                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 >
                                     {(Object.entries(REASON_LABELS) as [RefundRequestReason, string][]).map(
                                         ([value, label]) => (
@@ -292,7 +292,7 @@ export default function PartnerRefundsPage() {
                                     placeholder="환불 사유에 대한 상세 내용을 입력하세요"
                                     maxLength={2000}
                                     rows={4}
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent resize-none"
+                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                                 />
                                 <p className="text-xs text-gray-400 mt-1 text-right">
                                     {description.length} / 2000

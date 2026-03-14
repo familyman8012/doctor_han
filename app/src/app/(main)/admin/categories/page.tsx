@@ -120,7 +120,7 @@ export default function AdminCategoriesPage() {
                         <FolderTree className="w-4 h-4 text-gray-400 shrink-0" />
                         <div className="min-w-0">
                             <div className="flex items-center gap-2">
-                                <span className="font-medium text-[#0a3b41] truncate">{node.name}</span>
+                                <span className="font-medium text-content-primary truncate">{node.name}</span>
                                 <Badge color="neutral" size="xs">{node.slug}</Badge>
                                 {!node.isActive && (
                                     <Badge color="warning" size="xs">비활성</Badge>
@@ -175,7 +175,7 @@ export default function AdminCategoriesPage() {
             {/* 헤더 */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-xl font-bold text-[#0a3b41]">카테고리 관리</h1>
+                    <h1 className="text-xl font-bold text-content-primary">카테고리 관리</h1>
                     <p className="text-sm text-gray-500 mt-1">서비스 카테고리를 관리합니다.</p>
                 </div>
                 <Button
@@ -216,7 +216,7 @@ export default function AdminCategoriesPage() {
 
             {/* 통계 */}
             <div className="text-sm text-gray-500 text-center">
-                총 <span className="font-medium text-[#0a3b41]">{categories.length}</span>개의 카테고리
+                총 <span className="font-medium text-content-primary">{categories.length}</span>개의 카테고리
             </div>
 
             {/* 카테고리 폼 모달 */}

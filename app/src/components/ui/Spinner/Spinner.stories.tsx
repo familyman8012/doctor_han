@@ -83,11 +83,11 @@ export const UsageExamples: Story = {
             <div>
                 <h3 className="text-lg font-semibold mb-4">Button Loading State</h3>
                 <div className="flex gap-3">
-                    <button className="px-3 py-2 bg-[#62e3d5] text-[#0a3b41] rounded-[8px] flex items-center gap-2 text-sm font-medium">
-                        <Spinner size="sm" color="#0a3b41" />
+                    <button className="px-3 py-2 bg-primary text-content-primary rounded-[8px] flex items-center gap-2 text-sm font-medium">
+                        <Spinner size="sm" color="var(--color-content-primary)" />
                         저장 중...
                     </button>
-                    <button className="px-3 py-2 border border-gray-200 rounded-[8px] flex items-center gap-2 text-sm text-[#0a3b41]">
+                    <button className="px-3 py-2 border border-gray-200 rounded-[8px] flex items-center gap-2 text-sm text-content-primary">
                         <Spinner size="sm" />
                         처리 중
                     </button>
@@ -95,7 +95,7 @@ export const UsageExamples: Story = {
                         disabled
                         className="px-3 py-2 bg-gray-100 text-gray-400 rounded-[8px] flex items-center gap-2 text-sm cursor-not-allowed"
                     >
-                        <Spinner size="xs" color="#9ca3af" />
+                        <Spinner size="xs" color="var(--color-content-tertiary)" />
                         대기 중
                     </button>
                 </div>
@@ -105,7 +105,7 @@ export const UsageExamples: Story = {
                 <h3 className="text-lg font-semibold mb-4">Card Loading State</h3>
                 <div className="border border-gray-200 rounded-[8px] p-8 flex flex-col items-center justify-center bg-white">
                     <Spinner size="lg" className="mb-3" />
-                    <p className="text-sm text-[#5f6b6d]">데이터를 불러오는 중...</p>
+                    <p className="text-sm text-content-secondary">데이터를 불러오는 중...</p>
                 </div>
             </div>
 
@@ -113,11 +113,11 @@ export const UsageExamples: Story = {
                 <h3 className="text-lg font-semibold mb-4">Table Loading</h3>
                 <div className="border border-gray-100 rounded-[8px] bg-white">
                     <div className="px-4 py-3 border-b border-gray-100">
-                        <h4 className="text-sm font-medium text-[#0a3b41]">출고 요청 목록</h4>
+                        <h4 className="text-sm font-medium text-content-primary">출고 요청 목록</h4>
                     </div>
                     <div className="p-12 flex flex-col items-center justify-center">
                         <Spinner size="md" className="mb-2" />
-                        <p className="text-sm text-[#5f6b6d]">목록을 가져오는 중...</p>
+                        <p className="text-sm text-content-secondary">목록을 가져오는 중...</p>
                     </div>
                 </div>
             </div>
@@ -125,11 +125,11 @@ export const UsageExamples: Story = {
             <div>
                 <h3 className="text-lg font-semibold mb-4">Inline Loading</h3>
                 <div className="space-y-2">
-                    <p className="text-sm text-[#0a3b41]">
+                    <p className="text-sm text-content-primary">
                         데이터 동기화 중 <Spinner size="xs" className="inline-block ml-1" />
                     </p>
-                    <p className="text-sm text-[#5f6b6d]">
-                        파일 업로드: document.pdf <Spinner size="xs" className="inline-block ml-2" color="#5f6b6d" />
+                    <p className="text-sm text-content-secondary">
+                        파일 업로드: document.pdf <Spinner size="xs" className="inline-block ml-2" color="var(--color-content-secondary)" />
                     </p>
                 </div>
             </div>

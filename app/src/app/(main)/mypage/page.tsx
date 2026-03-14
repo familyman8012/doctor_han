@@ -115,7 +115,7 @@ export default function MyProfilePage() {
         <div className="space-y-6">
             {/* 헤더 */}
             <div>
-                <h1 className="text-2xl font-bold text-[#0a3b41]">프로필 관리</h1>
+                <h1 className="text-2xl font-bold text-content-primary">프로필 관리</h1>
                 <p className="text-gray-500 mt-1">내 정보를 확인하고 수정할 수 있습니다</p>
             </div>
 
@@ -159,7 +159,7 @@ export default function MyProfilePage() {
                 <div className="p-6 border-b border-gray-100">
                     <div className="flex items-center gap-6">
                         <div className="relative">
-                            <div className="relative w-24 h-24 rounded-full bg-[#62e3d5]/20 flex items-center justify-center overflow-hidden">
+                            <div className="relative w-24 h-24 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden">
                                 {profile?.avatarUrl ? (
                                     <Image
                                         src={profile.avatarUrl}
@@ -168,7 +168,7 @@ export default function MyProfilePage() {
                                         className="object-cover"
                                     />
                                 ) : (
-                                    <User className="w-10 h-10 text-[#62e3d5]" />
+                                    <User className="w-10 h-10 text-primary" />
                                 )}
                                 {isUploading && (
                                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
@@ -180,7 +180,7 @@ export default function MyProfilePage() {
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={isUploading}
-                                className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#62e3d5] text-white flex items-center justify-center shadow-md hover:bg-[#4bc7b9] transition-colors disabled:opacity-50"
+                                className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md hover:bg-primary-700 transition-colors disabled:opacity-50"
                             >
                                 <Camera className="w-4 h-4" />
                             </button>
@@ -193,7 +193,7 @@ export default function MyProfilePage() {
                             />
                         </div>
                         <div>
-                            <h2 className="text-lg font-semibold text-[#0a3b41]">
+                            <h2 className="text-lg font-semibold text-content-primary">
                                 {profile?.displayName ?? "회원"}
                             </h2>
                             <p className="text-sm text-gray-500 mt-1">

@@ -187,9 +187,9 @@ export function TanstackTable<TData>({
             return <ChevronsUpDown className="h-3.5 w-3.5 text-[#9aa6a8]" />;
         }
         if (sorted === "asc") {
-            return <ChevronUp className="h-3.5 w-3.5 text-[#0a3b41]" />;
+            return <ChevronUp className="h-3.5 w-3.5 text-content-primary" />;
         }
-        return <ChevronDown className="h-3.5 w-3.5 text-[#0a3b41]" />;
+        return <ChevronDown className="h-3.5 w-3.5 text-content-primary" />;
     };
 
     if (isLoading) {
@@ -213,7 +213,7 @@ export function TanstackTable<TData>({
                                 const meta = header.column.columnDef.meta as ColumnMetaConfig | undefined;
                                 const align = meta?.align ?? "left";
                                 const headerClasses = cn(
-                                    "group relative px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#5f6b6d] align-middle bg-gray-50",
+                                    "group relative px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-content-secondary align-middle bg-gray-50",
                                     align === "center" && "text-center",
                                     align === "right" && "text-right",
                                     meta?.headerClassName,
@@ -291,7 +291,7 @@ export function TanstackTable<TData>({
                             const isSorted = header.column.getIsSorted();
                             const isResizing = header.column.getIsResizing();
                             const headerClasses = cn(
-                                "group relative px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#5f6b6d] align-middle bg-gray-50",
+                                "group relative px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-content-secondary align-middle bg-gray-50",
                                 align === "center" && "text-center",
                                 align === "right" && "text-right",
                                 canSort && "cursor-pointer select-none",
@@ -316,7 +316,7 @@ export function TanstackTable<TData>({
                                                     : align === "right"
                                                         ? "justify-end text-right"
                                                         : "justify-start text-left",
-                                                canSort && "hover:text-[#0a3b41]",
+                                                canSort && "hover:text-content-primary",
                                             )}
                                             onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
                                         >
@@ -353,7 +353,7 @@ export function TanstackTable<TData>({
                                             <span
                                                 className={cn(
                                                     "pointer-events-none block w-[2px] rounded-full bg-[#dbe5e7] transition-all duration-150",
-                                                    isResizing ? "bg-[#0a3b41] opacity-100" : "opacity-0",
+                                                    isResizing ? "bg-primary-900 opacity-100" : "opacity-0",
                                                     styles.resizeHandleBar,
                                                 )}
                                                 style={{ height: "60%" }}
@@ -370,7 +370,7 @@ export function TanstackTable<TData>({
             <tbody>
                 {rowModel.rows.length === 0 ? (
                     <tr>
-                        <td colSpan={visibleColumns.length} className="px-4 py-12 text-center text-sm text-[#5f6b6d]">
+                        <td colSpan={visibleColumns.length} className="px-4 py-12 text-center text-sm text-content-secondary">
                             {emptyState ?? "표시할 데이터가 없습니다."}
                         </td>
                     </tr>

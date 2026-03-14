@@ -167,7 +167,7 @@ export function SanctionHistoryPanel({ sanctions }: SanctionHistoryPanelProps) {
                         aria-labelledby="revoke-modal-title"
                     >
                         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                            <h2 id="revoke-modal-title" className="text-lg font-semibold text-[#0a3b41]">제재 해제</h2>
+                            <h2 id="revoke-modal-title" className="text-lg font-semibold text-content-primary">제재 해제</h2>
                             <button
                                 type="button"
                                 onClick={() => setRevokeTarget(null)}
@@ -185,7 +185,7 @@ export function SanctionHistoryPanel({ sanctions }: SanctionHistoryPanelProps) {
                                     value={revokeReason}
                                     onChange={(e) => setRevokeReason(e.target.value)}
                                     placeholder="제재 해제 사유를 입력해주세요"
-                                    className="w-full h-24 px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent"
+                                    className="w-full h-24 px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                     required
                                 />
                             </div>

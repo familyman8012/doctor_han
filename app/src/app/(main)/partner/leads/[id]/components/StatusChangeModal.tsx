@@ -44,7 +44,7 @@ export function StatusChangeModal({
             <div className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl mx-4">
                 {/* 헤더 */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                    <h2 className="text-lg font-bold text-[#0a3b41]">상태 변경</h2>
+                    <h2 className="text-lg font-bold text-content-primary">상태 변경</h2>
                     <button
                         type="button"
                         onClick={onClose}
@@ -64,11 +64,11 @@ export function StatusChangeModal({
                             className={cn(
                                 "w-full text-left p-4 rounded-xl border transition-all",
                                 selected === opt.value
-                                    ? "border-[#62e3d5] bg-[#62e3d5]/5"
+                                    ? "border-primary bg-primary-25"
                                     : "border-gray-100 hover:border-gray-200"
                             )}
                         >
-                            <p className="font-medium text-[#0a3b41]">{opt.label}</p>
+                            <p className="font-medium text-content-primary">{opt.label}</p>
                             <p className="text-sm text-gray-500 mt-0.5">{opt.description}</p>
                         </button>
                     ))}

@@ -191,7 +191,7 @@ export function InquiryForm({ vendor }: InquiryFormProps) {
         <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-xl border border-gray-100 p-6 space-y-6">
             {/* 관심 서비스 (카테고리 선택) */}
             <div>
-                <label className="block text-sm font-medium text-[#0a3b41] mb-1.5">
+                <label className="block text-sm font-medium text-content-primary mb-1.5">
                     관심 서비스<span className="ml-0.5 text-red-500">*</span>
                 </label>
                 <p className="text-xs text-gray-400 mb-3">
@@ -208,8 +208,8 @@ export function InquiryForm({ vendor }: InquiryFormProps) {
                                 className={`
                                     px-3 py-1.5 text-sm rounded-full border transition-all
                                     ${isSelected
-                                        ? "bg-[#0a3b41] text-white border-[#0a3b41]"
-                                        : "bg-white text-gray-600 border-gray-200 hover:border-[#62e3d5]"
+                                        ? "bg-primary-900 text-white border-primary-900"
+                                        : "bg-white text-gray-600 border-gray-200 hover:border-primary"
                                     }
                                 `}
                             >
@@ -265,11 +265,11 @@ export function InquiryForm({ vendor }: InquiryFormProps) {
             {/* 선호 연락 방법 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-medium text-[#0a3b41] mb-1.5">
+                    <label className="block text-sm font-medium text-content-primary mb-1.5">
                         선호 연락 방법
                     </label>
                     <select
-                        className="w-full h-[38px] px-3 text-sm text-[#0a3b41] border border-gray-200 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                        className="w-full h-[38px] px-3 text-sm text-content-primary border border-gray-200 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                         {...register("preferredChannel")}
                     >
                         {PREFERRED_CHANNELS.map((ch) => (
@@ -278,11 +278,11 @@ export function InquiryForm({ vendor }: InquiryFormProps) {
                     </select>
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-[#0a3b41] mb-1.5">
+                    <label className="block text-sm font-medium text-content-primary mb-1.5">
                         선호 연락 시간
                     </label>
                     <select
-                        className="w-full h-[38px] px-3 text-sm text-[#0a3b41] border border-gray-200 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                        className="w-full h-[38px] px-3 text-sm text-content-primary border border-gray-200 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                         {...register("preferredTime")}
                     >
                         {PREFERRED_TIMES.map((t) => (
@@ -294,11 +294,11 @@ export function InquiryForm({ vendor }: InquiryFormProps) {
 
             {/* 문의 내용 */}
             <div>
-                <label className="block text-sm font-medium text-[#0a3b41] mb-1.5">
+                <label className="block text-sm font-medium text-content-primary mb-1.5">
                     문의 내용<span className="ml-0.5 text-red-500">*</span>
                 </label>
                 <textarea
-                    className="w-full min-h-[150px] px-3 py-2 text-sm text-[#0a3b41] border border-gray-200 bg-white rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-[#62e3d5] placeholder:text-gray-400"
+                    className="w-full min-h-[150px] px-3 py-2 text-sm text-content-primary border border-gray-200 bg-white rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-gray-400"
                     placeholder="문의 내용을 자세히 적어주세요. 예산, 일정, 원하는 서비스 등을 구체적으로 작성하시면 더 정확한 답변을 받으실 수 있습니다."
                     {...register("content", { required: "문의 내용을 입력해주세요" })}
                 />
@@ -309,7 +309,7 @@ export function InquiryForm({ vendor }: InquiryFormProps) {
 
             {/* 파일 첨부 */}
             <div>
-                <label className="block text-sm font-medium text-[#0a3b41] mb-1.5">
+                <label className="block text-sm font-medium text-content-primary mb-1.5">
                     첨부파일 <span className="font-normal text-gray-400">(선택, 최대 10개)</span>
                 </label>
                 <div
@@ -317,7 +317,7 @@ export function InquiryForm({ vendor }: InquiryFormProps) {
                     className={`
                         flex flex-col items-center justify-center p-5
                         border-2 border-dashed rounded-lg cursor-pointer transition-all
-                        ${isDragActive ? "border-[#62e3d5] bg-[#62e3d5]/5" : "border-gray-200 hover:border-[#62e3d5] hover:bg-gray-50"}
+                        ${isDragActive ? "border-primary bg-primary-25" : "border-gray-200 hover:border-primary hover:bg-gray-50"}
                         ${isUploadingFile || uploadedFiles.length >= 10 ? "opacity-50 cursor-not-allowed" : ""}
                     `}
                 >
@@ -341,10 +341,10 @@ export function InquiryForm({ vendor }: InquiryFormProps) {
                                     {uf.isUploading ? (
                                         <Spinner className="w-4 h-4" />
                                     ) : (
-                                        <FileText className="w-5 h-5 text-[#62e3d5]" />
+                                        <FileText className="w-5 h-5 text-primary" />
                                     )}
                                     <div>
-                                        <p className="text-sm text-[#0a3b41] truncate max-w-[200px]">
+                                        <p className="text-sm text-content-primary truncate max-w-[200px]">
                                             {uf.file.name}
                                         </p>
                                         <p className="text-xs text-gray-400">

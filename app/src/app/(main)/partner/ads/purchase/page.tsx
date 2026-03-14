@@ -94,19 +94,19 @@ export default function PurchaseAdPage() {
                 <Link href="/partner/ads" className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
                     <ArrowLeft className="w-5 h-5 text-gray-500" />
                 </Link>
-                <h1 className="text-2xl font-bold text-[#0a3b41]">우선순위 광고 구매</h1>
+                <h1 className="text-2xl font-bold text-content-primary">우선순위 광고 구매</h1>
             </div>
 
             {/* Credit balance */}
-            <div className="bg-[#0a3b41] rounded-xl p-4 text-white flex items-center gap-3">
-                <Wallet className="w-5 h-5 text-[#62e3d5]" />
+            <div className="bg-primary-900 rounded-xl p-4 text-white flex items-center gap-3">
+                <Wallet className="w-5 h-5 text-primary" />
                 <span className="text-sm">보유 크레딧</span>
-                <span className="font-bold text-[#62e3d5]">{creditBalance.toLocaleString()}C</span>
+                <span className="font-bold text-primary">{creditBalance.toLocaleString()}C</span>
             </div>
 
             {/* Step 1: Category selection */}
             <div className="space-y-3">
-                <h2 className="text-lg font-semibold text-[#0a3b41]">1. 카테고리 선택</h2>
+                <h2 className="text-lg font-semibold text-content-primary">1. 카테고리 선택</h2>
                 <div className="flex flex-wrap gap-2">
                     {categories.map((cat) => (
                         <button
@@ -115,8 +115,8 @@ export default function PurchaseAdPage() {
                             className={cn(
                                 "px-4 py-2 text-sm font-medium rounded-full transition-colors",
                                 selectedCategoryId === cat.id
-                                    ? "bg-[#0a3b41] text-white"
-                                    : "bg-gray-100 text-gray-700 hover:bg-[#62e3d5]/20",
+                                    ? "bg-primary-900 text-white"
+                                    : "bg-gray-100 text-gray-700 hover:bg-primary-100",
                             )}
                         >
                             {cat.name}
@@ -128,7 +128,7 @@ export default function PurchaseAdPage() {
             {/* Step 2: Tier selection */}
             {selectedCategoryId && (
                 <div className="space-y-3">
-                    <h2 className="text-lg font-semibold text-[#0a3b41]">2. 등급 선택</h2>
+                    <h2 className="text-lg font-semibold text-content-primary">2. 등급 선택</h2>
                     {isLoadingSlots ? (
                         <div className="flex justify-center py-10">
                             <Spinner size="lg" />
@@ -149,20 +149,20 @@ export default function PurchaseAdPage() {
                                         className={cn(
                                             "relative text-left rounded-xl border-2 p-5 transition-all",
                                             info.color,
-                                            isSelected && "ring-2 ring-[#62e3d5]",
+                                            isSelected && "ring-2 ring-primary",
                                             isFull && "opacity-50 cursor-not-allowed",
                                         )}
                                     >
                                         {isSelected && (
                                             <div className="absolute top-3 right-3">
-                                                <Check className="w-5 h-5 text-[#62e3d5]" />
+                                                <Check className="w-5 h-5 text-primary" />
                                             </div>
                                         )}
                                         <span className={cn("inline-block px-2 py-0.5 text-xs font-bold rounded-full mb-2", info.badgeColor)}>
                                             {info.label}
                                         </span>
                                         <p className="text-sm text-gray-600 mb-3">{info.description}</p>
-                                        <p className="text-xl font-bold text-[#0a3b41]">
+                                        <p className="text-xl font-bold text-content-primary">
                                             {slot.priceWeekly.toLocaleString()}원<span className="text-sm font-normal text-gray-500">/주</span>
                                         </p>
                                         <p className="text-xs text-gray-500 mt-1">
@@ -179,7 +179,7 @@ export default function PurchaseAdPage() {
             {/* Step 3: Purchase confirmation */}
             {selectedSlot && (
                 <div className="space-y-3">
-                    <h2 className="text-lg font-semibold text-[#0a3b41]">3. 구매 확인</h2>
+                    <h2 className="text-lg font-semibold text-content-primary">3. 구매 확인</h2>
                     <div className="bg-gray-50 rounded-xl p-5 space-y-2">
                         <div className="flex justify-between text-sm">
                             <span className="text-gray-500">등급</span>
@@ -211,7 +211,7 @@ export default function PurchaseAdPage() {
                             <button
                                 onClick={() => purchaseMutation.mutate()}
                                 disabled={purchaseMutation.isPending}
-                                className="flex-1 py-3 text-sm font-medium text-white bg-[#0a3b41] hover:bg-[#0a3b41]/90 rounded-lg transition-colors disabled:opacity-50"
+                                className="flex-1 py-3 text-sm font-medium text-white bg-primary-900 hover:bg-primary-900/90 rounded-lg transition-colors disabled:opacity-50"
                             >
                                 {purchaseMutation.isPending ? "처리 중..." : "결제 확인"}
                             </button>
@@ -225,7 +225,7 @@ export default function PurchaseAdPage() {
                     ) : (
                         <button
                             onClick={() => setShowConfirm(true)}
-                            className="w-full py-3 text-sm font-medium text-white bg-[#0a3b41] hover:bg-[#0a3b41]/90 rounded-lg transition-colors"
+                            className="w-full py-3 text-sm font-medium text-white bg-primary-900 hover:bg-primary-900/90 rounded-lg transition-colors"
                         >
                             구매하기
                         </button>

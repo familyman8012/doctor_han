@@ -93,7 +93,7 @@ export default function CampaignDetailPage() {
                 <Link href="/admin/ads/campaigns" className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
                     <ArrowLeft className="w-5 h-5 text-gray-500" />
                 </Link>
-                <h1 className="text-2xl font-bold text-[#0a3b41]">캠페인 상세</h1>
+                <h1 className="text-2xl font-bold text-content-primary">캠페인 상세</h1>
             </div>
 
             {/* Campaign info */}
@@ -106,14 +106,14 @@ export default function CampaignDetailPage() {
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="px-2 py-1 border border-gray-300 rounded text-lg font-bold focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                                    className="px-2 py-1 border border-gray-300 rounded text-lg font-bold focus:outline-none focus:ring-2 focus:ring-primary"
                                 />
-                                <button onClick={() => nameMutation.mutate(name)} className="text-sm text-[#62e3d5]">저장</button>
+                                <button onClick={() => nameMutation.mutate(name)} className="text-sm text-primary">저장</button>
                                 <button onClick={() => setEditingName(false)} className="text-sm text-gray-400">취소</button>
                             </div>
                         ) : (
                             <h2
-                                className="text-xl font-bold text-[#0a3b41] cursor-pointer hover:underline"
+                                className="text-xl font-bold text-content-primary cursor-pointer hover:underline"
                                 onClick={() => { setName(campaign.advertiserName); setEditingName(true); }}
                             >
                                 {campaign.advertiserName}
@@ -184,7 +184,7 @@ export default function CampaignDetailPage() {
 
             {/* Creatives */}
             <div className="space-y-3">
-                <h2 className="text-lg font-semibold text-[#0a3b41]">크리에이티브 ({creatives.length})</h2>
+                <h2 className="text-lg font-semibold text-content-primary">크리에이티브 ({creatives.length})</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {creatives.map((creative) => (
                         <div key={creative.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -196,7 +196,7 @@ export default function CampaignDetailPage() {
                                 />
                             )}
                             <div className="p-4 space-y-1">
-                                <p className="font-medium text-[#0a3b41]">{creative.title}</p>
+                                <p className="font-medium text-content-primary">{creative.title}</p>
                                 <a
                                     href={creative.clickUrl}
                                     target="_blank"

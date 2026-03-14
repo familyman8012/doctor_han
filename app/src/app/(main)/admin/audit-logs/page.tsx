@@ -141,7 +141,7 @@ export default function AdminAuditLogsPage() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">감사 로그</h1>
+                <h1 className="text-xl font-bold text-content-primary">감사 로그</h1>
                 <p className="text-sm text-gray-500 mt-1">시스템 활동 기록을 조회합니다.</p>
             </div>
 
@@ -263,7 +263,7 @@ export default function AdminAuditLogsPage() {
                                         </td>
                                         <td className="px-4 py-3">{getActionBadge(item.action)}</td>
                                         <td className="px-4 py-3">{getTargetTypeBadge(item.targetType)}</td>
-                                        <td className="px-4 py-3 text-sm text-[#0a3b41]">
+                                        <td className="px-4 py-3 text-sm text-content-primary">
                                             <div>
                                                 <span className="font-medium">
                                                     {item.actor.displayName ?? "-"}
@@ -307,7 +307,7 @@ export default function AdminAuditLogsPage() {
                     <div className="space-y-4">
                         <div>
                             <p className="text-sm text-gray-500">일시</p>
-                            <p className="text-[#0a3b41]">
+                            <p className="text-content-primary">
                                 {dayjs(selectedLog.createdAt).format("YYYY.MM.DD HH:mm:ss")}
                             </p>
                         </div>
@@ -322,12 +322,12 @@ export default function AdminAuditLogsPage() {
                         {selectedLog.targetId && (
                             <div>
                                 <p className="text-sm text-gray-500">대상 ID</p>
-                                <p className="text-[#0a3b41] font-mono text-sm">{selectedLog.targetId}</p>
+                                <p className="text-content-primary font-mono text-sm">{selectedLog.targetId}</p>
                             </div>
                         )}
                         <div>
                             <p className="text-sm text-gray-500">행위자</p>
-                            <p className="text-[#0a3b41]">
+                            <p className="text-content-primary">
                                 {selectedLog.actor.displayName ?? "-"}
                                 {selectedLog.actor.email && (
                                     <span className="text-gray-400 ml-1">({selectedLog.actor.email})</span>
@@ -336,7 +336,7 @@ export default function AdminAuditLogsPage() {
                         </div>
                         <div>
                             <p className="text-sm text-gray-500 mb-2">메타데이터</p>
-                            <pre className="bg-gray-100 p-3 rounded text-sm overflow-auto max-h-60 text-[#0a3b41]">
+                            <pre className="bg-gray-100 p-3 rounded text-sm overflow-auto max-h-60 text-content-primary">
                                 {JSON.stringify(selectedLog.metadata, null, 2)}
                             </pre>
                         </div>

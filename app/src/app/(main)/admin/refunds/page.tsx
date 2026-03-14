@@ -82,7 +82,7 @@ export default function AdminRefundsPage() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">환불 요청 심사</h1>
+                <h1 className="text-xl font-bold text-content-primary">환불 요청 심사</h1>
                 <p className="text-sm text-gray-500 mt-1">
                     업체가 요청한 환불 건을 검토하고 승인 또는 거절합니다.
                 </p>
@@ -157,7 +157,7 @@ export default function AdminRefundsPage() {
                                             <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
                                                 {dayjs(item.createdAt).format("YYYY.MM.DD HH:mm")}
                                             </td>
-                                            <td className="px-4 py-3 text-[#0a3b41] font-mono text-xs">
+                                            <td className="px-4 py-3 text-content-primary font-mono text-xs">
                                                 {item.vendorId.slice(0, 8)}...
                                             </td>
                                             <td className="px-4 py-3 text-gray-700">
@@ -244,7 +244,7 @@ export default function AdminRefundsPage() {
                         }}
                     />
                     <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6 space-y-4">
-                        <h2 className="text-base font-semibold text-[#0a3b41]">환불 거절 사유</h2>
+                        <h2 className="text-base font-semibold text-content-primary">환불 거절 사유</h2>
                         <p className="text-sm text-gray-500">
                             사유:{" "}
                             <span className="font-medium text-gray-700">
@@ -252,7 +252,7 @@ export default function AdminRefundsPage() {
                             </span>
                         </p>
                         <textarea
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 resize-none focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent"
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             rows={4}
                             placeholder="거절 사유를 입력해주세요"
                             value={rejectNote}

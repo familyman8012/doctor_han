@@ -87,7 +87,7 @@ export default function PartnerLayout({ children }: { children: ReactNode }) {
         <div className="max-w-5xl mx-auto">
             {/* 모바일 헤더 */}
             <div className="lg:hidden mb-6">
-                <h1 className="text-2xl font-bold text-[#0a3b41]">파트너센터</h1>
+                <h1 className="text-2xl font-bold text-content-primary">파트너센터</h1>
                 <p className="text-sm text-gray-500 mt-1">
                     {profile?.displayName ?? "파트너"}님, 안녕하세요
                 </p>
@@ -99,15 +99,15 @@ export default function PartnerLayout({ children }: { children: ReactNode }) {
                     {/* 데스크톱 프로필 요약 */}
                     <div className="hidden lg:block bg-white rounded-xl p-5 border border-gray-200 mb-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-lg bg-[#62e3d5]/20 flex items-center justify-center">
-                                <Building2 className="w-6 h-6 text-[#62e3d5]" />
+                            <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center">
+                                <Building2 className="w-6 h-6 text-primary" />
                             </div>
                             <div className="min-w-0">
-                                <p className="font-semibold text-[#0a3b41] truncate">
+                                <p className="font-semibold text-content-primary truncate">
                                     {profile?.displayName ?? "파트너"}
                                 </p>
                                 <p className="text-xs text-gray-500">업체 회원</p>
-                                <p className="text-xs text-[#62e3d5] font-medium">
+                                <p className="text-xs text-primary font-medium">
                                     {creditBalance?.toLocaleString() ?? "0"}C
                                 </p>
                             </div>
@@ -128,8 +128,8 @@ export default function PartnerLayout({ children }: { children: ReactNode }) {
                                         className={cn(
                                             "flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors",
                                             active
-                                                ? "text-[#0a3b41] border-[#62e3d5]"
-                                                : "text-gray-500 border-transparent hover:text-[#0a3b41]"
+                                                ? "text-content-primary border-primary"
+                                                : "text-gray-500 border-transparent hover:text-content-primary"
                                         )}
                                     >
                                         <Icon className="w-4 h-4" />
@@ -151,15 +151,15 @@ export default function PartnerLayout({ children }: { children: ReactNode }) {
                                         className={cn(
                                             "flex items-center justify-between px-4 py-3.5 text-sm font-medium transition-colors border-l-2",
                                             active
-                                                ? "text-[#0a3b41] bg-[#62e3d5]/5 border-[#62e3d5]"
-                                                : "text-gray-600 border-transparent hover:bg-gray-50 hover:text-[#0a3b41]"
+                                                ? "text-content-primary bg-primary-25 border-primary"
+                                                : "text-gray-600 border-transparent hover:bg-gray-50 hover:text-content-primary"
                                         )}
                                     >
                                         <span className="flex items-center gap-3">
-                                            <Icon className={cn("w-4 h-4", active && "text-[#62e3d5]")} />
+                                            <Icon className={cn("w-4 h-4", active && "text-primary")} />
                                             {item.label}
                                             {item.label === "크레딧" && creditBalance != null && (
-                                                <span className="text-[10px] text-[#62e3d5] font-medium">
+                                                <span className="text-[10px] text-primary font-medium">
                                                     {creditBalance.toLocaleString()}C
                                                 </span>
                                             )}

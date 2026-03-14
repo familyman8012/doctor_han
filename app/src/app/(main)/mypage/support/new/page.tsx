@@ -109,7 +109,7 @@ export default function MypageSupportNewPage() {
                     <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </button>
                 <div>
-                    <h1 className="text-xl font-bold text-[#0a3b41]">
+                    <h1 className="text-xl font-bold text-content-primary">
                         {step === "search" ? "FAQ 검색" : "새 문의 작성"}
                     </h1>
                     <p className="text-sm text-gray-500 mt-1">
@@ -141,7 +141,7 @@ export default function MypageSupportNewPage() {
                     {searchQuery.length >= 2 && (
                         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                             <div className="p-4 border-b border-gray-100">
-                                <h2 className="font-medium text-[#0a3b41]">검색 결과</h2>
+                                <h2 className="font-medium text-content-primary">검색 결과</h2>
                             </div>
                             {articlesLoading ? (
                                 <div className="flex justify-center py-10">
@@ -160,7 +160,7 @@ export default function MypageSupportNewPage() {
                                                 className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
                                             >
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="font-medium text-[#0a3b41] truncate">{article.title}</p>
+                                                    <p className="font-medium text-content-primary truncate">{article.title}</p>
                                                     {article.category && (
                                                         <span className="text-xs text-gray-500">
                                                             {article.category.name}

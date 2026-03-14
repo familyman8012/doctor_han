@@ -70,8 +70,8 @@ export default function InteriorCreatePage() {
                 >
                     <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </button>
-                <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
-                    <Hammer className="w-6 h-6 text-[#62e3d5]" />
+                <h1 className="text-2xl font-bold text-content-primary flex items-center gap-2">
+                    <Hammer className="w-6 h-6 text-primary" />
                     프로젝트 등록
                 </h1>
             </div>
@@ -88,7 +88,7 @@ export default function InteriorCreatePage() {
                             value={form.title}
                             onChange={(e) => updateField("title", e.target.value)}
                             placeholder="예: 강남 치과 인테리어 리모델링"
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent"
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             required
                         />
                     </div>
@@ -103,7 +103,7 @@ export default function InteriorCreatePage() {
                             value={form.location}
                             onChange={(e) => updateField("location", e.target.value)}
                             placeholder="예: 서울 강남구"
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent"
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             required
                         />
                     </div>
@@ -119,7 +119,7 @@ export default function InteriorCreatePage() {
                                 value={form.budgetMin || ""}
                                 onChange={(e) => updateField("budgetMin", Number(e.target.value))}
                                 placeholder="0"
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent"
+                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 min={0}
                                 required
                             />
@@ -133,7 +133,7 @@ export default function InteriorCreatePage() {
                                 value={form.budgetMax || ""}
                                 onChange={(e) => updateField("budgetMax", Number(e.target.value))}
                                 placeholder="0"
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent"
+                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 min={0}
                                 required
                             />
@@ -150,7 +150,7 @@ export default function InteriorCreatePage() {
                             value={form.spaceSize ?? ""}
                             onChange={(e) => updateField("spaceSize", e.target.value || null)}
                             placeholder="예: 30평"
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent"
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
                     </div>
 
@@ -164,7 +164,7 @@ export default function InteriorCreatePage() {
                             value={form.schedule ?? ""}
                             onChange={(e) => updateField("schedule", e.target.value || null)}
                             placeholder="예: 2026년 4월 착공, 6월 완공 희망"
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent"
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
                     </div>
 
@@ -178,7 +178,7 @@ export default function InteriorCreatePage() {
                             onChange={(e) => updateField("requirements", e.target.value || null)}
                             placeholder="인테리어에 대한 구체적인 요구사항을 입력해주세요"
                             rows={5}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent resize-none"
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                         />
                     </div>
                 </div>
@@ -195,7 +195,7 @@ export default function InteriorCreatePage() {
                     <button
                         type="submit"
                         disabled={createMutation.isPending}
-                        className="flex-1 py-3 bg-[#0a3b41] text-white rounded-lg text-sm font-medium hover:bg-[#0a3b41]/90 transition-colors disabled:opacity-50"
+                        className="flex-1 py-3 bg-primary-900 text-white rounded-lg text-sm font-medium hover:bg-primary-900/90 transition-colors disabled:opacity-50"
                     >
                         {createMutation.isPending ? "등록 중..." : "프로젝트 등록"}
                     </button>

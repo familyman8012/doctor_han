@@ -31,7 +31,7 @@ export function RejectModal({ isOpen, onClose, onSubmit, isLoading }: RejectModa
             <div className="relative z-10 w-full max-w-md bg-white rounded-xl shadow-xl mx-4">
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                    <h2 className="text-lg font-semibold text-[#0a3b41]">인증 반려</h2>
+                    <h2 className="text-lg font-semibold text-content-primary">인증 반려</h2>
                     <button
                         type="button"
                         onClick={onClose}
@@ -49,7 +49,7 @@ export function RejectModal({ isOpen, onClose, onSubmit, isLoading }: RejectModa
                             value={reason}
                             onChange={(e) => setReason(e.target.value)}
                             placeholder="반려 사유를 입력해주세요"
-                            className="w-full h-32 px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent"
+                            className="w-full h-32 px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             required
                         />
                         <p className="text-xs text-gray-400 mt-2">

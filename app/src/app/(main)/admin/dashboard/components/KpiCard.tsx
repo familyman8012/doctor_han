@@ -35,7 +35,7 @@ export default function KpiCard({ title, value, unit, change, icon, isLoading }:
                 <p className="text-sm font-medium text-gray-500">{title}</p>
                 {icon && <div className="text-gray-400">{icon}</div>}
             </div>
-            <p className="text-2xl font-bold text-[#0a3b41]">
+            <p className="text-2xl font-bold text-content-primary">
                 {formattedValue}
                 {unit && <span className="text-sm font-normal text-gray-500 ml-1">{unit}</span>}
             </p>

@@ -123,7 +123,7 @@ export default function AdminHelpCenterPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-xl font-bold text-[#0a3b41]">헬프센터 관리</h1>
+                    <h1 className="text-xl font-bold text-content-primary">헬프센터 관리</h1>
                     <p className="text-sm text-gray-500 mt-1">FAQ, 공지사항을 관리합니다.</p>
                 </div>
                 {currentTab !== "categories" ? (
@@ -160,8 +160,8 @@ export default function AdminHelpCenterPage() {
                             className={cn(
                                 "pb-3 text-sm font-medium border-b-2 transition-colors",
                                 currentTab === item.key
-                                    ? "text-[#0a3b41] border-[#62e3d5]"
-                                    : "text-gray-500 border-transparent hover:text-[#0a3b41]"
+                                    ? "text-content-primary border-primary"
+                                    : "text-gray-500 border-transparent hover:text-content-primary"
                             )}
                         >
                             {item.label}
@@ -217,7 +217,7 @@ export default function AdminHelpCenterPage() {
                                 {categories.map((category: HelpCategoryView) => (
                                     <tr key={category.id} className="hover:bg-gray-50">
                                         <td className="px-4 py-3">
-                                            <span className="font-medium text-[#0a3b41]">{category.name}</span>
+                                            <span className="font-medium text-content-primary">{category.name}</span>
                                         </td>
                                         <td className="px-4 py-3">
                                             <Badge color="neutral" size="xs">{category.slug}</Badge>
@@ -281,7 +281,7 @@ export default function AdminHelpCenterPage() {
                                 {articles.map((article: HelpArticleView) => (
                                     <tr key={article.id} className="hover:bg-gray-50">
                                         <td className="px-4 py-3">
-                                            <span className="font-medium text-[#0a3b41] line-clamp-1">{article.title}</span>
+                                            <span className="font-medium text-content-primary line-clamp-1">{article.title}</span>
                                         </td>
                                         {currentTab === "faq" && (
                                             <td className="px-4 py-3">
@@ -302,7 +302,7 @@ export default function AdminHelpCenterPage() {
                                         {currentTab === "notice" && (
                                             <td className="px-4 py-3 text-center">
                                                 {article.isPinned ? (
-                                                    <Pin className="w-4 h-4 text-[#62e3d5] mx-auto" />
+                                                    <Pin className="w-4 h-4 text-primary mx-auto" />
                                                 ) : (
                                                     <span className="text-gray-400 text-sm">-</span>
                                                 )}
@@ -352,9 +352,9 @@ export default function AdminHelpCenterPage() {
             {/* Stats */}
             <div className="text-sm text-gray-500 text-center">
                 {currentTab === "categories" ? (
-                    <>총 <span className="font-medium text-[#0a3b41]">{categories.length}</span>개의 카테고리</>
+                    <>총 <span className="font-medium text-content-primary">{categories.length}</span>개의 카테고리</>
                 ) : (
-                    <>총 <span className="font-medium text-[#0a3b41]">{total}</span>개의 {currentTab === "faq" ? "FAQ" : "공지사항"}</>
+                    <>총 <span className="font-medium text-content-primary">{total}</span>개의 {currentTab === "faq" ? "FAQ" : "공지사항"}</>
                 )}
             </div>
 

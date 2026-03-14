@@ -27,7 +27,7 @@ export function LeadStatusHistory({ history }: LeadStatusHistoryProps) {
 
     return (
         <div className="bg-white rounded-xl border border-gray-100 p-6">
-            <h2 className="text-lg font-bold text-[#0a3b41] mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-content-primary mb-4 flex items-center gap-2">
                 <History className="w-5 h-5 text-gray-400" />
                 상태 변경 이력
             </h2>

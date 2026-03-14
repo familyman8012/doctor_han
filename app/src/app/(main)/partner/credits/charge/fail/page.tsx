@@ -15,7 +15,7 @@ export default function ChargeFailPage() {
         <div className="max-w-md mx-auto py-10 text-center">
             <div className="bg-white border border-gray-200 rounded-xl p-8">
                 <XCircle className="w-16 h-16 text-red-400 mx-auto" />
-                <h2 className="text-xl font-bold text-[#0a3b41] mt-4">결제 실패</h2>
+                <h2 className="text-xl font-bold text-content-primary mt-4">결제 실패</h2>
                 <p className="text-gray-500 mt-2">
                     {message || "결제가 완료되지 않았습니다."}
                 </p>

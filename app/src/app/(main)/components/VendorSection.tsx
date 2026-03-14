@@ -19,7 +19,7 @@ export function VendorSection({ section, variant = "carousel" }: VendorSectionPr
                 <h2 className="text-lg font-bold text-gray-900">{section.title}</h2>
                 <Link
                     href={viewAllHref}
-                    className="text-sm text-gray-500 hover:text-[#0a3b41] flex items-center gap-1"
+                    className="text-sm text-gray-500 hover:text-content-primary flex items-center gap-1"
                 >
                     더보기 <ChevronRight className="w-4 h-4" />
                 </Link>
@@ -52,7 +52,7 @@ function VendorCard({ vendor }: { vendor: VendorItem }) {
     return (
         <Link
             href={`/vendors/${vendor.id}`}
-            className="group flex-shrink-0 w-[220px] md:w-[260px] bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#62e3d5] transition-all"
+            className="group flex-shrink-0 w-[220px] md:w-[260px] bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-primary transition-all"
         >
             {/* Thumbnail */}
             <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
@@ -80,7 +80,7 @@ function VendorCard({ vendor }: { vendor: VendorItem }) {
 
             {/* Content */}
             <div className="p-3 space-y-1.5">
-                <h3 className="font-semibold text-gray-900 text-sm line-clamp-1 group-hover:text-[#0a3b41]">
+                <h3 className="font-semibold text-gray-900 text-sm line-clamp-1 group-hover:text-content-primary">
                     {vendor.name}
                 </h3>
 
@@ -95,7 +95,7 @@ function VendorCard({ vendor }: { vendor: VendorItem }) {
                         .map((c) => (
                             <span
                                 key={c.id}
-                                className="text-[10px] px-1.5 py-0.5 rounded bg-[#62e3d5]/10 text-[#0a3b41]"
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-primary-50 text-content-primary"
                             >
                                 {c.name}
                             </span>
@@ -104,7 +104,7 @@ function VendorCard({ vendor }: { vendor: VendorItem }) {
 
                 <div className="flex items-center justify-between text-xs text-gray-500 pt-1">
                     <span>{vendor.regionPrimary || "전국"}</span>
-                    <span className="text-[#0a3b41] font-medium">{formatPrice(vendor.priceMin, vendor.priceMax)}</span>
+                    <span className="text-content-primary font-medium">{formatPrice(vendor.priceMin, vendor.priceMax)}</span>
                 </div>
             </div>
         </Link>
@@ -119,7 +119,7 @@ function VendorCardGrid({ vendor }: { vendor: VendorItem }) {
     return (
         <Link
             href={`/vendors/${vendor.id}`}
-            className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#62e3d5] transition-all"
+            className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-primary transition-all"
         >
             {/* Thumbnail */}
             <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
@@ -156,7 +156,7 @@ function VendorCardGrid({ vendor }: { vendor: VendorItem }) {
             <div className="p-3 space-y-1">
                 <h3 className="font-semibold text-gray-900 text-sm line-clamp-1">{vendor.name}</h3>
                 <p className="text-xs text-gray-500 line-clamp-1">{vendor.summary || vendor.regionPrimary || "전국"}</p>
-                <p className="text-xs text-[#0a3b41] font-semibold">{formatPrice(vendor.priceMin, vendor.priceMax)}</p>
+                <p className="text-xs text-content-primary font-semibold">{formatPrice(vendor.priceMin, vendor.priceMax)}</p>
             </div>
         </Link>
     );

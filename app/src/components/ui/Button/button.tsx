@@ -26,22 +26,22 @@ const buttonVariants = cva(
         variants: {
             variant: {
                 primary:
-                    "text-white bg-[#62e3d5] hover:bg-[#4bc7b9] disabled:text-gray-300 disabled:border disabled:border-gray-200 disabled:bg-gray-100",
+                    "text-white bg-primary hover:bg-primary-700 disabled:text-gray-300 disabled:border disabled:border-gray-200 disabled:bg-gray-100",
                 secondary:
-                    "text-[#0a3b41] bg-white border border-gray-200 hover:bg-gray-50 disabled:text-gray-300 disabled:border-gray-200 disabled:bg-gray-100",
+                    "text-content-primary bg-white border border-gray-200 hover:bg-gray-50 disabled:text-gray-300 disabled:border-gray-200 disabled:bg-gray-100",
                 ghostPrimary:
-                    "text-[#62e3d5] border border-[#62e3d5] bg-transparent hover:bg-[#62e3d5]/10 disabled:text-gray-300 disabled:border-gray-300 disabled:hover:bg-white",
+                    "text-primary border border-primary bg-transparent hover:bg-primary-50 disabled:text-gray-300 disabled:border-gray-300 disabled:hover:bg-white",
                 ghostSecondary:
-                    "text-[#0a3b41] border border-gray-300 bg-white hover:bg-gray-50 disabled:text-gray-300 disabled:border-gray-300 disabled:hover:bg-white",
+                    "text-content-primary border border-gray-300 bg-white hover:bg-gray-50 disabled:text-gray-300 disabled:border-gray-300 disabled:hover:bg-white",
                 selectItem:
                     "inline-flex !min-w-0 !h-auto !p-0 text-gray-700 border border-gray-300 bg-gray-50 rounded disabled:text-gray-300 disabled:border-gray-200 disabled:bg-white",
                 selectItem_on:
-                    "inline-flex !min-w-0 !h-auto !p-0 text-[#0a3b41] border border-[#62e3d5] bg-[#62e3d5]/10 rounded",
+                    "inline-flex !min-w-0 !h-auto !p-0 text-content-primary border border-primary bg-primary-50 rounded",
                 transparent: "!min-w-0 bg-transparent border-none shadow-none hover:bg-gray-50 disabled:bg-gray-25",
                 danger: "text-white bg-red-500 hover:bg-red-600 disabled:text-gray-300 disabled:border disabled:border-gray-200 disabled:bg-gray-100",
-                list: "text-[#5f6b6d] bg-white border border-gray-200 hover:bg-gray-50 disabled:text-gray-300 disabled:bg-gray-100",
+                list: "text-content-secondary bg-white border border-gray-200 hover:bg-gray-50 disabled:text-gray-300 disabled:bg-gray-100",
                 listActive:
-                    "text-[#0a3b41] bg-[#62e3d5]/10 border border-[#62e3d5] hover:bg-[#62e3d5]/20 disabled:text-gray-300 disabled:bg-gray-100",
+                    "text-content-primary bg-primary-50 border border-primary hover:bg-primary-100 disabled:text-gray-300 disabled:bg-gray-100",
             },
             size: {
                 xs: "h-7 px-2.5 text-xs", // 28px 높이 - 리스트 페이지용
@@ -111,7 +111,7 @@ export const Button: FC<ButtonProps> = ({
                         "px-2 py-1.5 border-l flex items-center justify-center transition-colors",
                         variant === "selectItem"
                             ? "border-gray-300 hover:bg-gray-100"
-                            : "border-[#62e3d5] hover:bg-[#62e3d5]/20",
+                            : "border-primary hover:bg-primary-100",
                         disabled && "pointer-events-none opacity-50",
                     )}
                     onClick={(e) => {
@@ -122,7 +122,7 @@ export const Button: FC<ButtonProps> = ({
                     }}
                     disabled={disabled}
                 >
-                    <X className={cn("h-3 w-3", variant === "selectItem" ? "text-gray-500" : "text-[#0a3b41]")} />
+                    <X className={cn("h-3 w-3", variant === "selectItem" ? "text-gray-500" : "text-content-primary")} />
                 </button>
             </Comp>
         );

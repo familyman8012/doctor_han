@@ -44,7 +44,7 @@ function PriorityVendorCard({ vendor }: { vendor: PriorityVendor }) {
         <Link
             href={`/vendors/${vendor.vendorId}`}
             className={cn(
-                "block rounded-xl border-2 p-4 transition-all hover:shadow-lg hover:border-[#62e3d5]",
+                "block rounded-xl border-2 p-4 transition-all hover:shadow-lg hover:border-primary",
                 style.border,
                 style.bg,
                 vendor.isJumpedUp && "animate-pulse border-amber-400 ring-2 ring-amber-200",
@@ -52,7 +52,7 @@ function PriorityVendorCard({ vendor }: { vendor: PriorityVendor }) {
         >
             <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-[#0a3b41] truncate">{vendor.vendorName}</h3>
+                    <h3 className="font-semibold text-content-primary truncate">{vendor.vendorName}</h3>
                     {vendor.vendorSummary && (
                         <p className="text-sm text-gray-500 mt-1 line-clamp-2">{vendor.vendorSummary}</p>
                     )}
@@ -80,7 +80,7 @@ export function PriorityVendorSection({ categoryId }: PriorityVendorSectionProps
     return (
         <div className="space-y-3">
             <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-[#0a3b41]">추천 파트너</h2>
+                <h2 className="text-lg font-bold text-content-primary">추천 파트너</h2>
                 <span className="px-2 py-0.5 text-[10px] font-medium text-gray-500 bg-gray-100 rounded">
                     광고
                 </span>

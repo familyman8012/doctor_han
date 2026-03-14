@@ -93,20 +93,20 @@ export default function SubCategoryPage({ slug, subSlug }: SubCategoryPageProps)
         <div className="space-y-6">
             {/* 브레드크럼 */}
             <nav className="flex items-center gap-2 text-sm text-gray-500">
-                <Link href="/categories" className="hover:text-[#0a3b41]">
+                <Link href="/categories" className="hover:text-content-primary">
                     전체 카테고리
                 </Link>
                 <ChevronRight className="w-4 h-4" />
-                <Link href={`/categories/${slug}`} className="hover:text-[#0a3b41]">
+                <Link href={`/categories/${slug}`} className="hover:text-content-primary">
                     {parentCategory.name}
                 </Link>
                 <ChevronRight className="w-4 h-4" />
-                <span className="text-[#0a3b41] font-medium">{currentCategory.name}</span>
+                <span className="text-content-primary font-medium">{currentCategory.name}</span>
             </nav>
 
             {/* 헤더 */}
             <div>
-                <h1 className="text-2xl font-bold text-[#0a3b41] mb-2">{currentCategory.name}</h1>
+                <h1 className="text-2xl font-bold text-content-primary mb-2">{currentCategory.name}</h1>
                 <p className="text-gray-500">
                     {vendorData?.total ?? 0}개의 업체가 있습니다
                 </p>
@@ -116,7 +116,7 @@ export default function SubCategoryPage({ slug, subSlug }: SubCategoryPageProps)
             <div className="flex flex-wrap gap-2">
                 <Link
                     href={`/categories/${slug}`}
-                    className="px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-[#62e3d5]/20 hover:text-[#0a3b41] transition-colors"
+                    className="px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-primary-100 hover:text-content-primary transition-colors"
                 >
                     전체
                 </Link>
@@ -126,8 +126,8 @@ export default function SubCategoryPage({ slug, subSlug }: SubCategoryPageProps)
                         href={`/categories/${slug}/${sibling.slug}`}
                         className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
                             sibling.id === currentCategory.id
-                                ? "bg-[#0a3b41] text-white"
-                                : "bg-gray-100 text-gray-700 hover:bg-[#62e3d5]/20 hover:text-[#0a3b41]"
+                                ? "bg-primary-900 text-white"
+                                : "bg-gray-100 text-gray-700 hover:bg-primary-100 hover:text-content-primary"
                         }`}
                     >
                         {sibling.name}

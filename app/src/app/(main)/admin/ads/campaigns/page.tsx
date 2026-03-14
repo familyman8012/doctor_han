@@ -56,10 +56,10 @@ export default function AdminCampaignsPage() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-[#0a3b41]">캠페인 관리</h1>
+                <h1 className="text-2xl font-bold text-content-primary">캠페인 관리</h1>
                 <Link
                     href="/admin/ads/campaigns/create"
-                    className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-white bg-[#0a3b41] hover:bg-[#0a3b41]/90 rounded-lg transition-colors"
+                    className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-white bg-primary-900 hover:bg-primary-900/90 rounded-lg transition-colors"
                 >
                     <Plus className="w-4 h-4" />
                     캠페인 생성
@@ -75,7 +75,7 @@ export default function AdminCampaignsPage() {
                         className={cn(
                             "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
                             (status || "") === tab.value
-                                ? "bg-white text-[#0a3b41] shadow-sm"
+                                ? "bg-white text-content-primary shadow-sm"
                                 : "text-gray-500 hover:text-gray-700",
                         )}
                     >
@@ -112,7 +112,7 @@ export default function AdminCampaignsPage() {
                                     return (
                                         <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50">
                                             <td className="py-3 px-4">
-                                                <Link href={`/admin/ads/campaigns/${c.id}`} className="text-[#0a3b41] font-medium hover:underline">
+                                                <Link href={`/admin/ads/campaigns/${c.id}`} className="text-content-primary font-medium hover:underline">
                                                     {c.advertiserName}
                                                 </Link>
                                             </td>

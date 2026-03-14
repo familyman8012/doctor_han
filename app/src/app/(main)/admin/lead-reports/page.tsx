@@ -105,7 +105,7 @@ export default function AdminLeadReportsPage() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">허위 리드 신고 관리</h1>
+                <h1 className="text-xl font-bold text-content-primary">허위 리드 신고 관리</h1>
                 <p className="text-sm text-gray-500 mt-1">
                     업체가 신고한 허위 리드를 검토하고 환불 여부를 결정합니다.
                 </p>
@@ -168,7 +168,7 @@ export default function AdminLeadReportsPage() {
                                     const statusCfg = REPORT_STATUS_CONFIG[report.status];
                                     return (
                                         <tr key={report.id} className="hover:bg-gray-50">
-                                            <td className="px-4 py-3 text-[#0a3b41] font-mono text-xs">
+                                            <td className="px-4 py-3 text-content-primary font-mono text-xs">
                                                 {report.leadId.slice(0, 8)}...
                                             </td>
                                             <td className="px-4 py-3 text-gray-700">

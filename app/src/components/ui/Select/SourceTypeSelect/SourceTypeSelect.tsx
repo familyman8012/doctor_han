@@ -91,7 +91,7 @@ export function SourceTypeSelect({
                 state.menuIsOpen || state.isFocused
                     ? "1px solid transparent !important"
                     : "1px solid #e5e7eb !important",
-            boxShadow: state.menuIsOpen || state.isFocused ? "0 0 0 2px #62e3d5" : "none",
+            boxShadow: state.menuIsOpen || state.isFocused ? "0 0 0 2px var(--color-primary)" : "none",
             borderRadius: "8px",
             backgroundColor: disabled ? "#f9fafb" : "white",
             "&:hover": {
@@ -132,27 +132,27 @@ export function SourceTypeSelect({
             fontSize: "14px",
             lineHeight: "20px",
             padding: "8px 12px",
-            backgroundColor: state.isFocused ? "#f3f4f6" : state.isSelected ? "#62e3d5/10" : "transparent",
-            color: state.isSelected ? "#0a3b41" : state.isFocused ? "#0a3b41" : "#374151",
+            backgroundColor: state.isFocused ? "#f3f4f6" : state.isSelected ? "color-mix(in srgb, var(--color-primary) 10%, transparent)" : "transparent",
+            color: state.isSelected ? "var(--color-content-primary)" : state.isFocused ? "var(--color-content-primary)" : "#374151",
             cursor: "pointer",
             "&:active": {
-                backgroundColor: "#62e3d5/20",
+                backgroundColor: "color-mix(in srgb, var(--color-primary) 20%, transparent)",
             },
         }),
         placeholder: (provided) => ({
             ...provided,
-            color: "#9ca3af",
+            color: "var(--color-content-tertiary)",
             fontSize: "14px",
         }),
         singleValue: (provided) => ({
             ...provided,
             fontSize: "14px",
-            color: "#0a3b41",
+            color: "var(--color-content-primary)",
         }),
         input: (provided) => ({
             ...provided,
             fontSize: "14px",
-            color: "#0a3b41",
+            color: "var(--color-content-primary)",
         }),
     };
 

@@ -21,7 +21,7 @@ export function VendorInfo({ vendor }: VendorInfoProps) {
             {/* 서비스 설명 */}
             {vendor.description && (
                 <div className="bg-white rounded-xl border border-gray-100 p-6">
-                    <h2 className="text-lg font-bold text-[#0a3b41] mb-4">서비스 소개</h2>
+                    <h2 className="text-lg font-bold text-content-primary mb-4">서비스 소개</h2>
                     <div className="prose prose-gray max-w-none">
                         <p className="text-gray-600 whitespace-pre-wrap">
                             {vendor.description}
@@ -32,11 +32,11 @@ export function VendorInfo({ vendor }: VendorInfoProps) {
 
             {/* 가격 정보 */}
             <div className="bg-white rounded-xl border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-[#0a3b41] mb-4">가격 정보</h2>
+                <h2 className="text-lg font-bold text-content-primary mb-4">가격 정보</h2>
                 <div className="space-y-3">
                     <div className="flex items-center justify-between py-3 border-b border-gray-100">
                         <span className="text-gray-600">기본 가격</span>
-                        <span className="font-bold text-[#0a3b41]">
+                        <span className="font-bold text-content-primary">
                             {formatPrice(vendor.priceMin, vendor.priceMax)}
                         </span>
                     </div>
@@ -47,7 +47,7 @@ export function VendorInfo({ vendor }: VendorInfoProps) {
             </div>
 
             {/* 문의하기 CTA */}
-            <div className="bg-gradient-to-br from-[#0a3b41] to-[#155a62] rounded-xl p-6 text-center">
+            <div className="bg-gradient-to-br from-primary-900 to-primary-800 rounded-xl p-6 text-center">
                 <h3 className="text-lg font-bold text-white mb-2">
                     서비스가 마음에 드시나요?
                 </h3>
@@ -60,7 +60,7 @@ export function VendorInfo({ vendor }: VendorInfoProps) {
                             variant="secondary"
                             size="lg"
                             LeadingIcon={<FileText className="w-5 h-5" />}
-                            className="bg-[#62e3d5] text-[#0a3b41] hover:bg-[#4dd4c5]"
+                            className="bg-primary text-content-primary hover:bg-primary-700"
                         >
                             문의하기
                         </Button>
@@ -70,7 +70,7 @@ export function VendorInfo({ vendor }: VendorInfoProps) {
                         <Button
                             variant="secondary"
                             size="lg"
-                            className="bg-[#62e3d5] text-[#0a3b41] hover:bg-[#4dd4c5]"
+                            className="bg-primary text-content-primary hover:bg-primary-700"
                         >
                             로그인하고 문의하기
                         </Button>

@@ -138,7 +138,7 @@ export default function AdminSettlementsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-xl font-bold text-[#0a3b41]">정산 관리</h1>
+                    <h1 className="text-xl font-bold text-content-primary">정산 관리</h1>
                     <p className="text-sm text-gray-500 mt-1">업체별 월별 정산을 관리합니다.</p>
                 </div>
                 <div className="flex gap-2">
@@ -158,11 +158,11 @@ export default function AdminSettlementsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="bg-white rounded-xl border border-gray-200 p-4">
                         <p className="text-sm text-gray-500">조회 건수</p>
-                        <p className="text-2xl font-bold text-[#0a3b41] mt-1">{total}건</p>
+                        <p className="text-2xl font-bold text-content-primary mt-1">{total}건</p>
                     </div>
                     <div className="bg-white rounded-xl border border-gray-200 p-4">
                         <p className="text-sm text-gray-500">총 순수익 (현재 페이지)</p>
-                        <p className="text-2xl font-bold text-[#0a3b41] mt-1">{formatAmount(summaryNetRevenue)}</p>
+                        <p className="text-2xl font-bold text-content-primary mt-1">{formatAmount(summaryNetRevenue)}</p>
                     </div>
                     <div className="bg-white rounded-xl border border-gray-200 p-4">
                         <p className="text-sm text-gray-500">미처리 (현재 페이지)</p>
@@ -200,7 +200,7 @@ export default function AdminSettlementsPage() {
                             setPage(1);
                             setSelectedIds(new Set());
                         }}
-                        className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                        className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                         {years.map((y) => (
                             <option key={y} value={y}>
@@ -215,7 +215,7 @@ export default function AdminSettlementsPage() {
                             setPage(1);
                             setSelectedIds(new Set());
                         }}
-                        className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                        className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                         <option value={0}>전체 월</option>
                         {months.map((m) => (
@@ -301,7 +301,7 @@ export default function AdminSettlementsPage() {
                                             <td className="px-4 py-3">
                                                 <Link
                                                     href={`/admin/settlements/${settlement.id}`}
-                                                    className="font-medium text-[#0a3b41] hover:underline"
+                                                    className="font-medium text-content-primary hover:underline"
                                                 >
                                                     {settlement.vendorName ?? "-"}
                                                 </Link>
@@ -322,7 +322,7 @@ export default function AdminSettlementsPage() {
                                                     ? `-${formatAmount(settlement.totalRefunds)}`
                                                     : "-"}
                                             </td>
-                                            <td className="px-4 py-3 text-right font-medium text-[#0a3b41]">
+                                            <td className="px-4 py-3 text-right font-medium text-content-primary">
                                                 {formatAmount(settlement.netRevenue)}
                                             </td>
                                             <td className="px-4 py-3 text-right text-gray-500">

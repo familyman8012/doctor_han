@@ -76,7 +76,7 @@ export default function AdminSupportPage() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">고객지원</h1>
+                <h1 className="text-xl font-bold text-content-primary">고객지원</h1>
                 <p className="text-sm text-gray-500 mt-1">고객 문의를 관리하고 응답하세요.</p>
             </div>
 
@@ -108,7 +108,7 @@ export default function AdminSupportPage() {
                             setCategoryId(e.target.value);
                             setPage(1);
                         }}
-                        className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                        className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                         <option value="all">전체 카테고리</option>
                         {categories.map((cat) => (
@@ -183,7 +183,7 @@ export default function AdminSupportPage() {
                                                 {dayjs(ticket.createdAt).format("YYYY.MM.DD HH:mm")}
                                             </span>
                                         </div>
-                                        <p className="font-medium text-[#0a3b41] truncate">{ticket.title}</p>
+                                        <p className="font-medium text-content-primary truncate">{ticket.title}</p>
                                         <p className="text-sm text-gray-500 mt-0.5">
                                             {ticket.user.displayName}
                                             {ticket.user.email && ` (${ticket.user.email})`}

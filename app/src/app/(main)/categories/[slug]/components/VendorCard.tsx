@@ -70,7 +70,7 @@ export function VendorCard({ vendor, isFavorited = false }: VendorCardProps) {
     return (
         <Link
             href={`/vendors/${vendor.id}`}
-            className="group block bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-[#62e3d5] transition-all"
+            className="group block bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-primary transition-all"
         >
             {/* 썸네일 영역 */}
             <div className="relative aspect-[4/3] bg-gray-100">
@@ -93,7 +93,7 @@ export function VendorCard({ vendor, isFavorited = false }: VendorCardProps) {
 
             {/* 정보 영역 */}
             <div className="p-4">
-                <h3 className="text-lg font-bold text-[#0a3b41] mb-1 group-hover:text-[#155a62] transition-colors">
+                <h3 className="text-lg font-bold text-content-primary mb-1 group-hover:text-primary-800 transition-colors">
                     {vendor.name}
                 </h3>
 
@@ -109,7 +109,7 @@ export function VendorCard({ vendor, isFavorited = false }: VendorCardProps) {
                         <>
                             <div className="flex items-center gap-1">
                                 <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                <span className="text-sm font-medium text-[#0a3b41]">
+                                <span className="text-sm font-medium text-content-primary">
                                     {vendor.ratingAvg.toFixed(1)}
                                 </span>
                             </div>
@@ -129,7 +129,7 @@ export function VendorCard({ vendor, isFavorited = false }: VendorCardProps) {
                 </div>
 
                 {/* 가격 */}
-                <div className="text-base font-bold text-[#0a3b41]">
+                <div className="text-base font-bold text-content-primary">
                     {formatPrice(vendor.priceMin, vendor.priceMax)}
                 </div>
             </div>

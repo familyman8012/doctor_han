@@ -34,7 +34,7 @@ export default function FaqDetailPage() {
         return (
             <div className="max-w-3xl mx-auto px-4 py-8">
                 <div className="text-center">
-                    <h1 className="text-2xl font-bold text-[#0a3b41] mb-2">FAQ를 찾을 수 없습니다</h1>
+                    <h1 className="text-2xl font-bold text-content-primary mb-2">FAQ를 찾을 수 없습니다</h1>
                     <p className="text-gray-500 mb-6">요청하신 FAQ가 존재하지 않거나 삭제되었습니다.</p>
                     <Button variant="secondary" onClick={() => router.push("/help?tab=faq")}>
                         <ArrowLeft className="w-4 h-4 mr-2" />
@@ -62,20 +62,20 @@ export default function FaqDetailPage() {
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-gray-100">
                     <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[#62e3d5] font-bold text-lg">Q.</span>
+                        <span className="text-primary font-bold text-lg">Q.</span>
                         {article.category && (
                             <Badge color="neutral" size="sm">
                                 {article.category.name}
                             </Badge>
                         )}
                     </div>
-                    <h1 className="text-xl font-bold text-[#0a3b41]">{article.title}</h1>
+                    <h1 className="text-xl font-bold text-content-primary">{article.title}</h1>
                 </div>
 
                 {/* Content */}
                 <div className="px-6 py-5">
                     <div className="flex items-start gap-2">
-                        <span className="text-[#0a3b41] font-bold text-lg shrink-0">A.</span>
+                        <span className="text-content-primary font-bold text-lg shrink-0">A.</span>
                         <div className="text-gray-700 whitespace-pre-wrap leading-relaxed">
                             {article.content}
                         </div>

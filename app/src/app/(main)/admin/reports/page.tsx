@@ -157,7 +157,7 @@ export default function AdminReportsPage() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">신고 관리</h1>
+                <h1 className="text-xl font-bold text-content-primary">신고 관리</h1>
                 <p className="text-sm text-gray-500 mt-1">신고 접수 건을 검토하고 제재를 부과합니다.</p>
             </div>
 
@@ -245,7 +245,7 @@ export default function AdminReportsPage() {
                                                 {dayjs(item.createdAt).format("YYYY.MM.DD HH:mm")}
                                             </span>
                                         </div>
-                                        <p className="font-medium text-[#0a3b41] truncate">
+                                        <p className="font-medium text-content-primary truncate">
                                             {item.targetSummary}
                                         </p>
                                         <p className="text-sm text-gray-500 mt-0.5">

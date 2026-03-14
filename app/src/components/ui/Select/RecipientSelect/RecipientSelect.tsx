@@ -47,8 +47,8 @@ export function RecipientSelect({
             label: recipient.name,
             description: recipient.address,
             icon: (
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#62e3d5]/20">
-                    <FaUser className="w-4 h-4 text-[#0a3b41]" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20">
+                    <FaUser className="w-4 h-4 text-content-primary" />
                 </div>
             ),
         }));

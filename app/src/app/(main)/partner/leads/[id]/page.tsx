@@ -173,7 +173,7 @@ export default function PartnerLeadDetailPage() {
         <div className="max-w-3xl mx-auto space-y-6">
             {/* 브레드크럼 */}
             <nav className="flex items-center gap-2 text-sm text-gray-500">
-                <Link href="/partner/leads" className="hover:text-[#0a3b41] flex items-center gap-1">
+                <Link href="/partner/leads" className="hover:text-content-primary flex items-center gap-1">
                     <ArrowLeft className="w-4 h-4" />
                     받은 리드함
                 </Link>
@@ -220,15 +220,15 @@ export default function PartnerLeadDetailPage() {
                         <div className="space-y-6">
                             {/* 고객 정보 */}
                             <div>
-                                <h2 className="text-lg font-bold text-[#0a3b41] mb-4">고객 정보</h2>
+                                <h2 className="text-lg font-bold text-content-primary mb-4">고객 정보</h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-[#62e3d5]/10 flex items-center justify-center">
-                                            <User className="w-5 h-5 text-[#0a3b41]" />
+                                        <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center">
+                                            <User className="w-5 h-5 text-content-primary" />
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500">이름</p>
-                                            <p className="text-[#0a3b41] font-medium">{lead.contactName}</p>
+                                            <p className="text-content-primary font-medium">{lead.contactName}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
@@ -239,7 +239,7 @@ export default function PartnerLeadDetailPage() {
                                             <p className="text-sm text-gray-500">연락처</p>
                                             <a
                                                 href={`tel:${lead.contactPhone}`}
-                                                className="text-[#0a3b41] font-medium hover:text-[#62e3d5]"
+                                                className="text-content-primary font-medium hover:text-primary"
                                             >
                                                 {lead.contactPhone}
                                             </a>
@@ -254,7 +254,7 @@ export default function PartnerLeadDetailPage() {
                                                 <p className="text-sm text-gray-500">이메일</p>
                                                 <a
                                                     href={`mailto:${lead.contactEmail}`}
-                                                    className="text-[#0a3b41] font-medium hover:text-[#62e3d5]"
+                                                    className="text-content-primary font-medium hover:text-primary"
                                                 >
                                                     {lead.contactEmail}
                                                 </a>
@@ -268,7 +268,7 @@ export default function PartnerLeadDetailPage() {
                                             </div>
                                             <div>
                                                 <p className="text-sm text-gray-500">선호 연락 방법</p>
-                                                <p className="text-[#0a3b41] font-medium">
+                                                <p className="text-content-primary font-medium">
                                                     {CHANNEL_LABELS[lead.preferredChannel] ?? lead.preferredChannel}
                                                 </p>
                                             </div>
@@ -281,7 +281,7 @@ export default function PartnerLeadDetailPage() {
                                             </div>
                                             <div>
                                                 <p className="text-sm text-gray-500">선호 연락 시간</p>
-                                                <p className="text-[#0a3b41] font-medium">
+                                                <p className="text-content-primary font-medium">
                                                     {TIME_LABELS[lead.preferredTime] ?? lead.preferredTime}
                                                 </p>
                                             </div>
@@ -293,7 +293,7 @@ export default function PartnerLeadDetailPage() {
                             {/* 과금 정보 */}
                             {lead.charge && (
                                 <div>
-                                    <h2 className="text-lg font-bold text-[#0a3b41] mb-4">과금 정보</h2>
+                                    <h2 className="text-lg font-bold text-content-primary mb-4">과금 정보</h2>
                                     <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm text-gray-500">상태</span>
@@ -306,7 +306,7 @@ export default function PartnerLeadDetailPage() {
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm text-gray-500">총 과금액</span>
-                                            <span className="font-semibold text-[#0a3b41]">
+                                            <span className="font-semibold text-content-primary">
                                                 {lead.charge.totalAmount.toLocaleString()}원
                                             </span>
                                         </div>
@@ -342,7 +342,7 @@ export default function PartnerLeadDetailPage() {
 
                             {/* 문의 내용 */}
                             <div>
-                                <h2 className="text-lg font-bold text-[#0a3b41] mb-4 flex items-center gap-2">
+                                <h2 className="text-lg font-bold text-content-primary mb-4 flex items-center gap-2">
                                     <FileText className="w-5 h-5 text-gray-400" />
                                     문의 내용
                                 </h2>
@@ -392,13 +392,13 @@ export default function PartnerLeadDetailPage() {
             {showReportModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
                     <div className="bg-white rounded-xl p-6 w-full max-w-md space-y-4">
-                        <h3 className="text-lg font-bold text-[#0a3b41]">허위 리드 신고</h3>
+                        <h3 className="text-lg font-bold text-content-primary">허위 리드 신고</h3>
                         <div>
-                            <label className="block text-sm font-medium text-[#0a3b41] mb-1.5">
+                            <label className="block text-sm font-medium text-content-primary mb-1.5">
                                 사유
                             </label>
                             <select
-                                className="w-full h-[38px] px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                                className="w-full h-[38px] px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                                 value={reportReason}
                                 onChange={(e) =>
                                     setReportReason(e.target.value as LeadReportReason | "")
@@ -413,11 +413,11 @@ export default function PartnerLeadDetailPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-[#0a3b41] mb-1.5">
+                            <label className="block text-sm font-medium text-content-primary mb-1.5">
                                 상세 내용 (선택)
                             </label>
                             <textarea
-                                className="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-200 rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                                className="w-full min-h-[80px] px-3 py-2 text-sm border border-gray-200 rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-primary"
                                 placeholder="신고 사유를 구체적으로 작성해주세요"
                                 value={reportDetail}
                                 onChange={(e) => setReportDetail(e.target.value)}

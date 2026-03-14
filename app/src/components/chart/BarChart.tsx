@@ -19,7 +19,7 @@ import { BasicTooltip } from "./BasicTooltip";
 import { cn } from "@/components/utils";
 
 const LegendFormatter = ({ value }: { value: string }) => {
-    return <span className="text-[#5a6376]">{value}</span>;
+    return <span className="text-content-secondary">{value}</span>;
 };
 
 export interface BarChartProps {
@@ -52,7 +52,7 @@ export const BarChart: React.FC<BarChartProps> = ({
     xKey = "item_label",
     xTickFormatter,
     toolTip = <BasicTooltip />,
-    fill = "#62e3d5", // Primary teal
+    fill = "var(--color-primary)", // Primary teal
     hasGrid = false,
     isTooltip = true,
     isLegend,

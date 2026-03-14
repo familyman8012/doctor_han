@@ -18,7 +18,7 @@
     position: relative;
     display: inline-block;
     padding: 0;
-    color: #0a3b41;
+    color: var(--color-content-primary);
     background: #fff;
     font: inherit;
     border: 1px solid #e5e7eb;
@@ -83,7 +83,7 @@
     font-size: 14px;
     font-weight: 500;
     line-height: 1.5;
-    color: #0a3b41;
+    color: var(--color-content-primary);
 }
 
 .react-datepicker__navigation {
@@ -94,7 +94,7 @@
     justify-content: center;
     width: 20px;
     height: 20px;
-    color: #0a3b41;
+    color: var(--color-content-primary);
 
     * {
         width: 100%;
@@ -111,7 +111,7 @@
     }
 
     &:hover *::before {
-        color: #0a3b41;
+        color: var(--color-content-primary);
     }
 }
 
@@ -178,7 +178,7 @@
     margin: 0;
     font-size: 12px;
     line-height: 1;
-    color: #0a3b41;
+    color: var(--color-content-primary);
 }
 
 .react-datepicker__day {
@@ -213,7 +213,7 @@
 .react-datepicker__day--range-start,
 .react-datepicker__month--range-start,
 .react-datepicker__month--range-end {
-    background-color: #62e3d5 !important;
+    background-color: var(--color-primary) !important;
     color: #fff !important;
     border-radius: 6px;
     font-weight: 600;
@@ -229,7 +229,7 @@
         content: "";
         height: 100%;
         margin: 0 -7px;
-        background: #62e3d5 / 10;
+        background: color-mix(in srgb, var(--color-primary) 10%, transparent);
         left: 0;
         right: 0;
         z-index: -1;
@@ -243,7 +243,7 @@
 
 .react-datepicker__day--range-start,
 .react-datepicker__day--selecting-range-start {
-    background-color: #62e3d5 !important;
+    background-color: var(--color-primary) !important;
     color: #fff !important;
     border-radius: 6px;
     font-weight: 600;
@@ -266,7 +266,7 @@
 
 .react-datepicker__day--selecting-range-end:not(.react-datepicker__day--outside-month),
 .react-datepicker__day--range-end:not(.react-datepicker__day--outside-month) {
-    background-color: #62e3d5 !important;
+    background-color: var(--color-primary) !important;
     color: #fff !important;
     border-radius: 6px;
     font-weight: 600;
@@ -308,7 +308,7 @@
 
 .react-datepicker__day--keyboard-selected {
     background: transparent;
-    border: 1px solid #62e3d5;
+    border: 1px solid var(--color-primary);
 
     &[aria-selected="false"] {
         border: none;
@@ -422,7 +422,7 @@
             }
 
             &.selected-month {
-                background-color: #62e3d5 !important;
+                background-color: var(--color-primary) !important;
                 color: #fff !important;
                 border-radius: 21px !important;
                 font-weight: 500;

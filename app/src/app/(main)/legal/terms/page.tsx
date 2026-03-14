@@ -8,11 +8,11 @@ export const metadata: Metadata = {
 export default function TermsPage() {
     return (
         <article className="prose prose-gray max-w-none">
-            <h1 className="text-2xl font-bold text-[#0a3b41] mb-6">이용약관</h1>
+            <h1 className="text-2xl font-bold text-content-primary mb-6">이용약관</h1>
             <p className="text-sm text-gray-500 mb-8">시행일: 2026년 1월 18일</p>
 
             <section className="space-y-4">
-                <h2 className="text-lg font-semibold text-[#0a3b41]">제1조 (목적)</h2>
+                <h2 className="text-lg font-semibold text-content-primary">제1조 (목적)</h2>
                 <p className="text-gray-700 leading-relaxed">
                     본 약관은 메디허브(이하 &quot;회사&quot;)가 제공하는 서비스의 이용과 관련하여
                     회사와 이용자 간의 권리, 의무 및 책임사항, 기타 필요한 사항을 규정함을 목적으로 합니다.
@@ -20,7 +20,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4 mt-8">
-                <h2 className="text-lg font-semibold text-[#0a3b41]">제2조 (정의)</h2>
+                <h2 className="text-lg font-semibold text-content-primary">제2조 (정의)</h2>
                 <p className="text-gray-700 leading-relaxed">
                     본 약관에서 사용하는 용어의 정의는 다음과 같습니다.
                 </p>
@@ -34,7 +34,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4 mt-8">
-                <h2 className="text-lg font-semibold text-[#0a3b41]">제3조 (약관의 효력 및 변경)</h2>
+                <h2 className="text-lg font-semibold text-content-primary">제3조 (약관의 효력 및 변경)</h2>
                 <ol className="list-decimal list-inside space-y-2 text-gray-700">
                     <li>본 약관은 서비스 화면에 게시하거나 기타의 방법으로 회원에게 공지함으로써 효력이 발생합니다.</li>
                     <li>회사는 필요한 경우 관련 법령을 위반하지 않는 범위에서 본 약관을 변경할 수 있습니다.</li>
@@ -43,7 +43,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4 mt-8">
-                <h2 className="text-lg font-semibold text-[#0a3b41]">제4조 (서비스의 제공)</h2>
+                <h2 className="text-lg font-semibold text-content-primary">제4조 (서비스의 제공)</h2>
                 <p className="text-gray-700 leading-relaxed">
                     회사가 제공하는 서비스는 다음과 같습니다.
                 </p>
@@ -57,7 +57,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4 mt-8">
-                <h2 className="text-lg font-semibold text-[#0a3b41]">제5조 (이용자의 의무)</h2>
+                <h2 className="text-lg font-semibold text-content-primary">제5조 (이용자의 의무)</h2>
                 <p className="text-gray-700 leading-relaxed">
                     이용자는 다음 각 호의 행위를 하여서는 안 됩니다.
                 </p>
@@ -71,7 +71,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4 mt-8">
-                <h2 className="text-lg font-semibold text-[#0a3b41]">제6조 (서비스 이용 제한)</h2>
+                <h2 className="text-lg font-semibold text-content-primary">제6조 (서비스 이용 제한)</h2>
                 <p className="text-gray-700 leading-relaxed">
                     회사는 이용자가 본 약관의 의무를 위반하거나 서비스의 정상적인 운영을 방해한 경우,
                     서비스 이용을 제한하거나 이용계약을 해지할 수 있습니다.
@@ -79,7 +79,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4 mt-8">
-                <h2 className="text-lg font-semibold text-[#0a3b41]">제7조 (면책조항)</h2>
+                <h2 className="text-lg font-semibold text-content-primary">제7조 (면책조항)</h2>
                 <ol className="list-decimal list-inside space-y-2 text-gray-700">
                     <li>회사는 천재지변, 전쟁 등 불가항력으로 인해 서비스를 제공할 수 없는 경우 책임이 면제됩니다.</li>
                     <li>회사는 이용자의 귀책사유로 인한 서비스 이용 장애에 대해 책임을 지지 않습니다.</li>
@@ -88,7 +88,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4 mt-8">
-                <h2 className="text-lg font-semibold text-[#0a3b41]">제8조 (분쟁 해결)</h2>
+                <h2 className="text-lg font-semibold text-content-primary">제8조 (분쟁 해결)</h2>
                 <p className="text-gray-700 leading-relaxed">
                     본 약관에 관한 분쟁은 대한민국 법률에 따라 해결하며,
                     서비스 이용으로 발생한 분쟁에 대해 소송이 제기될 경우 회사의 소재지를 관할하는 법원을 전속관할로 합니다.

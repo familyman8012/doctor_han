@@ -94,7 +94,7 @@ export function MessageList({
                         type="button"
                         onClick={onLoadMore}
                         disabled={isLoadingMore}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 text-xs text-[#0a3b41] bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 text-xs text-content-primary bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
                     >
                         {isLoadingMore && <Spinner size="xs" />}
                         이전 메시지 더 보기

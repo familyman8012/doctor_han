@@ -253,17 +253,17 @@ export const UploadBlock = forwardRef<UploadBlockHandle, UploadBlockProps>(
                 <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#62e3d5]/10">
-                                <Upload className="h-5 w-5 text-[#0a3b41]" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50">
+                                <Upload className="h-5 w-5 text-content-primary" />
                             </div>
                             <div>
-                                <h3 className="text-base font-semibold text-[#0a3b41]">첨부 파일 관리</h3>
+                                <h3 className="text-base font-semibold text-content-primary">첨부 파일 관리</h3>
                                 <p className="text-xs text-gray-500">파일을 업로드하고 관리할 수 있습니다</p>
                             </div>
                         </div>
                         {entityId && usagesQuery.isFetching ? (
                             <div className="flex items-center gap-2 text-xs text-gray-500">
-                                <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#62e3d5] border-t-transparent" />
+                                <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                                 동기화 중...
                             </div>
                         ) : null}
@@ -273,9 +273,9 @@ export const UploadBlock = forwardRef<UploadBlockHandle, UploadBlockProps>(
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                         <div className="min-w-0">
                             <div className="mb-4 flex items-center justify-between">
-                                <h4 className="text-sm font-semibold text-[#0a3b41]">등록된 파일</h4>
+                                <h4 className="text-sm font-semibold text-content-primary">등록된 파일</h4>
                                 {entityId && usages.length > 0 && (
-                                    <span className="rounded-full bg-[#62e3d5]/10 px-2 py-1 text-xs font-medium text-[#0a3b41]">
+                                    <span className="rounded-full bg-primary-50 px-2 py-1 text-xs font-medium text-content-primary">
                                         {usages.length}개
                                     </span>
                                 )}
@@ -288,7 +288,7 @@ export const UploadBlock = forwardRef<UploadBlockHandle, UploadBlockProps>(
                                 </div>
                             ) : usagesQuery.isLoading ? (
                                 <div className="flex items-center justify-center py-8">
-                                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#62e3d5] border-t-transparent" />
+                                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                                     <span className="ml-2 text-sm text-gray-500">파일 목록을 불러오는 중...</span>
                                 </div>
                             ) : usagesQuery.isError ? (
@@ -306,7 +306,7 @@ export const UploadBlock = forwardRef<UploadBlockHandle, UploadBlockProps>(
                                     {usages.map((item) => (
                                         <div
                                             key={item.id}
-                                            className="group relative rounded-lg border border-gray-200 bg-white p-3 transition-all hover:border-[#62e3d5]/50 hover:shadow-sm"
+                                            className="group relative rounded-lg border border-gray-200 bg-white p-3 transition-all hover:border-primary/50 hover:shadow-sm"
                                         >
                                             <div className="flex items-start gap-3">
                                                 <div className="flex-shrink-0 pt-0.5">
@@ -366,7 +366,7 @@ export const UploadBlock = forwardRef<UploadBlockHandle, UploadBlockProps>(
 
                         <div className="relative min-w-0 lg:pl-6 lg:border-l lg:border-gray-200">
                             <div className="mb-4 flex items-center justify-between">
-                                <h4 className="text-sm font-semibold text-[#0a3b41]">파일 업로드</h4>
+                                <h4 className="text-sm font-semibold text-content-primary">파일 업로드</h4>
                                 {pending.length > 0 && (
                                     <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
                                         대기 중 {pending.length}개
@@ -399,7 +399,7 @@ export const UploadBlock = forwardRef<UploadBlockHandle, UploadBlockProps>(
                                                 e.preventDefault();
                                                 e.stopPropagation();
                                             }}
-                                            className="block cursor-pointer rounded-lg border-2 border-dashed border-gray-300 bg-gray-50/50 p-8 text-center transition-all hover:border-[#62e3d5] hover:bg-[#62e3d5]/5"
+                                            className="block cursor-pointer rounded-lg border-2 border-dashed border-gray-300 bg-gray-50/50 p-8 text-center transition-all hover:border-primary hover:bg-primary-25"
                                         >
                                             <Upload className="mx-auto mb-3 h-10 w-10 text-gray-400" />
                                             <p className="text-sm font-medium text-gray-900">
@@ -423,7 +423,7 @@ export const UploadBlock = forwardRef<UploadBlockHandle, UploadBlockProps>(
                                                 e.preventDefault();
                                                 e.stopPropagation();
                                             }}
-                                            className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50/50 transition-all hover:border-[#62e3d5]"
+                                            className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50/50 transition-all hover:border-primary"
                                         >
                                             <div className="max-h-64 overflow-y-auto">
                                                 <div className="space-y-2 p-3">
@@ -454,11 +454,11 @@ export const UploadBlock = forwardRef<UploadBlockHandle, UploadBlockProps>(
                                                                         type="button"
                                                                         onClick={() => handleUploadNow(attachment.id)}
                                                                         disabled={isUploading}
-                                                                        className="rounded p-1.5 text-[#62e3d5] transition-colors hover:bg-[#62e3d5]/10 disabled:opacity-50"
+                                                                        className="rounded p-1.5 text-primary transition-colors hover:bg-primary-50 disabled:opacity-50"
                                                                         title="업로드"
                                                                     >
                                                                         {isUploading ? (
-                                                                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#62e3d5] border-t-transparent" />
+                                                                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                                                                         ) : (
                                                                             <Upload className="h-4 w-4" />
                                                                         )}
@@ -484,7 +484,7 @@ export const UploadBlock = forwardRef<UploadBlockHandle, UploadBlockProps>(
                                                 <div className="flex items-center justify-between">
                                                     <label
                                                         htmlFor={fileInputId}
-                                                        className="cursor-pointer text-xs font-medium text-[#0a3b41] hover:text-[#62e3d5]"
+                                                        className="cursor-pointer text-xs font-medium text-content-primary hover:text-primary"
                                                     >
                                                         + 파일 추가
                                                     </label>

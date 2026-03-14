@@ -97,8 +97,8 @@ export function ListTable<T = Record<string, unknown>>({
                         onClick={() => onPageChange(page)}
                         className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                             page === currentPage
-                                ? "text-white bg-[#0a3b41] border-2 border-[#0a3b41]"
-                                : "text-[#0a3b41] bg-white border border-gray-200 hover:border-[#0a3b41]"
+                                ? "text-white bg-primary-900 border-2 border-primary-900"
+                                : "text-content-primary bg-white border border-gray-200 hover:border-primary-900"
                         }`}
                     >
                         {page}
@@ -108,7 +108,7 @@ export function ListTable<T = Record<string, unknown>>({
                 <button
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-2 text-sm text-[#0a3b41] bg-white border border-gray-200 hover:border-[#0a3b41] rounded-lg transition-colors disabled:opacity-50"
+                    className="px-3 py-2 text-sm text-content-primary bg-white border border-gray-200 hover:border-primary-900 rounded-lg transition-colors disabled:opacity-50"
                 >
                     <ChevronRight className="w-4 h-4" />
                 </button>
@@ -120,7 +120,7 @@ export function ListTable<T = Record<string, unknown>>({
         <div className={className}>
             {showPaginationInfo && pagination && (
                 <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm text-[#5f6b6d]">
+                    <span className="text-sm text-content-secondary">
                         총 {pagination.totalItems}건 중 {(pagination.currentPage - 1) * pagination.pageSize + 1}-
                         {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} 표시
                     </span>
@@ -138,7 +138,7 @@ export function ListTable<T = Record<string, unknown>>({
                                         className={`px-4 py-3 ${getAlignClass(column.align)}`}
                                         style={{ width: column.width }}
                                     >
-                                        <span className="text-xs font-medium text-[#5f6b6d] uppercase tracking-wider">
+                                        <span className="text-xs font-medium text-content-secondary uppercase tracking-wider">
                                             {column.header}
                                         </span>
                                     </th>
@@ -149,13 +149,13 @@ export function ListTable<T = Record<string, unknown>>({
                             {loading ? (
                                 <tr>
                                     <td colSpan={columns.length} className="px-4 py-12 text-center">
-                                        <div className="text-sm text-[#5f6b6d]">로딩 중...</div>
+                                        <div className="text-sm text-content-secondary">로딩 중...</div>
                                     </td>
                                 </tr>
                             ) : data.length === 0 ? (
                                 <tr>
                                     <td colSpan={columns.length} className="px-4 py-12 text-center">
-                                        <div className="text-sm text-[#5f6b6d]">{emptyMessage}</div>
+                                        <div className="text-sm text-content-secondary">{emptyMessage}</div>
                                     </td>
                                 </tr>
                             ) : (
@@ -169,7 +169,7 @@ export function ListTable<T = Record<string, unknown>>({
                                     >
                                         {columns.map((column) => (
                                             <td key={column.key} className={`px-4 py-3 ${getAlignClass(column.align)}`}>
-                                                <span className="text-sm text-[#0a3b41]">
+                                                <span className="text-sm text-content-primary">
                                                     {renderCellContent(column, item, index)}
                                                 </span>
                                             </td>

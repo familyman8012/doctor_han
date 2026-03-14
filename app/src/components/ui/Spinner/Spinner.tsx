@@ -21,6 +21,6 @@ interface SpinnerProps extends VariantProps<typeof spinnerVariants> {
     color?: string;
 }
 
-export const Spinner = ({ className, color = "#62e3d5", size = "sm" }: SpinnerProps) => {
+export const Spinner = ({ className, color = "var(--color-primary)", size = "sm" }: SpinnerProps) => {
     return <Loader2 className={cn(spinnerVariants({ size }), className)} style={{ color }} />;
 };

@@ -37,8 +37,8 @@ export function MessageBubble({ message, isOwn }: MessageBubbleProps) {
             <div
                 className={`max-w-[70%] ${
                     isOwn
-                        ? "bg-[#0a3b41] text-white rounded-2xl rounded-br-md"
-                        : "bg-gray-100 text-[#0a3b41] rounded-2xl rounded-bl-md"
+                        ? "bg-primary-900 text-white rounded-2xl rounded-br-md"
+                        : "bg-gray-100 text-content-primary rounded-2xl rounded-bl-md"
                 } px-4 py-3`}
             >
                 {/* 메시지 내용 */}

@@ -91,7 +91,7 @@ function HelpCenterContent() {
         <div className="max-w-4xl mx-auto px-4 py-8">
             {/* Header */}
             <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-[#0a3b41] mb-2">헬프센터</h1>
+                <h1 className="text-3xl font-bold text-content-primary mb-2">헬프센터</h1>
                 <p className="text-gray-500">궁금한 점이 있으신가요? 자주 묻는 질문과 공지사항을 확인해보세요.</p>
             </div>
 
@@ -104,8 +104,8 @@ function HelpCenterContent() {
                         className={cn(
                             "px-6 py-2 text-sm font-medium rounded-md transition-all",
                             currentTab === "faq"
-                                ? "bg-white text-[#0a3b41] shadow-sm"
-                                : "text-gray-600 hover:text-[#0a3b41]"
+                                ? "bg-white text-content-primary shadow-sm"
+                                : "text-gray-600 hover:text-content-primary"
                         )}
                     >
                         FAQ
@@ -116,8 +116,8 @@ function HelpCenterContent() {
                         className={cn(
                             "px-6 py-2 text-sm font-medium rounded-md transition-all",
                             currentTab === "notice"
-                                ? "bg-white text-[#0a3b41] shadow-sm"
-                                : "text-gray-600 hover:text-[#0a3b41]"
+                                ? "bg-white text-content-primary shadow-sm"
+                                : "text-gray-600 hover:text-content-primary"
                         )}
                     >
                         공지사항
@@ -153,8 +153,8 @@ function HelpCenterContent() {
                         className={cn(
                             "px-3 py-1.5 text-sm rounded-full border transition-colors",
                             !category
-                                ? "bg-[#0a3b41] text-white border-[#0a3b41]"
-                                : "text-gray-600 border-gray-300 hover:border-[#0a3b41] hover:text-[#0a3b41]"
+                                ? "bg-primary-900 text-white border-primary-900"
+                                : "text-gray-600 border-gray-300 hover:border-primary-900 hover:text-content-primary"
                         )}
                     >
                         전체
@@ -167,8 +167,8 @@ function HelpCenterContent() {
                             className={cn(
                                 "px-3 py-1.5 text-sm rounded-full border transition-colors",
                                 category === cat.id
-                                    ? "bg-[#0a3b41] text-white border-[#0a3b41]"
-                                    : "text-gray-600 border-gray-300 hover:border-[#0a3b41] hover:text-[#0a3b41]"
+                                    ? "bg-primary-900 text-white border-primary-900"
+                                    : "text-gray-600 border-gray-300 hover:border-primary-900 hover:text-content-primary"
                             )}
                         >
                             {cat.name}
@@ -206,8 +206,8 @@ function HelpCenterContent() {
                                         className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
                                     >
                                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                                            <span className="text-[#62e3d5] font-semibold shrink-0">Q.</span>
-                                            <span className="font-medium text-[#0a3b41] truncate">{article.title}</span>
+                                            <span className="text-primary font-semibold shrink-0">Q.</span>
+                                            <span className="font-medium text-content-primary truncate">{article.title}</span>
                                             {article.category && (
                                                 <Badge color="neutral" size="xs" className="shrink-0">
                                                     {article.category.name}
@@ -231,7 +231,7 @@ function HelpCenterContent() {
                                             <div className="pl-8 mt-3">
                                                 <Link
                                                     href={`/help/faq/${article.id}`}
-                                                    className="text-sm text-[#62e3d5] hover:underline"
+                                                    className="text-sm text-primary hover:underline"
                                                 >
                                                     상세 페이지 보기
                                                 </Link>
@@ -253,11 +253,11 @@ function HelpCenterContent() {
                             >
                                 <div className="flex items-center gap-3 flex-1 min-w-0">
                                     {article.isPinned && (
-                                        <Pin className="w-4 h-4 text-[#62e3d5] shrink-0" />
+                                        <Pin className="w-4 h-4 text-primary shrink-0" />
                                     )}
                                     <span className={cn(
                                         "font-medium truncate",
-                                        article.isPinned ? "text-[#0a3b41]" : "text-gray-700"
+                                        article.isPinned ? "text-content-primary" : "text-gray-700"
                                     )}>
                                         {article.title}
                                     </span>

@@ -75,8 +75,8 @@ export default function PartnerSubscriptionsPage() {
             {/* 헤더 */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
-                        <CalendarClock className="w-6 h-6 text-[#62e3d5]" />
+                    <h1 className="text-2xl font-bold text-content-primary flex items-center gap-2">
+                        <CalendarClock className="w-6 h-6 text-primary" />
                         구독 관리
                     </h1>
                     <p className="text-gray-500 mt-1">카테고리별 기간제 무제한 리드 수신 구독</p>
@@ -119,7 +119,7 @@ export default function PartnerSubscriptionsPage() {
                                             <Badge color={getStatusColor(sub.status)} size="xs">
                                                 {getStatusLabel(sub.status)}
                                             </Badge>
-                                            <span className="font-semibold text-[#0a3b41]">
+                                            <span className="font-semibold text-content-primary">
                                                 {sub.category?.name ?? "카테고리"}
                                             </span>
                                         </div>
@@ -128,7 +128,7 @@ export default function PartnerSubscriptionsPage() {
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-2xl font-bold text-[#0a3b41]">
+                                        <p className="text-2xl font-bold text-content-primary">
                                             D-{remainingDays}
                                         </p>
                                         <p className="text-xs text-gray-400">
@@ -141,7 +141,7 @@ export default function PartnerSubscriptionsPage() {
                                     <div className="flex items-center gap-4">
                                         <div className="text-sm">
                                             <span className="text-gray-500">수신 리드</span>
-                                            <span className="ml-1 font-semibold text-[#0a3b41]">
+                                            <span className="ml-1 font-semibold text-content-primary">
                                                 {sub.leadCount}건
                                             </span>
                                         </div>
@@ -171,7 +171,7 @@ export default function PartnerSubscriptionsPage() {
                 <div>
                     <button
                         type="button"
-                        className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#0a3b41] transition-colors"
+                        className="flex items-center gap-2 text-sm text-gray-500 hover:text-content-primary transition-colors"
                         onClick={() => setShowHistory(!showHistory)}
                     >
                         {showHistory ? (

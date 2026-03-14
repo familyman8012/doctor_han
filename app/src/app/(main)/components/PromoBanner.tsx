@@ -10,14 +10,14 @@ interface PromoBannerProps {
 export function PromoBanner({ variant = "vendor-cta" }: PromoBannerProps) {
     if (variant === "vendor-cta") {
         return (
-            <section className="bg-gradient-to-r from-[#f0faf9] to-[#e0f5f3] rounded-2xl p-6 md:p-8">
+            <section className="bg-gradient-to-r from-primary-25 to-primary-50 rounded-2xl p-6 md:p-8">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-sm">
-                            <Users className="w-7 h-7 text-[#0a3b41]" />
+                            <Users className="w-7 h-7 text-content-primary" />
                         </div>
                         <div>
-                            <h3 className="text-base md:text-lg font-bold text-[#0a3b41]">
+                            <h3 className="text-base md:text-lg font-bold text-content-primary">
                                 업체를 운영하고 계신가요?
                             </h3>
                             <p className="text-sm text-gray-600">
@@ -27,7 +27,7 @@ export function PromoBanner({ variant = "vendor-cta" }: PromoBannerProps) {
                     </div>
                     <Link
                         href="/signup?role=vendor"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0a3b41] text-white font-medium rounded-lg hover:bg-[#155a62] transition-colors whitespace-nowrap"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-900 text-white font-medium rounded-lg hover:bg-primary-800 transition-colors whitespace-nowrap"
                     >
                         무료로 시작하기
                         <ArrowRight className="w-4 h-4" />

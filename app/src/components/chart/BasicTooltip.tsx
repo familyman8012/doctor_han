@@ -40,16 +40,16 @@ export const BasicTooltip: React.FC<BasicTooltipProps> = ({ active, payload, lab
                 )}
             >
                 <dl className="space-y-1">
-                    <dt className="text-xs text-[#5a6376] font-normal">기준일 판매 수</dt>
-                    <dd className="text-lg font-semibold text-[#0a3b41]">
+                    <dt className="text-xs text-content-secondary font-normal">기준일 판매 수</dt>
+                    <dd className="text-lg font-semibold text-content-primary">
                         {data?.payload?.base_sales_count?.toLocaleString()}
                     </dd>
                 </dl>
 
                 {data?.payload?.comparison_sales_count !== undefined && (
                     <dl className="space-y-1">
-                        <dt className="text-xs text-[#5a6376] font-normal">비교일 판매 수</dt>
-                        <dd className="text-lg font-semibold text-[#0a3b41]">
+                        <dt className="text-xs text-content-secondary font-normal">비교일 판매 수</dt>
+                        <dd className="text-lg font-semibold text-content-primary">
                             {data?.payload?.comparison_sales_count?.toLocaleString()}
                         </dd>
                     </dl>
@@ -57,9 +57,9 @@ export const BasicTooltip: React.FC<BasicTooltipProps> = ({ active, payload, lab
 
                 {data?.payload?.increase_decrease_rate !== undefined && (
                     <dl className="space-y-1">
-                        <dt className="text-xs text-[#5a6376] font-normal">증감율</dt>
+                        <dt className="text-xs text-content-secondary font-normal">증감율</dt>
                         <dd className="flex items-center gap-2">
-                            <span className="text-lg font-semibold text-[#0a3b41]">
+                            <span className="text-lg font-semibold text-content-primary">
                                 {data?.payload?.increase_decrease_number?.toLocaleString()}
                             </span>
                             <span
@@ -84,15 +84,15 @@ export const BasicTooltip: React.FC<BasicTooltipProps> = ({ active, payload, lab
     // 기본 툴팁 (일반 차트용)
     return (
         <div className={cn("p-3 bg-white border border-gray-200 rounded-md shadow-lg", className)}>
-            {label && <p className="text-xs text-[#5a6376] mb-2">{label}</p>}
+            {label && <p className="text-xs text-content-secondary mb-2">{label}</p>}
             <div className="space-y-1">
                 {payload.map((entry, index) => (
                     <div key={index} className="flex items-center gap-2">
                         {entry.color && (
                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
                         )}
-                        <span className="text-sm text-[#5a6376]">{entry.name}:</span>
-                        <span className="text-sm font-medium text-[#0a3b41]">
+                        <span className="text-sm text-content-secondary">{entry.name}:</span>
+                        <span className="text-sm font-medium text-content-primary">
                             {typeof entry.value === "number" ? entry.value.toLocaleString() : entry.value}
                         </span>
                     </div>

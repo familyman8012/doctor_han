@@ -35,7 +35,7 @@ export default function NoticeDetailPage() {
         return (
             <div className="max-w-3xl mx-auto px-4 py-8">
                 <div className="text-center">
-                    <h1 className="text-2xl font-bold text-[#0a3b41] mb-2">공지사항을 찾을 수 없습니다</h1>
+                    <h1 className="text-2xl font-bold text-content-primary mb-2">공지사항을 찾을 수 없습니다</h1>
                     <p className="text-gray-500 mb-6">요청하신 공지사항이 존재하지 않거나 삭제되었습니다.</p>
                     <Button variant="secondary" onClick={() => router.push("/help?tab=notice")}>
                         <ArrowLeft className="w-4 h-4 mr-2" />
@@ -65,14 +65,14 @@ export default function NoticeDetailPage() {
                     <div className="flex items-center gap-2 mb-2">
                         {article.isPinned && (
                             <>
-                                <Pin className="w-4 h-4 text-[#62e3d5]" />
+                                <Pin className="w-4 h-4 text-primary" />
                                 <Badge color="primary" size="sm">
                                     고정 공지
                                 </Badge>
                             </>
                         )}
                     </div>
-                    <h1 className="text-xl font-bold text-[#0a3b41] mb-3">{article.title}</h1>
+                    <h1 className="text-xl font-bold text-content-primary mb-3">{article.title}</h1>
                     <div className="flex items-center gap-1 text-sm text-gray-500">
                         <Clock className="w-4 h-4" />
                         <span>{formatDateKo(article.createdAt)}</span>

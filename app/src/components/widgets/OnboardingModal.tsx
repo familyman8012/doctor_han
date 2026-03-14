@@ -55,7 +55,7 @@ export function OnboardingModal({ onClose, onSkip }: OnboardingModalProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-xl">
                 {/* 헤더 */}
-                <div className="relative bg-gradient-to-r from-[#62e3d5] to-[#4bc7b9] p-6 text-white">
+                <div className="relative bg-gradient-to-r from-primary to-primary-700 p-6 text-white">
                     <button
                         onClick={onClose}
                         className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
@@ -76,10 +76,10 @@ export function OnboardingModal({ onClose, onSkip }: OnboardingModalProps) {
                                 key={step.label}
                                 className="flex items-center gap-3 p-3 rounded-lg bg-gray-50"
                             >
-                                <div className="w-6 h-6 rounded-full bg-[#62e3d5]/20 text-[#0a3b41] flex items-center justify-center text-sm font-medium">
+                                <div className="w-6 h-6 rounded-full bg-primary-100 text-content-primary flex items-center justify-center text-sm font-medium">
                                     {index + 1}
                                 </div>
-                                <span className="flex-1 text-[#0a3b41]">
+                                <span className="flex-1 text-content-primary">
                                     {step.label}
                                     {step.required && (
                                         <span className="text-red-500 ml-1">*</span>

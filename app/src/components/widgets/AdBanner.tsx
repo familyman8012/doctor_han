@@ -60,7 +60,7 @@ export function AdBanner({ position }: AdBannerProps) {
                 />
             ) : (
                 <div
-                    className={`w-full bg-gradient-to-br from-[#0a3b41] to-[#155a62] flex items-center justify-center ${position === "main" ? "h-40 md:h-56" : "h-32 md:h-44"}`}
+                    className={`w-full bg-gradient-to-br from-primary-900 to-primary-800 flex items-center justify-center ${position === "main" ? "h-40 md:h-56" : "h-32 md:h-44"}`}
                 >
                     <p className="text-white text-lg md:text-xl font-semibold px-6 text-center">
                         {currentBanner.title}

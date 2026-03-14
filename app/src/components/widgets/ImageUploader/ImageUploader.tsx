@@ -153,8 +153,8 @@ const ImageUploader: FC<ImageUploaderProps> = ({
         }
 
         .image-uploader-box:hover:not(.readonly) {
-          border-color: #62e3d5;
-          background: rgba(98, 227, 213, 0.05);
+          border-color: var(--color-primary);
+          background: color-mix(in srgb, var(--color-primary) 5%, transparent);
         }
 
         .image-uploader-box.has-image {
@@ -182,12 +182,12 @@ const ImageUploader: FC<ImageUploaderProps> = ({
         }
 
         .placeholder-content .icon {
-          color: #5a6376;
+          color: var(--color-content-secondary);
           margin-bottom: 1rem;
         }
 
         .help-text {
-          color: #5a6376;
+          color: var(--color-content-secondary);
           font-size: 14px;
           font-weight: 400;
           line-height: 1.5;
@@ -223,16 +223,16 @@ const ImageUploader: FC<ImageUploaderProps> = ({
 
         .action-button.primary {
           color: #fff;
-          background: #62e3d5;
-          border-color: #62e3d5;
+          background: var(--color-primary);
+          border-color: var(--color-primary);
         }
 
         .action-button.primary:hover {
-          background: #4dd4c5;
+          background: var(--color-primary-hover);
         }
 
         .action-button.danger {
-          color: #0a3b41;
+          color: var(--color-content-primary);
           background: white;
           border-color: #e5e7eb;
         }

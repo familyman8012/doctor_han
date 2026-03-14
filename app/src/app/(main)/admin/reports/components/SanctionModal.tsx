@@ -116,7 +116,7 @@ export function SanctionModal({ isOpen, onClose, reportId }: SanctionModalProps)
                             <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
                                 <AlertTriangle className="w-5 h-5 text-red-600" />
                             </div>
-                            <h2 id="confirm-modal-title" className="text-lg font-semibold text-[#0a3b41]">영구정지 확인</h2>
+                            <h2 id="confirm-modal-title" className="text-lg font-semibold text-content-primary">영구정지 확인</h2>
                         </div>
                         <p id="confirm-modal-description" className="text-sm text-gray-600 mb-4">
                             영구정지는 대상의 모든 활동을 영구적으로 제한합니다.
@@ -165,7 +165,7 @@ export function SanctionModal({ isOpen, onClose, reportId }: SanctionModalProps)
             >
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                    <h2 id="sanction-modal-title" className="text-lg font-semibold text-[#0a3b41]">제재 부과</h2>
+                    <h2 id="sanction-modal-title" className="text-lg font-semibold text-content-primary">제재 부과</h2>
                     <button
                         type="button"
                         onClick={handleClose}
@@ -188,7 +188,7 @@ export function SanctionModal({ isOpen, onClose, reportId }: SanctionModalProps)
                                         key={opt.value}
                                         className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                                             sanctionType === opt.value
-                                                ? "border-[#62e3d5] bg-[#62e3d5]/5"
+                                                ? "border-primary bg-primary-25"
                                                 : "border-gray-200 hover:border-gray-300"
                                         }`}
                                     >
@@ -201,7 +201,7 @@ export function SanctionModal({ isOpen, onClose, reportId }: SanctionModalProps)
                                             className="mt-0.5"
                                         />
                                         <div>
-                                            <p className="font-medium text-[#0a3b41]">{opt.label}</p>
+                                            <p className="font-medium text-content-primary">{opt.label}</p>
                                             <p className="text-xs text-gray-500">{opt.description}</p>
                                         </div>
                                     </label>
@@ -237,7 +237,7 @@ export function SanctionModal({ isOpen, onClose, reportId }: SanctionModalProps)
                                 value={reason}
                                 onChange={(e) => setReason(e.target.value)}
                                 placeholder="처리 사유를 입력해주세요"
-                                className="w-full h-32 px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent"
+                                className="w-full h-32 px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 required
                             />
                             <p className="text-xs text-gray-400 mt-2">

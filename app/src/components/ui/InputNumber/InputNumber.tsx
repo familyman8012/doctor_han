@@ -5,7 +5,7 @@ import { cn } from "@/components/utils";
 
 // 스타일은 기존 Input 컴포넌트와 동일한 규칙을 따름
 const inputVariants = cva(
-    "w-full px-3 text-sm text-[#0a3b41] border bg-white rounded-lg transition-all placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#62e3d5] disabled:bg-gray-50 disabled:cursor-not-allowed",
+    "w-full px-3 text-sm text-content-primary border bg-white rounded-lg transition-all placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-50 disabled:cursor-not-allowed",
     {
         variants: {
             variant: {
@@ -272,7 +272,7 @@ export const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
             <div className={cn("", fullWidth && "w-[100%]")}>
                 {label && (
                     <div className="mb-1.5">
-                        <label htmlFor={inputId} className="text-sm font-medium text-[#0a3b41]">
+                        <label htmlFor={inputId} className="text-sm font-medium text-content-primary">
                             {label}
                             {required && <span className="ml-0.5 text-red-500">*</span>}
                         </label>

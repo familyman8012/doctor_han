@@ -53,23 +53,23 @@ export default function AdminPriorityPage() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-[#0a3b41]">우선순위 슬롯 현황</h1>
+                <h1 className="text-2xl font-bold text-content-primary">우선순위 슬롯 현황</h1>
                 <div className="text-sm text-gray-500">
-                    예상 주간 매출: <span className="font-semibold text-[#0a3b41]">{totalRevenue.toLocaleString()}원</span>
+                    예상 주간 매출: <span className="font-semibold text-content-primary">{totalRevenue.toLocaleString()}원</span>
                 </div>
             </div>
 
             <div className="space-y-6">
                 {Object.entries(grouped).map(([categoryName, categorySlots]) => (
                     <div key={categoryName} className="bg-white rounded-xl border border-gray-200 p-5">
-                        <h2 className="text-lg font-semibold text-[#0a3b41] mb-4">{categoryName}</h2>
+                        <h2 className="text-lg font-semibold text-content-primary mb-4">{categoryName}</h2>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {categorySlots.map(({ slot, activePurchases }) => (
                                 <div key={slot.id} className="text-center p-3 rounded-lg bg-gray-50">
                                     <span className={cn("inline-block px-2 py-0.5 text-xs font-medium rounded-full mb-2", TIER_COLORS[slot.tier])}>
                                         {TIER_LABELS[slot.tier]}
                                     </span>
-                                    <p className="text-2xl font-bold text-[#0a3b41]">
+                                    <p className="text-2xl font-bold text-content-primary">
                                         {activePurchases}<span className="text-sm text-gray-400">/{slot.maxSlots}</span>
                                     </p>
                                     <p className="text-xs text-gray-500 mt-1">

@@ -74,16 +74,16 @@ export default function VendorInquiryPage() {
         <div className="max-w-2xl mx-auto space-y-6">
             {/* 브레드크럼 */}
             <nav className="flex items-center gap-2 text-sm text-gray-500">
-                <Link href={`/vendors/${vendor.id}`} className="hover:text-[#0a3b41] flex items-center gap-1">
+                <Link href={`/vendors/${vendor.id}`} className="hover:text-content-primary flex items-center gap-1">
                     <ArrowLeft className="w-4 h-4" />
                     업체 상세
                 </Link>
                 <ChevronRight className="w-4 h-4" />
-                <span className="text-[#0a3b41] font-medium">문의하기</span>
+                <span className="text-content-primary font-medium">문의하기</span>
             </nav>
 
             {/* 헤더 */}
-            <div className="bg-gradient-to-br from-[#0a3b41] to-[#155a62] rounded-xl p-6">
+            <div className="bg-gradient-to-br from-primary-900 to-primary-800 rounded-xl p-6">
                 <h1 className="text-xl font-bold text-white mb-2">
                     {vendor.name}에 문의하기
                 </h1>

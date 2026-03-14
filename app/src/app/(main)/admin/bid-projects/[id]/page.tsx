@@ -102,8 +102,8 @@ export default function AdminBidProjectDetailPage() {
                     <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-xl font-bold text-[#0a3b41] flex items-center gap-2">
-                        <Gavel className="w-5 h-5 text-[#62e3d5]" />
+                    <h1 className="text-xl font-bold text-content-primary flex items-center gap-2">
+                        <Gavel className="w-5 h-5 text-primary" />
                         {project.title}
                     </h1>
                 </div>
@@ -114,7 +114,7 @@ export default function AdminBidProjectDetailPage() {
 
             {/* 프로젝트 정보 */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-[#0a3b41] mb-4">프로젝트 정보</h2>
+                <h2 className="text-lg font-semibold text-content-primary mb-4">프로젝트 정보</h2>
                 <dl className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                         <dt className="text-gray-500">위치</dt>
@@ -146,7 +146,7 @@ export default function AdminBidProjectDetailPage() {
             {/* 입찰 응답 목록 */}
             {project.responses.length > 0 && (
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-[#0a3b41] mb-4">
+                    <h2 className="text-lg font-semibold text-content-primary mb-4">
                         입찰 응답 ({project.responses.length}건)
                     </h2>
                     <div className="space-y-3">
@@ -154,7 +154,7 @@ export default function AdminBidProjectDetailPage() {
                             <div key={resp.id} className="p-4 bg-gray-50 rounded-lg">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="font-medium text-[#0a3b41]">
+                                        <p className="font-medium text-content-primary">
                                             {resp.vendorName ?? resp.vendorId.slice(0, 8)}
                                         </p>
                                         <Badge
@@ -164,7 +164,7 @@ export default function AdminBidProjectDetailPage() {
                                         </Badge>
                                     </div>
                                     {resp.price != null && (
-                                        <p className="font-bold text-[#0a3b41]">
+                                        <p className="font-bold text-content-primary">
                                             {resp.price.toLocaleString()}원
                                         </p>
                                     )}
@@ -178,8 +178,8 @@ export default function AdminBidProjectDetailPage() {
             {/* 계약 정보 */}
             {project.contract && (
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-[#0a3b41] mb-4 flex items-center gap-2">
-                        <DollarSign className="w-5 h-5 text-[#62e3d5]" />
+                    <h2 className="text-lg font-semibold text-content-primary mb-4 flex items-center gap-2">
+                        <DollarSign className="w-5 h-5 text-primary" />
                         계약 / 수수료
                     </h2>
                     <dl className="grid grid-cols-2 gap-4 text-sm">
@@ -216,7 +216,7 @@ export default function AdminBidProjectDetailPage() {
             {/* 상태 변경 이력 */}
             {project.statusHistory.length > 0 && (
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-[#0a3b41] mb-4">상태 변경 이력</h2>
+                    <h2 className="text-lg font-semibold text-content-primary mb-4">상태 변경 이력</h2>
                     <div className="space-y-2">
                         {project.statusHistory.map((h) => (
                             <div key={h.id} className="flex items-center gap-3 text-sm">
@@ -227,7 +227,7 @@ export default function AdminBidProjectDetailPage() {
                                     {h.fromStatus ? STATUS_LABELS[h.fromStatus] : "시작"}
                                 </span>
                                 <span className="text-gray-400">&rarr;</span>
-                                <span className="font-medium text-[#0a3b41]">
+                                <span className="font-medium text-content-primary">
                                     {STATUS_LABELS[h.toStatus]}
                                 </span>
                             </div>
@@ -247,7 +247,7 @@ export default function AdminBidProjectDetailPage() {
                             }
                         }}
                         disabled={statusMutation.isPending}
-                        className="px-4 py-2 bg-[#0a3b41] text-white rounded-lg text-sm font-medium hover:bg-[#0a3b41]/90 transition-colors disabled:opacity-50"
+                        className="px-4 py-2 bg-primary-900 text-white rounded-lg text-sm font-medium hover:bg-primary-900/90 transition-colors disabled:opacity-50"
                     >
                         {STATUS_LABELS[status]}(으)로 변경
                     </button>

@@ -59,7 +59,7 @@ export function VerificationDetailModal({ isOpen, onClose, item }: VerificationD
             <div className="relative z-10 w-full max-w-lg bg-white rounded-xl shadow-xl mx-4 max-h-[90vh] overflow-y-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 sticky top-0 bg-white">
-                    <h2 className="text-lg font-semibold text-[#0a3b41]">
+                    <h2 className="text-lg font-semibold text-content-primary">
                         {type === "doctor" ? "한의사 인증 상세" : "업체 인증 상세"}
                     </h2>
                     <button
@@ -88,15 +88,15 @@ export function VerificationDetailModal({ isOpen, onClose, item }: VerificationD
                             <dl className="space-y-2 text-sm">
                                 <div className="flex">
                                     <dt className="w-24 text-gray-500">이름</dt>
-                                    <dd className="text-[#0a3b41]">{user.displayName ?? "-"}</dd>
+                                    <dd className="text-content-primary">{user.displayName ?? "-"}</dd>
                                 </div>
                                 <div className="flex">
                                     <dt className="w-24 text-gray-500">이메일</dt>
-                                    <dd className="text-[#0a3b41]">{user.email ?? "-"}</dd>
+                                    <dd className="text-content-primary">{user.email ?? "-"}</dd>
                                 </div>
                                 <div className="flex">
                                     <dt className="w-24 text-gray-500">연락처</dt>
-                                    <dd className="text-[#0a3b41]">{user.phone ?? "-"}</dd>
+                                    <dd className="text-content-primary">{user.phone ?? "-"}</dd>
                                 </div>
                             </dl>
                         </div>
@@ -111,19 +111,19 @@ export function VerificationDetailModal({ isOpen, onClose, item }: VerificationD
                                     <>
                                         <div className="flex">
                                             <dt className="w-24 text-gray-500">면허번호</dt>
-                                            <dd className="text-[#0a3b41]">{verification.licenseNo}</dd>
+                                            <dd className="text-content-primary">{verification.licenseNo}</dd>
                                         </div>
                                         <div className="flex">
                                             <dt className="w-24 text-gray-500">이름</dt>
-                                            <dd className="text-[#0a3b41]">{verification.fullName}</dd>
+                                            <dd className="text-content-primary">{verification.fullName}</dd>
                                         </div>
                                         <div className="flex">
                                             <dt className="w-24 text-gray-500">생년월일</dt>
-                                            <dd className="text-[#0a3b41]">{verification.birthDate ?? "-"}</dd>
+                                            <dd className="text-content-primary">{verification.birthDate ?? "-"}</dd>
                                         </div>
                                         <div className="flex">
                                             <dt className="w-24 text-gray-500">병원명</dt>
-                                            <dd className="text-[#0a3b41]">{verification.clinicName ?? "-"}</dd>
+                                            <dd className="text-content-primary">{verification.clinicName ?? "-"}</dd>
                                         </div>
                                         {verification.licenseFileId && (
                                             <div className="flex items-center pt-2">
@@ -147,23 +147,23 @@ export function VerificationDetailModal({ isOpen, onClose, item }: VerificationD
                                     <>
                                         <div className="flex">
                                             <dt className="w-24 text-gray-500">사업자번호</dt>
-                                            <dd className="text-[#0a3b41]">{verification.businessNo}</dd>
+                                            <dd className="text-content-primary">{verification.businessNo}</dd>
                                         </div>
                                         <div className="flex">
                                             <dt className="w-24 text-gray-500">회사명</dt>
-                                            <dd className="text-[#0a3b41]">{verification.companyName}</dd>
+                                            <dd className="text-content-primary">{verification.companyName}</dd>
                                         </div>
                                         <div className="flex">
                                             <dt className="w-24 text-gray-500">담당자명</dt>
-                                            <dd className="text-[#0a3b41]">{verification.contactName ?? "-"}</dd>
+                                            <dd className="text-content-primary">{verification.contactName ?? "-"}</dd>
                                         </div>
                                         <div className="flex">
                                             <dt className="w-24 text-gray-500">담당자 연락처</dt>
-                                            <dd className="text-[#0a3b41]">{verification.contactPhone ?? "-"}</dd>
+                                            <dd className="text-content-primary">{verification.contactPhone ?? "-"}</dd>
                                         </div>
                                         <div className="flex">
                                             <dt className="w-24 text-gray-500">담당자 이메일</dt>
-                                            <dd className="text-[#0a3b41]">{verification.contactEmail ?? "-"}</dd>
+                                            <dd className="text-content-primary">{verification.contactEmail ?? "-"}</dd>
                                         </div>
                                         {verification.businessLicenseFileId && (
                                             <div className="flex items-center pt-2">

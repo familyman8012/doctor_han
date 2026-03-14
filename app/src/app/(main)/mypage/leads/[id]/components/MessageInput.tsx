@@ -212,7 +212,7 @@ export function MessageInput({ onSend, isSending, disabled }: MessageInputProps)
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={disabled || files.length >= MAX_ATTACHMENTS}
-                    className="p-2 text-gray-500 hover:text-[#0a3b41] hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 text-gray-500 hover:text-content-primary hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title={
                         files.length >= MAX_ATTACHMENTS
                             ? `최대 ${MAX_ATTACHMENTS}개까지 첨부 가능`
@@ -232,7 +232,7 @@ export function MessageInput({ onSend, isSending, disabled }: MessageInputProps)
                         placeholder="메시지를 입력하세요..."
                         disabled={disabled}
                         rows={1}
-                        className="w-full px-4 py-2.5 bg-gray-100 border-0 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-[#62e3d5] text-sm placeholder:text-gray-400 disabled:opacity-50"
+                        className="w-full px-4 py-2.5 bg-gray-100 border-0 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-primary text-sm placeholder:text-gray-400 disabled:opacity-50"
                         style={{ minHeight: "42px", maxHeight: "120px" }}
                     />
                 </div>

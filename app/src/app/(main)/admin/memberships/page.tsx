@@ -61,8 +61,8 @@ export default function AdminMembershipsPage() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
-                    <Shield className="w-6 h-6 text-[#62e3d5]" />
+                <h1 className="text-2xl font-bold text-content-primary flex items-center gap-2">
+                    <Shield className="w-6 h-6 text-primary" />
                     입점 멤버십 관리
                 </h1>
                 <p className="text-sm text-gray-500">총 {total}건</p>
@@ -76,7 +76,7 @@ export default function AdminMembershipsPage() {
                         type="button"
                         className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                             statusFilter === s
-                                ? "bg-[#0a3b41] text-white border-[#0a3b41]"
+                                ? "bg-primary-900 text-white border-primary-900"
                                 : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
                         }`}
                         onClick={() => {
@@ -111,7 +111,7 @@ export default function AdminMembershipsPage() {
                         <tbody className="divide-y divide-gray-100">
                             {items.map((m) => (
                                 <tr key={m.id} className="hover:bg-gray-50">
-                                    <td className="px-4 py-3 font-medium text-[#0a3b41]">
+                                    <td className="px-4 py-3 font-medium text-content-primary">
                                         {m.vendorName ?? "-"}
                                     </td>
                                     <td className="px-4 py-3">

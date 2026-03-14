@@ -12,11 +12,11 @@ interface InfoBoxProps {
 
 // 우리 디자인 시스템에 맞춘 색상 - 배경은 매우 연하게, 텍스트는 진하게
 const variantStyles: Record<InfoBoxVariant, string> = {
-    // 브랜드 컬러 활용 - 민트색 배경에 다크 틸 텍스트
-    primary: "bg-[#62e3d5]/10 border-[#62e3d5]/30 text-[#0a3b41]",
+    // 브랜드 컬러 활용
+    primary: "bg-primary-50 border-primary-200 text-content-primary",
 
     // 기본 info - 연한 회색 배경에 진한 텍스트
-    info: "bg-[#f4f7fa] border-[#d8e1e3] text-[#0a3b41]",
+    info: "bg-gray-50 border-gray-200 text-content-primary",
 
     // 의미별 색상
     success: "bg-emerald-50 border-emerald-200 text-emerald-900",
@@ -26,8 +26,8 @@ const variantStyles: Record<InfoBoxVariant, string> = {
 };
 
 const titleStyles: Record<InfoBoxVariant, string> = {
-    primary: "text-[#0a3b41] font-semibold",
-    info: "text-[#0a3b41] font-semibold",
+    primary: "text-content-primary font-semibold",
+    info: "text-content-primary font-semibold",
     success: "text-emerald-900 font-semibold",
     warning: "text-yellow-900 font-semibold",
     error: "text-red-900 font-semibold",

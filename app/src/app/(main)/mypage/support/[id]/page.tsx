@@ -140,7 +140,7 @@ export default function MypageSupportDetailPage() {
                             </span>
                         )}
                     </div>
-                    <h1 className="text-lg font-bold text-[#0a3b41] truncate">{ticket.title}</h1>
+                    <h1 className="text-lg font-bold text-content-primary truncate">{ticket.title}</h1>
                 </div>
                 {canReopen && (
                     <Button

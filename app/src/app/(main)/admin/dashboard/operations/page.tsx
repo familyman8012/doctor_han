@@ -22,7 +22,7 @@ function OperationsContent() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">운영 지표</h1>
+                <h1 className="text-xl font-bold text-content-primary">운영 지표</h1>
                 <p className="text-sm text-gray-500 mt-1">고객지원, 신고, 인증, 환불 현황을 확인합니다.</p>
             </div>
 

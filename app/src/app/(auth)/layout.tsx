@@ -8,7 +8,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <header className="bg-white border-b border-gray-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center h-16">
-                        <Link href="/" className="text-xl font-bold text-[#0a3b41]">
+                        <Link href="/" className="text-xl font-bold text-content-primary">
                             메디허브
                         </Link>
                     </div>
@@ -30,13 +30,13 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                         <div className="flex gap-6 text-sm">
                             <Link
                                 href="/legal/terms"
-                                className="text-gray-500 hover:text-[#0a3b41] transition-colors"
+                                className="text-gray-500 hover:text-content-primary transition-colors"
                             >
                                 이용약관
                             </Link>
                             <Link
                                 href="/legal/privacy"
-                                className="text-gray-500 hover:text-[#0a3b41] transition-colors"
+                                className="text-gray-500 hover:text-content-primary transition-colors"
                             >
                                 개인정보처리방침
                             </Link>

@@ -31,7 +31,7 @@ export function LeadStatusFilter({ value, onChange }: LeadStatusFilterProps) {
                     className={cn(
                         "px-3 py-1.5 text-sm rounded-full transition-colors",
                         (value ?? "") === opt.value
-                            ? "bg-[#0a3b41] text-white"
+                            ? "bg-primary-900 text-white"
                             : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     )}
                 >

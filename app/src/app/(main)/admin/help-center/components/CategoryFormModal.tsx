@@ -161,7 +161,7 @@ export function CategoryFormModal({
             <div className="relative z-10 w-full max-w-md bg-white rounded-xl shadow-xl mx-4">
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                    <h2 className="text-lg font-semibold text-[#0a3b41]">
+                    <h2 className="text-lg font-semibold text-content-primary">
                         {mode === "create" ? "카테고리 추가" : "카테고리 수정"}
                     </h2>
                     <button

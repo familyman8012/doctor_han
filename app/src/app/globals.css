@@ -1,28 +1,379 @@
 @import "tailwindcss";
 
+/* ===== Design Tokens ===== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* --- Primary (Blue-600 anchor) --- */
+  --color-primary-25: #F5F8FF;
+  --color-primary-50: #EFF6FF;
+  --color-primary-100: #DBEAFE;
+  --color-primary-200: #BFDBFE;
+  --color-primary-300: #93C5FD;
+  --color-primary-400: #60A5FA;
+  --color-primary-500: #3B82F6;
+  --color-primary-600: #2563EB;
+  --color-primary-700: #1D4ED8;
+  --color-primary-800: #1E40AF;
+  --color-primary-900: #1E3A8A;
+
+  /* --- Accent (Amber-500 anchor) --- */
+  --color-accent-50: #FFFBEB;
+  --color-accent-100: #FEF3C7;
+  --color-accent-200: #FDE68A;
+  --color-accent-300: #FCD34D;
+  --color-accent-400: #FBBF24;
+  --color-accent-500: #F59E0B;
+  --color-accent-600: #D97706;
+  --color-accent-700: #B45309;
+
+  /* --- Semantic: Success (Emerald) --- */
+  --color-success-25: #F0FDF9;
+  --color-success-50: #ECFDF5;
+  --color-success-100: #D1FAE5;
+  --color-success-200: #A7F3D0;
+  --color-success-300: #6EE7B7;
+  --color-success-400: #34D399;
+  --color-success-500: #10B981;
+  --color-success-600: #059669;
+  --color-success-700: #047857;
+  --color-success-800: #065F46;
+  --color-success-900: #064E3B;
+
+  /* --- Semantic: Warning (Amber) --- */
+  --color-warning-25: #FFFCF0;
+  --color-warning-50: #FFFBEB;
+  --color-warning-100: #FEF3C7;
+  --color-warning-200: #FDE68A;
+  --color-warning-300: #FCD34D;
+  --color-warning-400: #FBBF24;
+  --color-warning-500: #F59E0B;
+  --color-warning-600: #D97706;
+  --color-warning-700: #B45309;
+  --color-warning-800: #92400E;
+  --color-warning-900: #78350F;
+
+  /* --- Semantic: Error (Red) --- */
+  --color-error-25: #FFF5F5;
+  --color-error-50: #FEF2F2;
+  --color-error-100: #FEE2E2;
+  --color-error-200: #FECACA;
+  --color-error-300: #FCA5A5;
+  --color-error-400: #F87171;
+  --color-error-500: #EF4444;
+  --color-error-600: #DC2626;
+  --color-error-700: #B91C1C;
+  --color-error-800: #991B1B;
+  --color-error-900: #7F1D1D;
+
+  /* --- Content (Text) --- */
+  --color-content-primary: #111827;
+  --color-content-secondary: #4B5563;
+  --color-content-tertiary: #9CA3AF;
+
+  /* --- Surface --- */
+  --color-surface: #F9FAFB;
+  --color-surface-raised: #FFFFFF;
+
+  /* --- Border --- */
+  --color-border: #E5E7EB;
+  --color-border-hover: #D1D5DB;
+
+  /* --- Semantic Aliases --- */
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+
+  /* --- Gray Scale (for ColorPalette reference) --- */
+  --color-gray-0: #FFFFFF;
+  --color-gray-1: #FEFEFE;
+  --color-gray-2: #FDFDFD;
+  --color-gray-3: #FCFCFC;
+  --color-gray-4: #FAFAFA;
+  --color-gray-5: #F9F9F9;
+  --color-gray-6: #F5F5F5;
+  --color-gray-7: #F0F0F0;
+  --color-gray-8: #EBEBEB;
+  --color-gray-9: #E5E5E5;
+  --color-gray-10: #E0E0E0;
+  --color-gray-25: #F9FAFB;
+  --color-gray-50: #F9FAFB;
+  --color-gray-100: #F3F4F6;
+  --color-gray-200: #E5E7EB;
+  --color-gray-300: #D1D5DB;
+  --color-gray-400: #9CA3AF;
+  --color-gray-500: #6B7280;
+  --color-gray-600: #4B5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1F2937;
+  --color-gray-900: #111827;
+
+  /* --- Neutral Scale --- */
+  --color-neutral-10: #FAFAFA;
+  --color-neutral-20: #F5F5F5;
+  --color-neutral-30: #EDEDED;
+  --color-neutral-40: #E0E0E0;
+  --color-neutral-50: #C2C2C2;
+  --color-neutral-60: #9E9E9E;
+  --color-neutral-70: #757575;
+  --color-neutral-80: #616161;
+  --color-neutral-90: #424242;
+  --color-neutral-95: #212121;
+
+  /* --- Extended Palette Colors --- */
+  --color-blue-50: #EFF6FF;
+  --color-blue-60: #DBEAFE;
+  --color-blue-70: #BFDBFE;
+  --color-blue-80: #93C5FD;
+  --color-blue-85: #60A5FA;
+  --color-blue-90: #3B82F6;
+
+  --color-orange-10: #FFF7ED;
+  --color-orange-15: #FFEDD5;
+  --color-orange-30: #FED7AA;
+  --color-orange-40: #FDBA74;
+  --color-orange-45: #FB923C;
+  --color-orange-50: #F97316;
+  --color-orange-60: #EA580C;
+  --color-orange-70: #C2410C;
+  --color-orange-80: #9A3412;
+  --color-orange-90: #7C2D12;
+  --color-orange-95: #431407;
+
+  --color-red-50: #FEF2F2;
+  --color-red-60: #FEE2E2;
+  --color-red-80: #F87171;
+  --color-red-90: #EF4444;
+
+  --color-green-30: #D1FAE5;
+  --color-green-50: #ECFDF5;
+  --color-green-80: #34D399;
+  --color-green-90: #10B981;
+  --color-green-300: #6EE7B7;
+  --color-green-400: #34D399;
+  --color-green-500: #10B981;
+
+  --color-yellow-50: #FEFCE8;
+  --color-yellow-60: #FEF9C3;
+  --color-yellow-90: #EAB308;
+
+  --color-indigo-35: #C7D2FE;
+  --color-indigo-45: #A5B4FC;
+  --color-indigo-75: #6366F1;
+  --color-indigo-90: #4F46E5;
+
+  /* --- Badge Colors --- */
+  --color-badge-success-label: #065F46;
+  --color-badge-success-border: #A7F3D0;
+  --color-badge-success-bg: #ECFDF5;
+
+  --color-badge-warning-label: #92400E;
+  --color-badge-warning-border: #FDE68A;
+  --color-badge-warning-bg: #FFFBEB;
+
+  --color-badge-error-label: #991B1B;
+  --color-badge-error-border: #FECACA;
+  --color-badge-error-bg: #FEF2F2;
+
+  --color-badge-info-label: #1E40AF;
+  --color-badge-info-border: #BFDBFE;
+  --color-badge-info-bg: #EFF6FF;
+
+  --color-badge-neutral-label: #374151;
+  --color-badge-neutral-border: #D1D5DB;
+  --color-badge-neutral-bg: #F3F4F6;
+
+  --color-badge-primary-label: #1D4ED8;
+  --color-badge-primary-border: #BFDBFE;
+  --color-badge-primary-bg: #EFF6FF;
+
+  --color-badge-secondary-label: #4B5563;
+  --color-badge-secondary-border: #E5E7EB;
+  --color-badge-secondary-bg: #F9FAFB;
+
+  --color-badge-purple-label: #6B21A8;
+  --color-badge-purple-border: #E9D5FF;
+  --color-badge-purple-bg: #FAF5FF;
+
+  --color-badge-orange-label: #9A3412;
+  --color-badge-orange-border: #FED7AA;
+  --color-badge-orange-bg: #FFF7ED;
+
+  --color-badge-pink-label: #9D174D;
+  --color-badge-pink-border: #FBCFE8;
+  --color-badge-pink-bg: #FDF2F8;
+
+  --color-badge-indigo-label: #3730A3;
+  --color-badge-indigo-border: #C7D2FE;
+  --color-badge-indigo-bg: #EEF2FF;
+
+  --color-badge-teal-label: #115E59;
+  --color-badge-teal-border: #99F6E4;
+  --color-badge-teal-bg: #F0FDFA;
+
+  --color-badge-amber-label: #92400E;
+  --color-badge-amber-border: #FDE68A;
+  --color-badge-amber-bg: #FFFBEB;
+
+  /* Legacy badge aliases (used by ColorPalette) */
+  --color-badge-green-label: var(--color-badge-success-label);
+  --color-badge-green-border: var(--color-badge-success-border);
+  --color-badge-green-bg: var(--color-badge-success-bg);
+  --color-badge-yellow-label: var(--color-badge-warning-label);
+  --color-badge-yellow-border: var(--color-badge-warning-border);
+  --color-badge-yellow-bg: var(--color-badge-warning-bg);
+  --color-badge-blue-label: var(--color-badge-info-label);
+  --color-badge-blue-border: var(--color-badge-info-border);
+  --color-badge-blue-bg: var(--color-badge-info-bg);
+  --color-badge-red-label: var(--color-badge-error-label);
+  --color-badge-red-border: var(--color-badge-error-border);
+  --color-badge-red-bg: var(--color-badge-error-bg);
+  --color-badge-gray-label: var(--color-badge-neutral-label);
+  --color-badge-gray-border: var(--color-badge-neutral-border);
+  --color-badge-gray-bg: var(--color-badge-neutral-bg);
+
+  /* --- Shadows --- */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-dropdown: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-toast: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Primary */
+  --color-primary-25: var(--color-primary-25);
+  --color-primary-50: var(--color-primary-50);
+  --color-primary-100: var(--color-primary-100);
+  --color-primary-200: var(--color-primary-200);
+  --color-primary-300: var(--color-primary-300);
+  --color-primary-400: var(--color-primary-400);
+  --color-primary-500: var(--color-primary-500);
+  --color-primary-600: var(--color-primary-600);
+  --color-primary-700: var(--color-primary-700);
+  --color-primary-800: var(--color-primary-800);
+  --color-primary-900: var(--color-primary-900);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+
+  /* Accent */
+  --color-accent-50: var(--color-accent-50);
+  --color-accent-100: var(--color-accent-100);
+  --color-accent-200: var(--color-accent-200);
+  --color-accent-300: var(--color-accent-300);
+  --color-accent-400: var(--color-accent-400);
+  --color-accent-500: var(--color-accent-500);
+  --color-accent-600: var(--color-accent-600);
+  --color-accent-700: var(--color-accent-700);
+
+  /* Success */
+  --color-success-25: var(--color-success-25);
+  --color-success-50: var(--color-success-50);
+  --color-success-100: var(--color-success-100);
+  --color-success-200: var(--color-success-200);
+  --color-success-300: var(--color-success-300);
+  --color-success-400: var(--color-success-400);
+  --color-success-500: var(--color-success-500);
+  --color-success-600: var(--color-success-600);
+  --color-success-700: var(--color-success-700);
+  --color-success-800: var(--color-success-800);
+  --color-success-900: var(--color-success-900);
+
+  /* Warning */
+  --color-warning-25: var(--color-warning-25);
+  --color-warning-50: var(--color-warning-50);
+  --color-warning-100: var(--color-warning-100);
+  --color-warning-200: var(--color-warning-200);
+  --color-warning-300: var(--color-warning-300);
+  --color-warning-400: var(--color-warning-400);
+  --color-warning-500: var(--color-warning-500);
+  --color-warning-600: var(--color-warning-600);
+  --color-warning-700: var(--color-warning-700);
+  --color-warning-800: var(--color-warning-800);
+  --color-warning-900: var(--color-warning-900);
+
+  /* Error */
+  --color-error-25: var(--color-error-25);
+  --color-error-50: var(--color-error-50);
+  --color-error-100: var(--color-error-100);
+  --color-error-200: var(--color-error-200);
+  --color-error-300: var(--color-error-300);
+  --color-error-400: var(--color-error-400);
+  --color-error-500: var(--color-error-500);
+  --color-error-600: var(--color-error-600);
+  --color-error-700: var(--color-error-700);
+  --color-error-800: var(--color-error-800);
+  --color-error-900: var(--color-error-900);
+
+  /* Content (Text) */
+  --color-content-primary: var(--color-content-primary);
+  --color-content-secondary: var(--color-content-secondary);
+  --color-content-tertiary: var(--color-content-tertiary);
+
+  /* Surface */
+  --color-surface: var(--color-surface);
+  --color-surface-raised: var(--color-surface-raised);
+
+  /* Border */
+  --color-border: var(--color-border);
+  --color-border-hover: var(--color-border-hover);
+
+  /* Badge */
+  --color-badge-success-label: var(--color-badge-success-label);
+  --color-badge-success-border: var(--color-badge-success-border);
+  --color-badge-success-bg: var(--color-badge-success-bg);
+  --color-badge-warning-label: var(--color-badge-warning-label);
+  --color-badge-warning-border: var(--color-badge-warning-border);
+  --color-badge-warning-bg: var(--color-badge-warning-bg);
+  --color-badge-error-label: var(--color-badge-error-label);
+  --color-badge-error-border: var(--color-badge-error-border);
+  --color-badge-error-bg: var(--color-badge-error-bg);
+  --color-badge-info-label: var(--color-badge-info-label);
+  --color-badge-info-border: var(--color-badge-info-border);
+  --color-badge-info-bg: var(--color-badge-info-bg);
+  --color-badge-neutral-label: var(--color-badge-neutral-label);
+  --color-badge-neutral-border: var(--color-badge-neutral-border);
+  --color-badge-neutral-bg: var(--color-badge-neutral-bg);
+  --color-badge-primary-label: var(--color-badge-primary-label);
+  --color-badge-primary-border: var(--color-badge-primary-border);
+  --color-badge-primary-bg: var(--color-badge-primary-bg);
+  --color-badge-secondary-label: var(--color-badge-secondary-label);
+  --color-badge-secondary-border: var(--color-badge-secondary-border);
+  --color-badge-secondary-bg: var(--color-badge-secondary-bg);
+  --color-badge-purple-label: var(--color-badge-purple-label);
+  --color-badge-purple-border: var(--color-badge-purple-border);
+  --color-badge-purple-bg: var(--color-badge-purple-bg);
+  --color-badge-orange-label: var(--color-badge-orange-label);
+  --color-badge-orange-border: var(--color-badge-orange-border);
+  --color-badge-orange-bg: var(--color-badge-orange-bg);
+  --color-badge-pink-label: var(--color-badge-pink-label);
+  --color-badge-pink-border: var(--color-badge-pink-border);
+  --color-badge-pink-bg: var(--color-badge-pink-bg);
+  --color-badge-indigo-label: var(--color-badge-indigo-label);
+  --color-badge-indigo-border: var(--color-badge-indigo-border);
+  --color-badge-indigo-bg: var(--color-badge-indigo-bg);
+  --color-badge-teal-label: var(--color-badge-teal-label);
+  --color-badge-teal-border: var(--color-badge-teal-border);
+  --color-badge-teal-bg: var(--color-badge-teal-bg);
+  --color-badge-amber-label: var(--color-badge-amber-label);
+  --color-badge-amber-border: var(--color-badge-amber-border);
+  --color-badge-amber-bg: var(--color-badge-amber-bg);
+
+  /* Shadows */
+  --shadow-card: var(--shadow-card);
+  --shadow-dropdown: var(--shadow-dropdown);
+  --shadow-modal: var(--shadow-modal);
+  --shadow-toast: var(--shadow-toast);
+
+  /* Breakpoints */
+  --breakpoint-lg: 1280px;
+  --breakpoint-xl: 1440px;
+
+  /* Fonts */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-surface);
+  color: var(--color-content-primary);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */

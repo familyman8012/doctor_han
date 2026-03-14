@@ -82,9 +82,9 @@ export const Checkbox: React.FC<CheckboxProps> = ({
                 className={cn(
                     checkboxVariants({ size }),
                     "border-gray-300",
-                    "checked:border-[#62e3d5] checked:bg-[#62e3d5]",
+                    "checked:border-primary checked:bg-primary",
                     "checked:bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTAiIHZpZXdNb249IjAgMCAxMiAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwLjY2NjcgMS41TDQuNSA3LjY2NjY3TDEuNDE2NjcgNC41ODMzMyIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+')]",
-                    "focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:ring-offset-2",
+                    "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
                     readOnly &&
                         "border-gray-300 bg-gray-50 pointer-events-none checked:bg-gray-300 checked:bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTAiIHZpZXdOb249IjAgMCAxMiAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwLjY2NjcgMS41TDQuNSA3LjY2NjY3TDEuNDE2NjcgNC41ODMzMyIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4=')]",
                     disabled &&
@@ -97,7 +97,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
                     {label && (
                         <span
                             className={cn(
-                                "font-medium text-[#0a3b41]",
+                                "font-medium text-content-primary",
                                 size === "xs"
                                     ? "text-xs leading-4"
                                     : size === "sm"

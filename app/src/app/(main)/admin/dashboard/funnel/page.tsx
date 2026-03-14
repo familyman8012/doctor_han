@@ -37,7 +37,7 @@ function FunnelBar({ steps }: { steps: FunnelStep[] }) {
                         </div>
                         <div className="h-6 bg-gray-100 rounded-full overflow-hidden">
                             <div
-                                className="h-full rounded-full bg-gradient-to-r from-[#62e3d5] to-[#0a3b41] transition-all duration-500"
+                                className="h-full rounded-full bg-gradient-to-r from-primary to-primary-900 transition-all duration-500"
                                 style={{ width: `${width}%` }}
                             />
                         </div>
@@ -72,7 +72,7 @@ function FunnelContent() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">퍼널 분석</h1>
+                <h1 className="text-xl font-bold text-content-primary">퍼널 분석</h1>
                 <p className="text-sm text-gray-500 mt-1">
                     사용자 전환 경로를 분석합니다.
                 </p>

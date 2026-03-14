@@ -28,8 +28,8 @@ export const DonutBasicLegend: React.FC<DonutBasicLegendProps> = ({ payload = []
                 return (
                     <li key={`item-${index}`} className="flex items-center mb-1">
                         <div className="w-2.5 h-2.5 rounded-sm mr-2.5" style={{ backgroundColor: entry.color }} />
-                        <span className="text-sm text-[#0a3b41]">{entry.value}</span>
-                        {percent > 0 && <span className="text-sm text-[#5a6376] ml-1">- {percent}%</span>}
+                        <span className="text-sm text-content-primary">{entry.value}</span>
+                        {percent > 0 && <span className="text-sm text-content-secondary ml-1">- {percent}%</span>}
                         {hasIncrease && (
                             <span
                                 className={cn(

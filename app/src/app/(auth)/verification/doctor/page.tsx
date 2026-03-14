@@ -175,12 +175,12 @@ export default function DoctorVerificationPage() {
                 <div className="mb-6">
                     <Link
                         href="/"
-                        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-[#0a3b41] mb-4"
+                        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-content-primary mb-4"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         홈으로
                     </Link>
-                    <h1 className="text-2xl font-bold text-[#0a3b41]">한의사 인증</h1>
+                    <h1 className="text-2xl font-bold text-content-primary">한의사 인증</h1>
                     <p className="text-gray-500 mt-2">
                         면허 정보를 입력하고 면허증을 업로드해주세요.
                         <br />
@@ -225,7 +225,7 @@ export default function DoctorVerificationPage() {
 
                     {/* 면허증 업로드 */}
                     <div>
-                        <label className="block text-sm font-medium text-[#0a3b41] mb-1.5">
+                        <label className="block text-sm font-medium text-content-primary mb-1.5">
                             면허증 사본
                         </label>
 
@@ -236,8 +236,8 @@ export default function DoctorVerificationPage() {
                                     flex flex-col items-center justify-center p-6
                                     border-2 border-dashed rounded-lg cursor-pointer transition-all
                                     ${isDragActive
-                                        ? "border-[#62e3d5] bg-[#62e3d5]/5"
-                                        : "border-gray-200 hover:border-[#62e3d5] hover:bg-gray-50"
+                                        ? "border-primary bg-primary-25"
+                                        : "border-gray-200 hover:border-primary hover:bg-gray-50"
                                     }
                                     ${isUploading ? "opacity-50 cursor-not-allowed" : ""}
                                 `}
@@ -260,9 +260,9 @@ export default function DoctorVerificationPage() {
                         ) : (
                             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
                                 <div className="flex items-center gap-3">
-                                    <FileText className="w-5 h-5 text-[#62e3d5]" />
+                                    <FileText className="w-5 h-5 text-primary" />
                                     <div>
-                                        <p className="text-sm text-[#0a3b41] truncate max-w-[200px]">
+                                        <p className="text-sm text-content-primary truncate max-w-[200px]">
                                             {licenseFile.name}
                                         </p>
                                         <p className="text-xs text-gray-400">

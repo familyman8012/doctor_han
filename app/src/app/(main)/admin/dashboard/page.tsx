@@ -49,7 +49,7 @@ function OverviewContent() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">대시보드</h1>
+                <h1 className="text-xl font-bold text-content-primary">대시보드</h1>
                 <p className="text-sm text-gray-500 mt-1">플랫폼 주요 지표를 한눈에 확인합니다.</p>
             </div>
 
@@ -91,11 +91,11 @@ function OverviewContent() {
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <ChartPanel title="리드 추이" isLoading={leadsLoading}>
-                    {leads && <BarChartView data={leads.leadsTrend} color="#62e3d5" label="리드" />}
+                    {leads && <BarChartView data={leads.leadsTrend} color="var(--color-primary)" label="리드" />}
                 </ChartPanel>
 
                 <ChartPanel title="매출 추이" isLoading={revenueLoading}>
-                    {revenue && <LineChartView data={revenue.revenueTrend} color="#0a3b41" label="매출(원)" />}
+                    {revenue && <LineChartView data={revenue.revenueTrend} color="var(--color-primary-900)" label="매출(원)" />}
                 </ChartPanel>
 
                 <ChartPanel title="가입 추이" isLoading={usersLoading}>
@@ -105,19 +105,19 @@ function OverviewContent() {
                 <ChartPanel title="전체 현황" isLoading={overviewLoading}>
                     <div className="grid grid-cols-2 gap-3 h-full items-center">
                         <div className="text-center">
-                            <p className="text-2xl font-bold text-[#0a3b41]">{overview?.totalUsers.toLocaleString() ?? "-"}</p>
+                            <p className="text-2xl font-bold text-content-primary">{overview?.totalUsers.toLocaleString() ?? "-"}</p>
                             <p className="text-xs text-gray-500 mt-1">전체 사용자</p>
                         </div>
                         <div className="text-center">
-                            <p className="text-2xl font-bold text-[#0a3b41]">{overview?.totalLeads.toLocaleString() ?? "-"}</p>
+                            <p className="text-2xl font-bold text-content-primary">{overview?.totalLeads.toLocaleString() ?? "-"}</p>
                             <p className="text-xs text-gray-500 mt-1">전체 리드</p>
                         </div>
                         <div className="text-center">
-                            <p className="text-2xl font-bold text-[#0a3b41]">{overview?.totalRevenue.toLocaleString() ?? "-"}</p>
+                            <p className="text-2xl font-bold text-content-primary">{overview?.totalRevenue.toLocaleString() ?? "-"}</p>
                             <p className="text-xs text-gray-500 mt-1">전체 충전액(원)</p>
                         </div>
                         <div className="text-center">
-                            <p className="text-2xl font-bold text-[#0a3b41]">{overview?.totalReviews.toLocaleString() ?? "-"}</p>
+                            <p className="text-2xl font-bold text-content-primary">{overview?.totalReviews.toLocaleString() ?? "-"}</p>
                             <p className="text-xs text-gray-500 mt-1">전체 리뷰</p>
                         </div>
                     </div>

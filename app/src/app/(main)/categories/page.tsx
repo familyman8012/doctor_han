@@ -50,7 +50,7 @@ export default function CategoriesPage() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-2xl font-bold text-[#0a3b41] mb-2">전체 카테고리</h1>
+                <h1 className="text-2xl font-bold text-content-primary mb-2">전체 카테고리</h1>
                 <p className="text-gray-500">병의원 개원 및 운영에 필요한 다양한 서비스를 찾아보세요</p>
             </div>
 
@@ -66,11 +66,11 @@ export default function CategoriesPage() {
                                 href={`/categories/${category.slug}`}
                                 className="flex items-center gap-4 p-5 border-b border-gray-50 hover:bg-gray-50 transition-colors"
                             >
-                                <div className="w-12 h-12 rounded-full bg-[#62e3d5]/10 flex items-center justify-center text-2xl">
+                                <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center text-2xl">
                                     {CATEGORY_ICONS[category.name] || "📦"}
                                 </div>
                                 <div className="flex-1">
-                                    <h2 className="text-lg font-bold text-[#0a3b41]">{category.name}</h2>
+                                    <h2 className="text-lg font-bold text-content-primary">{category.name}</h2>
                                     <p className="text-sm text-gray-500">
                                         {children.length > 0 ? `${children.length}개 하위 카테고리` : "전체 보기"}
                                     </p>
@@ -85,7 +85,7 @@ export default function CategoriesPage() {
                                             <Link
                                                 key={child.id}
                                                 href={`/categories/${category.slug}/${child.slug}`}
-                                                className="px-3 py-1.5 text-sm text-gray-600 bg-gray-50 rounded-full hover:bg-[#62e3d5]/10 hover:text-[#0a3b41] transition-colors"
+                                                className="px-3 py-1.5 text-sm text-gray-600 bg-gray-50 rounded-full hover:bg-primary-50 hover:text-content-primary transition-colors"
                                             >
                                                 {child.name}
                                             </Link>

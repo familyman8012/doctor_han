@@ -77,7 +77,7 @@ export default function TransactionsPage() {
                     <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </Link>
                 <div>
-                    <h1 className="text-xl font-bold text-[#0a3b41]">거래 내역</h1>
+                    <h1 className="text-xl font-bold text-content-primary">거래 내역</h1>
                     <p className="text-sm text-gray-500">총 {total}건</p>
                 </div>
             </div>
@@ -90,7 +90,7 @@ export default function TransactionsPage() {
                         type="button"
                         className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                             typeFilter === f.value
-                                ? "bg-[#0a3b41] text-white"
+                                ? "bg-primary-900 text-white"
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         }`}
                         onClick={() => {
@@ -142,7 +142,7 @@ export default function TransactionsPage() {
                                     type="button"
                                     className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                                         page === p
-                                            ? "bg-[#0a3b41] text-white"
+                                            ? "bg-primary-900 text-white"
                                             : "text-gray-600 hover:bg-gray-100"
                                     }`}
                                     onClick={() => setPage(String(p))}
@@ -172,7 +172,7 @@ function TransactionRow({ tx }: { tx: CreditTransaction }) {
             <span className="text-sm text-gray-700 truncate">
                 {tx.description ?? TX_TYPE_LABELS[tx.type]}
             </span>
-            <span className={`text-sm font-medium sm:text-right ${tx.amount > 0 ? "text-[#62e3d5]" : "text-red-500"}`}>
+            <span className={`text-sm font-medium sm:text-right ${tx.amount > 0 ? "text-primary" : "text-red-500"}`}>
                 {tx.amount > 0 ? "+" : ""}{formatKRW(tx.amount)}
             </span>
             <span className="text-xs text-gray-400 sm:text-sm sm:text-right">

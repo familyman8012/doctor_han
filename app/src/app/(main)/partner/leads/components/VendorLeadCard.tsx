@@ -30,7 +30,7 @@ export function VendorLeadCard({ lead, onClick }: VendorLeadCardProps) {
             onClick={onClick}
             className={`
                 flex items-center justify-between p-4 bg-white rounded-xl border cursor-pointer transition-all
-                ${isNew ? "border-[#62e3d5] shadow-sm" : "border-gray-100 hover:border-[#62e3d5]"}
+                ${isNew ? "border-primary shadow-sm" : "border-gray-100 hover:border-primary"}
                 hover:shadow-sm
             `}
         >
@@ -50,7 +50,7 @@ export function VendorLeadCard({ lead, onClick }: VendorLeadCardProps) {
                 <div className="flex items-center gap-4 mb-2">
                     <div className="flex items-center gap-1.5">
                         <User className="w-4 h-4 text-gray-400" />
-                        <span className="font-medium text-[#0a3b41]">{lead.contactName}</span>
+                        <span className="font-medium text-content-primary">{lead.contactName}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <Phone className="w-3.5 h-3.5 text-gray-400" />

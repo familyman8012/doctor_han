@@ -57,35 +57,35 @@ const columns: ColumnDef<SampleRow>[] = [
         accessorKey: "name",
         header: "이름",
         size: 160,
-        cell: ({ getValue }) => <span className="text-sm font-medium text-[#0a3b41]">{getValue<string>()}</span>,
+        cell: ({ getValue }) => <span className="text-sm font-medium text-content-primary">{getValue<string>()}</span>,
     },
     {
         id: "email",
         accessorKey: "email",
         header: "이메일",
         size: 220,
-        cell: ({ getValue }) => <span className="text-sm text-[#5f6b6d]">{getValue<string>()}</span>,
+        cell: ({ getValue }) => <span className="text-sm text-content-secondary">{getValue<string>()}</span>,
     },
     {
         id: "team",
         accessorKey: "team",
         header: "팀",
         size: 140,
-        cell: ({ getValue }) => <span className="text-sm text-[#0a3b41]">{getValue<string>()}</span>,
+        cell: ({ getValue }) => <span className="text-sm text-content-primary">{getValue<string>()}</span>,
     },
     {
         id: "joined_at",
         accessorKey: "joinedAt",
         header: "입사일",
         size: 140,
-        cell: ({ getValue }) => <span className="text-sm text-[#5f6b6d]">{getValue<string>()}</span>,
+        cell: ({ getValue }) => <span className="text-sm text-content-secondary">{getValue<string>()}</span>,
     },
     {
         id: "projects",
         accessorKey: "projects",
         header: "프로젝트 수",
         size: 140,
-        cell: ({ getValue }) => <span className="text-sm text-[#0a3b41]">{getValue<number>()}</span>,
+        cell: ({ getValue }) => <span className="text-sm text-content-primary">{getValue<number>()}</span>,
     },
 ];
 
@@ -105,7 +105,7 @@ const BasicRender = () => {
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
     return (
-        <div className="p-6 bg-[#f4f7fa] min-h-screen">
+        <div className="p-6 bg-primary-25 min-h-screen">
             <TanstackTable<SampleRow>
                 data={SAMPLE_DATA}
                 columns={columns}
@@ -126,7 +126,7 @@ const RemoteSortingRender = () => {
     const [sorting, setSorting] = useState<SortingState>([]);
 
     return (
-        <div className="p-6 bg-[#f4f7fa] min-h-screen">
+        <div className="p-6 bg-primary-25 min-h-screen">
             <TanstackTable<SampleRow>
                 data={SAMPLE_DATA}
                 columns={columns}
@@ -147,7 +147,7 @@ export const 원격정렬: Story = {
 
 export const 로딩: Story = {
     render: () => (
-        <div className="p-6 bg-[#f4f7fa] min-h-screen">
+        <div className="p-6 bg-primary-25 min-h-screen">
             <TanstackTable<SampleRow> data={[]} columns={columns} isLoading />
         </div>
     ),
@@ -155,11 +155,11 @@ export const 로딩: Story = {
 
 export const 빈데이터: Story = {
     render: () => (
-        <div className="p-6 bg-[#f4f7fa] min-h-screen">
+        <div className="p-6 bg-primary-25 min-h-screen">
             <TanstackTable<SampleRow>
                 data={[]}
                 columns={columns}
-                emptyState={<span className="text-sm text-[#5f6b6d]">데이터가 비어 있습니다.</span>}
+                emptyState={<span className="text-sm text-content-secondary">데이터가 비어 있습니다.</span>}
             />
         </div>
     ),

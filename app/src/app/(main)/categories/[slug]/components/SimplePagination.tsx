@@ -68,7 +68,7 @@ export function SimplePagination({ currentPage, totalPages, onPageChange }: Simp
                         className={cn(
                             "flex items-center justify-center min-w-[32px] h-8 px-2 rounded-lg border text-sm font-medium transition-colors",
                             page === currentPage
-                                ? "border-[#0a3b41] bg-[#0a3b41] text-white"
+                                ? "border-primary-900 bg-primary-900 text-white"
                                 : "border-gray-200 text-gray-600 hover:bg-gray-50"
                         )}
                     >

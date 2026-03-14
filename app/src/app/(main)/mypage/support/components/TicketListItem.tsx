@@ -27,14 +27,14 @@ export function TicketListItem({ ticket, basePath }: TicketListItemProps) {
                     )}
                     <span className="text-xs text-gray-400">{dayjs(ticket.createdAt).format("YYYY.MM.DD")}</span>
                 </div>
-                <p className="font-medium text-[#0a3b41] truncate">{ticket.title}</p>
+                <p className="font-medium text-content-primary truncate">{ticket.title}</p>
                 {ticket.lastMessagePreview && (
                     <p className="text-sm text-gray-500 mt-0.5 truncate">{ticket.lastMessagePreview}</p>
                 )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
                 {ticket.unreadCount > 0 && (
-                    <span className="flex items-center gap-1 px-2 py-0.5 bg-[#62e3d5] text-[#0a3b41] text-xs font-medium rounded-full">
+                    <span className="flex items-center gap-1 px-2 py-0.5 bg-primary text-content-primary text-xs font-medium rounded-full">
                         <MessageCircle className="w-3 h-3" />
                         {ticket.unreadCount}
                     </span>

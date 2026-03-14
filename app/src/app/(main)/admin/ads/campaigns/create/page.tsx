@@ -74,12 +74,12 @@ export default function CreateCampaignPage() {
                 <Link href="/admin/ads/campaigns" className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
                     <ArrowLeft className="w-5 h-5 text-gray-500" />
                 </Link>
-                <h1 className="text-2xl font-bold text-[#0a3b41]">캠페인 생성</h1>
+                <h1 className="text-2xl font-bold text-content-primary">캠페인 생성</h1>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-4 bg-white rounded-xl border border-gray-200 p-5">
-                    <h2 className="font-semibold text-[#0a3b41]">기본 정보</h2>
+                    <h2 className="font-semibold text-content-primary">기본 정보</h2>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">슬롯 ID</label>
@@ -89,7 +89,7 @@ export default function CreateCampaignPage() {
                             onChange={(e) => setAdSlotId(e.target.value)}
                             placeholder="슬롯 UUID"
                             required
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                         <p className="text-xs text-gray-400 mt-1">메인 또는 서브 배너 슬롯의 ID</p>
                     </div>
@@ -101,7 +101,7 @@ export default function CreateCampaignPage() {
                             value={advertiserName}
                             onChange={(e) => setAdvertiserName(e.target.value)}
                             required
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
 
@@ -112,7 +112,7 @@ export default function CreateCampaignPage() {
                             value={vendorId}
                             onChange={(e) => setVendorId(e.target.value)}
                             placeholder="연결할 업체 UUID (선택)"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
 
@@ -124,7 +124,7 @@ export default function CreateCampaignPage() {
                                 value={startsAt}
                                 onChange={(e) => setStartsAt(e.target.value)}
                                 required
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
                         <div>
@@ -134,7 +134,7 @@ export default function CreateCampaignPage() {
                                 value={endsAt}
                                 onChange={(e) => setEndsAt(e.target.value)}
                                 required
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
                     </div>
@@ -147,15 +147,15 @@ export default function CreateCampaignPage() {
                             onChange={(e) => setMonthlyPrice(e.target.value)}
                             min={0}
                             required
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
                 </div>
 
                 <div className="space-y-4 bg-white rounded-xl border border-gray-200 p-5">
                     <div className="flex items-center justify-between">
-                        <h2 className="font-semibold text-[#0a3b41]">크리에이티브</h2>
-                        <button type="button" onClick={addCreative} className="flex items-center gap-1 text-sm text-[#62e3d5] hover:text-[#0a3b41]">
+                        <h2 className="font-semibold text-content-primary">크리에이티브</h2>
+                        <button type="button" onClick={addCreative} className="flex items-center gap-1 text-sm text-primary hover:text-content-primary">
                             <Plus className="w-4 h-4" />
                             추가
                         </button>
@@ -177,14 +177,14 @@ export default function CreateCampaignPage() {
                                 onChange={(e) => updateCreative(index, "title", e.target.value)}
                                 placeholder="제목"
                                 required
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                             <input
                                 type="url"
                                 value={creative.imageUrl}
                                 onChange={(e) => updateCreative(index, "imageUrl", e.target.value)}
                                 placeholder="이미지 URL (선택)"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                             <input
                                 type="url"
@@ -192,7 +192,7 @@ export default function CreateCampaignPage() {
                                 onChange={(e) => updateCreative(index, "clickUrl", e.target.value)}
                                 placeholder="클릭 URL"
                                 required
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
                     ))}
@@ -201,7 +201,7 @@ export default function CreateCampaignPage() {
                 <button
                     type="submit"
                     disabled={mutation.isPending}
-                    className="w-full py-3 text-sm font-medium text-white bg-[#0a3b41] hover:bg-[#0a3b41]/90 rounded-lg transition-colors disabled:opacity-50"
+                    className="w-full py-3 text-sm font-medium text-white bg-primary-900 hover:bg-primary-900/90 rounded-lg transition-colors disabled:opacity-50"
                 >
                     {mutation.isPending ? "생성 중..." : "캠페인 생성"}
                 </button>

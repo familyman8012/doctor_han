@@ -84,7 +84,7 @@ export function VendorHeader({ vendor, isFavorited }: VendorHeaderProps) {
     return (
         <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
             {/* 썸네일 */}
-            <div className="relative aspect-[3/1] bg-gradient-to-br from-[#0a3b41] to-[#155a62]">
+            <div className="relative aspect-[3/1] bg-gradient-to-br from-primary-900 to-primary-800">
                 <div className="absolute inset-0 flex items-center justify-center text-6xl text-white/20">
                     🏢
                 </div>
@@ -104,7 +104,7 @@ export function VendorHeader({ vendor, isFavorited }: VendorHeaderProps) {
                         </div>
 
                         {/* 업체명 */}
-                        <h1 className="text-2xl font-bold text-[#0a3b41] mb-2">
+                        <h1 className="text-2xl font-bold text-content-primary mb-2">
                             {vendor.name}
                         </h1>
 
@@ -119,7 +119,7 @@ export function VendorHeader({ vendor, isFavorited }: VendorHeaderProps) {
                                 <div className="flex items-center gap-2">
                                     <div className="flex items-center gap-1">
                                         <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                                        <span className="text-lg font-bold text-[#0a3b41]">
+                                        <span className="text-lg font-bold text-content-primary">
                                             {vendor.ratingAvg.toFixed(1)}
                                         </span>
                                     </div>
@@ -143,7 +143,7 @@ export function VendorHeader({ vendor, isFavorited }: VendorHeaderProps) {
                     <div className="flex flex-col items-end gap-4">
                         <div className="text-right">
                             <p className="text-sm text-gray-500 mb-1">서비스 가격</p>
-                            <p className="text-2xl font-bold text-[#0a3b41]">
+                            <p className="text-2xl font-bold text-content-primary">
                                 {formatPrice(vendor.priceMin, vendor.priceMax)}
                             </p>
                         </div>

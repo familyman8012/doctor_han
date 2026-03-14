@@ -32,7 +32,7 @@ function RevenueContent() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">매출 통계</h1>
+                <h1 className="text-xl font-bold text-content-primary">매출 통계</h1>
                 <p className="text-sm text-gray-500 mt-1">수익원별 매출과 환불 현황을 분석합니다.</p>
             </div>
 
@@ -74,7 +74,7 @@ function RevenueContent() {
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <ChartPanel title="매출 추이" isLoading={isLoading}>
-                    {data && <LineChartView data={data.revenueTrend} color="#0a3b41" label="매출(원)" />}
+                    {data && <LineChartView data={data.revenueTrend} color="var(--color-primary-900)" label="매출(원)" />}
                 </ChartPanel>
 
                 <ChartPanel title="수익원별 비중" isLoading={isLoading}>
@@ -86,7 +86,7 @@ function RevenueContent() {
             {data && (
                 <div className="bg-white rounded-xl border border-gray-200 p-5">
                     <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                        <h3 className="text-sm font-semibold text-[#0a3b41]">수익원별 상세</h3>
+                        <h3 className="text-sm font-semibold text-content-primary">수익원별 상세</h3>
                         <p className="text-sm text-gray-500">
                             전체 누적 충전액 {data.totalRevenue.toLocaleString()}원
                         </p>
@@ -104,7 +104,7 @@ function RevenueContent() {
                                 className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0"
                             >
                                 <span className="text-sm text-gray-600">{item.label}</span>
-                                <span className="text-sm font-medium text-[#0a3b41]">
+                                <span className="text-sm font-medium text-content-primary">
                                     {item.value.toLocaleString()}원
                                 </span>
                             </div>

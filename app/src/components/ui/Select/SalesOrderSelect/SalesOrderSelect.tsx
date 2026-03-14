@@ -156,7 +156,7 @@ export function SalesOrderSelect({
     return (
         <div className={className}>
             {label ? (
-                <label className="mb-1.5 block text-sm font-medium text-[#0a3b41]">
+                <label className="mb-1.5 block text-sm font-medium text-content-primary">
                     {label}
                     {required ? <span className="ml-0.5 text-red-500">*</span> : null}
                 </label>

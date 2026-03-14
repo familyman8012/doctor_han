@@ -45,7 +45,7 @@ export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
             <div className="absolute inset-0 bg-black/50" onClick={onClose} />
             <div className="relative z-10 w-full max-w-sm bg-white rounded-xl shadow-xl mx-4">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                    <h2 className="text-lg font-semibold text-[#0a3b41]">월별 정산 생성</h2>
+                    <h2 className="text-lg font-semibold text-content-primary">월별 정산 생성</h2>
                     <button
                         type="button"
                         onClick={onClose}
@@ -67,7 +67,7 @@ export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
                             <select
                                 value={year}
                                 onChange={(e) => setYear(Number(e.target.value))}
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             >
                                 {years.map((y) => (
                                     <option key={y} value={y}>
@@ -81,7 +81,7 @@ export function GenerateModal({ isOpen, onClose }: GenerateModalProps) {
                             <select
                                 value={month}
                                 onChange={(e) => setMonth(Number(e.target.value))}
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             >
                                 {months.map((m) => (
                                     <option key={m} value={m}>

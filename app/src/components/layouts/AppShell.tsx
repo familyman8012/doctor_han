@@ -47,7 +47,7 @@ export function AppShell({
         <SidebarProvider>
             <div className="flex h-screen w-full overflow-hidden">
                 {sidebar}
-                <div className="flex h-screen min-h-0 flex-1 flex-col overflow-hidden bg-background">
+                <div className="flex h-screen min-h-0 flex-1 flex-col overflow-hidden bg-surface-raised">
                     <main className={className ?? "flex-1 min-h-0 overflow-auto p-6"}>{children}</main>
                     <ConfirmModal />
                 </div>

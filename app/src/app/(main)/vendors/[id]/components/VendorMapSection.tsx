@@ -22,7 +22,7 @@ export function VendorMapSection({ vendor }: VendorMapSectionProps) {
 
     return (
         <div className="bg-white rounded-xl border border-gray-100 p-6">
-            <h2 className="text-lg font-bold text-[#0a3b41] mb-4">위치 정보</h2>
+            <h2 className="text-lg font-bold text-content-primary mb-4">위치 정보</h2>
 
             {/* Map */}
             {hasCoords && (

@@ -123,12 +123,12 @@ export function UserSelect({
                             target.style.display = "none";
                             const parent = target.parentElement;
                             if (parent) {
-                                parent.innerHTML = `<div class="flex h-8 w-8 items-center justify-center rounded-full bg-[#62e3d5]/20 text-sm font-semibold text-[#0a3b41]">${initials}</div>`;
+                                parent.innerHTML = `<div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-sm font-semibold text-content-primary">${initials}</div>`;
                             }
                         }}
                     />
                 ) : (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#62e3d5]/20 text-sm font-semibold text-[#0a3b41]">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-sm font-semibold text-content-primary">
                         {initials}
                     </div>
                 ),

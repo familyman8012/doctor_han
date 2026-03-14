@@ -64,7 +64,7 @@ export default function UpdatePasswordPage() {
             <div className="w-full max-w-md">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <div className="flex items-center justify-center py-8">
-                        <div className="w-8 h-8 border-2 border-[#62e3d5] border-t-transparent rounded-full animate-spin" />
+                        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                     </div>
                 </div>
             </div>
@@ -82,7 +82,7 @@ export default function UpdatePasswordPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                         </div>
-                        <h1 className="text-2xl font-bold text-[#0a3b41] mb-2">링크가 만료되었습니다</h1>
+                        <h1 className="text-2xl font-bold text-content-primary mb-2">링크가 만료되었습니다</h1>
                         <p className="text-gray-500 mb-6">
                             비밀번호 재설정 링크가 만료되었거나 유효하지 않습니다.
                             <br />
@@ -103,7 +103,7 @@ export default function UpdatePasswordPage() {
         <div className="w-full max-w-md">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-[#0a3b41]">새 비밀번호 설정</h1>
+                    <h1 className="text-2xl font-bold text-content-primary">새 비밀번호 설정</h1>
                     <p className="text-gray-500 mt-2">새로운 비밀번호를 입력해주세요.</p>
                 </div>
 

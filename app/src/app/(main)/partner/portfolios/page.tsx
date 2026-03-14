@@ -57,8 +57,8 @@ export default function PartnerPortfoliosPage() {
         return (
             <div className="space-y-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
-                        <FolderOpen className="w-6 h-6 text-[#62e3d5]" />
+                    <h1 className="text-2xl font-bold text-content-primary flex items-center gap-2">
+                        <FolderOpen className="w-6 h-6 text-primary" />
                         포트폴리오
                     </h1>
                 </div>
@@ -86,8 +86,8 @@ export default function PartnerPortfoliosPage() {
             {/* 헤더 */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
-                        <FolderOpen className="w-6 h-6 text-[#62e3d5]" />
+                    <h1 className="text-2xl font-bold text-content-primary flex items-center gap-2">
+                        <FolderOpen className="w-6 h-6 text-primary" />
                         포트폴리오
                     </h1>
                     <p className="text-gray-500 mt-1">총 {portfolios.length}개의 포트폴리오</p>
@@ -195,7 +195,7 @@ function PortfolioCard({
 
             {/* 정보 */}
             <div className="p-4">
-                <h3 className="font-semibold text-[#0a3b41] truncate">
+                <h3 className="font-semibold text-content-primary truncate">
                     {portfolio.title ?? "제목 없음"}
                 </h3>
                 {portfolio.description && (

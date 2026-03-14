@@ -126,8 +126,8 @@ export const SkuSelect = forwardRef<HTMLButtonElement, SkuSelectProps>(function 
                 label: sku.itemCode,
                 description: sku.itemName,
                 icon: (
-                    <div className="flex h-6 w-6 items-center justify-center rounded bg-[#62e3d5]/20">
-                        <Package className="h-3 w-3 text-[#0a3b41]" />
+                    <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/20">
+                        <Package className="h-3 w-3 text-content-primary" />
                     </div>
                 ),
                 data: sku,
@@ -350,7 +350,7 @@ export const SkuSelect = forwardRef<HTMLButtonElement, SkuSelectProps>(function 
                                 onClick={() => handleSelect(option)}
                                 className={`flex w-full items-start gap-2 px-3 py-2 text-left transition-colors ${
                                     isHighlighted ? "bg-gray-100" : "hover:bg-gray-50"
-                                } ${isSelected ? "text-[#0a3b41] font-semibold" : "text-gray-800"}`}
+                                } ${isSelected ? "text-content-primary font-semibold" : "text-gray-800"}`}
                             >
                                 {option.icon && <div className="mt-0.5">{option.icon}</div>}
                                 <div className="flex-1 min-w-0">
@@ -377,19 +377,19 @@ export const SkuSelect = forwardRef<HTMLButtonElement, SkuSelectProps>(function 
 
     const controlDisplay = hasValue ? (
         <div className="flex items-center gap-3 text-left">
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-[#62e3d5]/15">
-                <Package className="h-3.5 w-3.5 text-[#0a3b41]" />
+            <div className="flex h-7 w-7 items-center justify-center rounded bg-primary/15">
+                <Package className="h-3.5 w-3.5 text-content-primary" />
             </div>
             <div className="flex min-w-0 flex-col items-start">
-                <span className="truncate text-sm font-medium text-[#0a3b41]">{selectedLabel}</span>
+                <span className="truncate text-sm font-medium text-content-primary">{selectedLabel}</span>
                 {hasSelectedDescription && displayOption?.description && (
-                    <span className="truncate text-xs text-[#5f6b6d]">{displayOption.description}</span>
+                    <span className="truncate text-xs text-content-secondary">{displayOption.description}</span>
                 )}
             </div>
         </div>
     ) : (
         <div className="flex items-center gap-3 text-gray-400">
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-[#62e3d5]/10">
+            <div className="flex h-7 w-7 items-center justify-center rounded bg-primary/10">
                 <Package className="h-3.5 w-3.5 text-gray-400" />
             </div>
             <span className="truncate text-sm">{effectivePlaceholder}</span>
@@ -426,7 +426,7 @@ export const SkuSelect = forwardRef<HTMLButtonElement, SkuSelectProps>(function 
                             setShouldFetch(true);
                         }}
                         autoFocus
-                        className="w-full rounded-md border border-gray-200 px-2 py-1 text-sm outline-none focus:border-[#62e3d5] focus:ring-1 focus:ring-[#62e3d5]"
+                        className="w-full rounded-md border border-gray-200 px-2 py-1 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                         placeholder="SKU 코드 또는 이름 검색"
                     />
                     {isBackgroundFetching && (
@@ -458,7 +458,7 @@ export const SkuSelect = forwardRef<HTMLButtonElement, SkuSelectProps>(function 
                         hasSelectedDescription ? "py-2" : "py-2.5"
                     } text-sm ${
                         isControlDisabled ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white"
-                    } ${error ? "border-red-400" : "border-gray-200"} focus:outline-none focus:ring-2 focus:ring-[#62e3d5]`}
+                    } ${error ? "border-red-400" : "border-gray-200"} focus:outline-none focus:ring-2 focus:ring-primary`}
                     style={{ minHeight: computedHeight }}
                     onClick={toggleOpen}
                     onKeyDown={handleKeyDown}

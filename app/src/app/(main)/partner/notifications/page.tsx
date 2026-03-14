@@ -23,11 +23,11 @@ function ToggleItem({ icon, label, description, checked, onChange, disabled }: T
 	return (
 		<div className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0">
 			<div className="flex items-start gap-3">
-				<div className="w-10 h-10 rounded-lg bg-[#62e3d5]/10 flex items-center justify-center shrink-0">
+				<div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
 					{icon}
 				</div>
 				<div>
-					<p className="font-medium text-[#0a3b41]">{label}</p>
+					<p className="font-medium text-content-primary">{label}</p>
 					<p className="text-sm text-gray-500 mt-0.5">{description}</p>
 				</div>
 			</div>
@@ -39,7 +39,7 @@ function ToggleItem({ icon, label, description, checked, onChange, disabled }: T
 				disabled={disabled}
 				onClick={() => onChange(!checked)}
 				className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
-					checked ? "bg-[#62e3d5]" : "bg-gray-200"
+					checked ? "bg-primary" : "bg-gray-200"
 				}`}
 			>
 				<span
@@ -115,13 +115,13 @@ export default function PartnerNotificationSettingsPage() {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h1 className="text-2xl font-bold text-[#0a3b41]">알림 설정</h1>
+				<h1 className="text-2xl font-bold text-content-primary">알림 설정</h1>
 				<p className="text-gray-500 mt-1">이메일 및 카카오 알림 수신 여부를 관리합니다</p>
 			</div>
 
 			<div className="bg-white rounded-xl border border-gray-200 p-6">
 				<ToggleItem
-					icon={<Mail className="w-5 h-5 text-[#62e3d5]" />}
+					icon={<Mail className="w-5 h-5 text-primary" />}
 					label="이메일 알림 전체"
 					description="모든 이메일 알림 수신 여부를 설정합니다"
 					checked={data.emailEnabled}
@@ -130,7 +130,7 @@ export default function PartnerNotificationSettingsPage() {
 				/>
 
 				<ToggleItem
-					icon={<Shield className="w-5 h-5 text-[#62e3d5]" />}
+					icon={<Shield className="w-5 h-5 text-primary" />}
 					label="인증 결과 알림"
 					description="인증 승인/반려 결과 알림을 받습니다"
 					checked={data.verificationResultEnabled}
@@ -139,7 +139,7 @@ export default function PartnerNotificationSettingsPage() {
 				/>
 
 				<ToggleItem
-					icon={<MessageSquare className="w-5 h-5 text-[#62e3d5]" />}
+					icon={<MessageSquare className="w-5 h-5 text-primary" />}
 					label="리드 관련 알림"
 					description="새 문의 접수 및 리드 상태 변경 알림을 받습니다"
 					checked={data.leadEnabled}
@@ -148,7 +148,7 @@ export default function PartnerNotificationSettingsPage() {
 				/>
 
 				<ToggleItem
-					icon={<Megaphone className="w-5 h-5 text-[#62e3d5]" />}
+					icon={<Megaphone className="w-5 h-5 text-primary" />}
 					label="마케팅 알림"
 					description="프로모션 및 이벤트 소식을 받습니다"
 					checked={data.marketingEnabled}
@@ -179,17 +179,17 @@ export default function PartnerNotificationSettingsPage() {
 
 			{/* 약관 및 정책 */}
 			<div className="mt-8">
-				<h2 className="text-lg font-semibold text-[#0a3b41] mb-4">약관 및 정책</h2>
+				<h2 className="text-lg font-semibold text-content-primary mb-4">약관 및 정책</h2>
 				<div className="bg-white rounded-xl border border-gray-200">
 					<Link
 						href="/legal/terms"
 						className="flex items-center justify-between px-4 py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors"
 					>
 						<div className="flex items-center gap-3">
-							<div className="w-10 h-10 rounded-lg bg-[#62e3d5]/10 flex items-center justify-center shrink-0">
-								<FileText className="w-5 h-5 text-[#62e3d5]" />
+							<div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+								<FileText className="w-5 h-5 text-primary" />
 							</div>
-							<span className="font-medium text-[#0a3b41]">이용약관</span>
+							<span className="font-medium text-content-primary">이용약관</span>
 						</div>
 						<ChevronRight className="w-5 h-5 text-gray-400" />
 					</Link>
@@ -198,10 +198,10 @@ export default function PartnerNotificationSettingsPage() {
 						className="flex items-center justify-between px-4 py-4 hover:bg-gray-50 transition-colors"
 					>
 						<div className="flex items-center gap-3">
-							<div className="w-10 h-10 rounded-lg bg-[#62e3d5]/10 flex items-center justify-center shrink-0">
-								<ShieldCheck className="w-5 h-5 text-[#62e3d5]" />
+							<div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+								<ShieldCheck className="w-5 h-5 text-primary" />
 							</div>
-							<span className="font-medium text-[#0a3b41]">개인정보처리방침</span>
+							<span className="font-medium text-content-primary">개인정보처리방침</span>
 						</div>
 						<ChevronRight className="w-5 h-5 text-gray-400" />
 					</Link>

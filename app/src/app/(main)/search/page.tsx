@@ -87,7 +87,7 @@ function SearchContent() {
         <div className="space-y-6">
             {/* 검색 헤더 */}
             <div className="bg-white rounded-xl border border-gray-100 p-6">
-                <h1 className="text-2xl font-bold text-[#0a3b41] mb-4">업체 검색</h1>
+                <h1 className="text-2xl font-bold text-content-primary mb-4">업체 검색</h1>
                 <form onSubmit={handleSearch} className="flex gap-3">
                     <div className="flex-1 relative">
                         <Input
@@ -112,7 +112,7 @@ function SearchContent() {
                             key={keyword}
                             type="button"
                             onClick={() => { setSearchText(keyword); setQ(keyword); setPage(1); }}
-                            className="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-600 hover:bg-[#62e3d5]/20 hover:text-[#0a3b41] transition-colors"
+                            className="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-600 hover:bg-primary-100 hover:text-content-primary transition-colors"
                         >
                             {keyword}
                         </button>
@@ -126,7 +126,7 @@ function SearchContent() {
                     {/* 검색어 표시 */}
                     <div className="flex items-center justify-between">
                         <p className="text-gray-600">
-                            <span className="font-medium text-[#0a3b41]">&quot;{q}&quot;</span> 검색 결과
+                            <span className="font-medium text-content-primary">&quot;{q}&quot;</span> 검색 결과
                             {vendorData && (
                                 <span className="ml-2 text-gray-400">
                                     ({vendorData.total}개)

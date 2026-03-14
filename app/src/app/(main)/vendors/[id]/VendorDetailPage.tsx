@@ -74,7 +74,7 @@ export default function VendorDetailPage({ vendorId }: VendorDetailPageProps) {
         <div className="space-y-6">
             {/* 브레드크럼 */}
             <nav className="flex items-center gap-2 text-sm text-gray-500">
-                <Link href="/categories" className="hover:text-[#0a3b41]">
+                <Link href="/categories" className="hover:text-content-primary">
                     전체 카테고리
                 </Link>
                 {vendor.categories[0] && (
@@ -82,14 +82,14 @@ export default function VendorDetailPage({ vendorId }: VendorDetailPageProps) {
                         <ChevronRight className="w-4 h-4" />
                         <Link
                             href={`/categories/${vendor.categories[0].slug}`}
-                            className="hover:text-[#0a3b41]"
+                            className="hover:text-content-primary"
                         >
                             {vendor.categories[0].name}
                         </Link>
                     </>
                 )}
                 <ChevronRight className="w-4 h-4" />
-                <span className="text-[#0a3b41] font-medium truncate max-w-[200px]">
+                <span className="text-content-primary font-medium truncate max-w-[200px]">
                     {vendor.name}
                 </span>
             </nav>

@@ -143,7 +143,7 @@ export function PortfolioCreateModal({ onClose, onSuccess }: PortfolioCreateModa
             <div className="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
                 {/* 헤더 */}
                 <div className="sticky top-0 bg-white flex items-center justify-between p-4 border-b border-gray-200">
-                    <h2 className="text-lg font-semibold text-[#0a3b41]">포트폴리오 추가</h2>
+                    <h2 className="text-lg font-semibold text-content-primary">포트폴리오 추가</h2>
                     <button
                         onClick={onClose}
                         className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"
@@ -176,7 +176,7 @@ export function PortfolioCreateModal({ onClose, onSuccess }: PortfolioCreateModa
                         <textarea
                             {...register("description")}
                             rows={3}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent resize-none"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                             placeholder="포트폴리오에 대한 설명"
                         />
                     </div>
@@ -213,7 +213,7 @@ export function PortfolioCreateModal({ onClose, onSuccess }: PortfolioCreateModa
                                     type="button"
                                     onClick={() => fileInputRef.current?.click()}
                                     disabled={isUploading}
-                                    className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-[#62e3d5] hover:text-[#62e3d5] transition-colors disabled:opacity-50"
+                                    className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
                                 >
                                     {isUploading ? (
                                         <Spinner size="sm" />

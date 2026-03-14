@@ -39,15 +39,15 @@ export function ProfileCompletionBanner({ completion }: ProfileCompletionBannerP
     if (score === 100) return null;
 
     // 진행 상태에 따른 색상
-    const progressColor = score >= 70 ? "bg-green-500" : score >= 40 ? "bg-yellow-500" : "bg-[#62e3d5]";
+    const progressColor = score >= 70 ? "bg-green-500" : score >= 40 ? "bg-yellow-500" : "bg-primary";
 
     return (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             {/* 헤더 */}
             <div className="p-4 border-b border-gray-100">
                 <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-[#0a3b41]">프로필 완성도</h3>
-                    <span className="text-2xl font-bold text-[#0a3b41]">{score}%</span>
+                    <h3 className="font-semibold text-content-primary">프로필 완성도</h3>
+                    <span className="text-2xl font-bold text-content-primary">{score}%</span>
                 </div>
                 {/* 진행바 */}
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -70,7 +70,7 @@ export function ProfileCompletionBanner({ completion }: ProfileCompletionBannerP
                     const content = (
                         <div className="flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors">
                             {getStatusIcon(item.status)}
-                            <span className={`flex-1 text-sm ${item.completed ? "text-gray-400 line-through" : "text-[#0a3b41]"}`}>
+                            <span className={`flex-1 text-sm ${item.completed ? "text-gray-400 line-through" : "text-content-primary"}`}>
                                 {item.label}
                             </span>
                             {statusText && (

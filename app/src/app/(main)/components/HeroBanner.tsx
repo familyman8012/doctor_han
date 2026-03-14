@@ -23,9 +23,9 @@ const defaultSlides: BannerSlide[] = [
         subtitle: "검증된 파트너사와 함께 성공적인 개원을 준비하세요",
         buttonText: "파트너 찾기",
         buttonHref: "/categories",
-        bgColor: "from-[#0a3b41] to-[#155a62]",
+        bgColor: "from-primary-900 to-primary-800",
         textColor: "text-white",
-        accentColor: "text-[#62e3d5]",
+        accentColor: "text-primary",
     },
     {
         id: "2",
@@ -33,9 +33,9 @@ const defaultSlides: BannerSlide[] = [
         subtitle: "실제 한의사들의 리뷰로 검증된 탕전실을 만나보세요",
         buttonText: "탕전실 보기",
         buttonHref: "/categories/external-decoction",
-        bgColor: "from-[#1e4a5f] to-[#2d6b7d]",
+        bgColor: "from-primary-800 to-primary-800",
         textColor: "text-white",
-        accentColor: "text-[#7de8dc]",
+        accentColor: "text-primary-300",
     },
     {
         id: "3",
@@ -43,9 +43,9 @@ const defaultSlides: BannerSlide[] = [
         subtitle: "다양한 의료기기 업체를 한눈에 비교하고 문의하세요",
         buttonText: "의료기기 보기",
         buttonHref: "/categories/medical-devices",
-        bgColor: "from-[#2c5364] to-[#203a43]",
+        bgColor: "from-primary-900 to-primary-900",
         textColor: "text-white",
-        accentColor: "text-[#6dd5ed]",
+        accentColor: "text-primary-300",
     },
 ];
 
@@ -104,7 +104,7 @@ export function HeroBanner({ slides = defaultSlides, autoPlayInterval = 5000 }: 
                     </p>
                     <Link
                         href={currentSlide.buttonHref}
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[#0a3b41] font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-white text-content-primary font-semibold rounded-lg hover:bg-gray-100 transition-colors"
                     >
                         {currentSlide.buttonText}
                         <ChevronRight className="w-4 h-4" />

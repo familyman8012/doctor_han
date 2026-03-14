@@ -75,7 +75,7 @@ export function DismissModal({ isOpen, onClose, reportId }: DismissModalProps) {
             >
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                    <h2 id="dismiss-modal-title" className="text-lg font-semibold text-[#0a3b41]">신고 기각</h2>
+                    <h2 id="dismiss-modal-title" className="text-lg font-semibold text-content-primary">신고 기각</h2>
                     <button
                         type="button"
                         onClick={handleClose}
@@ -95,7 +95,7 @@ export function DismissModal({ isOpen, onClose, reportId }: DismissModalProps) {
                             value={reason}
                             onChange={(e) => setReason(e.target.value)}
                             placeholder="기각 사유를 입력해주세요"
-                            className="w-full h-32 px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#62e3d5] focus:border-transparent"
+                            className="w-full h-32 px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             required
                         />
                         <p className="text-xs text-gray-400 mt-2">

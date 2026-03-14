@@ -60,7 +60,7 @@ export default function AdminVendorsPage() {
         <div className="space-y-6">
             {/* 헤더 */}
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">업체 관리</h1>
+                <h1 className="text-xl font-bold text-content-primary">업체 관리</h1>
                 <p className="text-sm text-gray-500 mt-1">등록된 업체를 조회하고 관리합니다.</p>
             </div>
 
@@ -135,7 +135,7 @@ export default function AdminVendorsPage() {
                                                 {dayjs(vendor.createdAt).format("YYYY.MM.DD")}
                                             </span>
                                         </div>
-                                        <p className="font-medium text-[#0a3b41]">{vendor.name}</p>
+                                        <p className="font-medium text-content-primary">{vendor.name}</p>
                                         {vendor.summary && (
                                             <p className="text-sm text-gray-500 line-clamp-1">{vendor.summary}</p>
                                         )}
@@ -176,7 +176,7 @@ export default function AdminVendorsPage() {
                                                     <Building2 className="w-5 h-5 text-gray-400" />
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="font-medium text-[#0a3b41] truncate">
+                                                    <p className="font-medium text-content-primary truncate">
                                                         {vendor.name}
                                                     </p>
                                                     {vendor.summary && (
@@ -244,7 +244,7 @@ export default function AdminVendorsPage() {
 
             {/* 통계 */}
             <div className="text-sm text-gray-500 text-center">
-                총 <span className="font-medium text-[#0a3b41]">{total}</span>개의 업체
+                총 <span className="font-medium text-content-primary">{total}</span>개의 업체
             </div>
         </div>
     );

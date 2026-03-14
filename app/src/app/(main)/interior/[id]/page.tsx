@@ -102,8 +102,8 @@ export default function InteriorDetailPage() {
                     <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
-                        <Hammer className="w-6 h-6 text-[#62e3d5]" />
+                    <h1 className="text-2xl font-bold text-content-primary flex items-center gap-2">
+                        <Hammer className="w-6 h-6 text-primary" />
                         {project.title}
                     </h1>
                 </div>
@@ -114,34 +114,34 @@ export default function InteriorDetailPage() {
 
             {/* 프로젝트 정보 */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-[#0a3b41] mb-4">프로젝트 정보</h2>
+                <h2 className="text-lg font-semibold text-content-primary mb-4">프로젝트 정보</h2>
                 <dl className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                         <dt className="text-gray-500">위치</dt>
-                        <dd className="font-medium text-[#0a3b41]">{project.location}</dd>
+                        <dd className="font-medium text-content-primary">{project.location}</dd>
                     </div>
                     <div>
                         <dt className="text-gray-500">예산</dt>
-                        <dd className="font-medium text-[#0a3b41]">
+                        <dd className="font-medium text-content-primary">
                             {project.budgetMin.toLocaleString()}~{project.budgetMax.toLocaleString()}원
                         </dd>
                     </div>
                     {project.spaceSize && (
                         <div>
                             <dt className="text-gray-500">공간 크기</dt>
-                            <dd className="font-medium text-[#0a3b41]">{project.spaceSize}</dd>
+                            <dd className="font-medium text-content-primary">{project.spaceSize}</dd>
                         </div>
                     )}
                     {project.schedule && (
                         <div>
                             <dt className="text-gray-500">희망 일정</dt>
-                            <dd className="font-medium text-[#0a3b41]">{project.schedule}</dd>
+                            <dd className="font-medium text-content-primary">{project.schedule}</dd>
                         </div>
                     )}
                     {project.bidDeadline && (
                         <div>
                             <dt className="text-gray-500">입찰 마감</dt>
-                            <dd className="font-medium text-[#0a3b41]">
+                            <dd className="font-medium text-content-primary">
                                 {new Date(project.bidDeadline).toLocaleDateString("ko-KR")}
                             </dd>
                         </div>
@@ -150,7 +150,7 @@ export default function InteriorDetailPage() {
                 {project.requirements && (
                     <div className="mt-4 pt-4 border-t border-gray-100">
                         <p className="text-sm text-gray-500 mb-1">요구사항</p>
-                        <p className="text-sm text-[#0a3b41] whitespace-pre-wrap">
+                        <p className="text-sm text-content-primary whitespace-pre-wrap">
                             {project.requirements}
                         </p>
                     </div>
@@ -160,8 +160,8 @@ export default function InteriorDetailPage() {
             {/* 추천 업체 스코어 */}
             {project.scores.length > 0 && (
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-[#0a3b41] mb-4 flex items-center gap-2">
-                        <Star className="w-5 h-5 text-[#62e3d5]" />
+                    <h2 className="text-lg font-semibold text-content-primary mb-4 flex items-center gap-2">
+                        <Star className="w-5 h-5 text-primary" />
                         추천 업체
                     </h2>
                     <div className="space-y-3">
@@ -173,11 +173,11 @@ export default function InteriorDetailPage() {
                                     className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <span className="w-8 h-8 rounded-full bg-[#62e3d5]/20 flex items-center justify-center text-sm font-bold text-[#0a3b41]">
+                                        <span className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-sm font-bold text-content-primary">
                                             {idx + 1}
                                         </span>
                                         <div>
-                                            <p className="font-medium text-[#0a3b41]">
+                                            <p className="font-medium text-content-primary">
                                                 {score.vendorName ?? "업체"}
                                             </p>
                                             <p className="text-xs text-gray-500">
@@ -199,8 +199,8 @@ export default function InteriorDetailPage() {
             {/* 입찰 현황 */}
             {project.responses.length > 0 && (
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-[#0a3b41] mb-4 flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-[#62e3d5]" />
+                    <h2 className="text-lg font-semibold text-content-primary mb-4 flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-primary" />
                         입찰 현황 ({submittedResponses.length}/{project.responses.length})
                     </h2>
                     <div className="space-y-3">
@@ -211,7 +211,7 @@ export default function InteriorDetailPage() {
                             >
                                 <div className="flex items-start justify-between">
                                     <div>
-                                        <p className="font-medium text-[#0a3b41]">
+                                        <p className="font-medium text-content-primary">
                                             {resp.vendorName ?? "업체"}
                                         </p>
                                         <Badge
@@ -221,7 +221,7 @@ export default function InteriorDetailPage() {
                                         </Badge>
                                     </div>
                                     {resp.status === "submitted" && resp.price != null && (
-                                        <p className="text-lg font-bold text-[#0a3b41]">
+                                        <p className="text-lg font-bold text-content-primary">
                                             {resp.price.toLocaleString()}원
                                         </p>
                                     )}
@@ -240,7 +240,7 @@ export default function InteriorDetailPage() {
                                     <button
                                         onClick={() => selectMutation.mutate(resp.vendorId)}
                                         disabled={selectMutation.isPending}
-                                        className="mt-3 px-4 py-2 bg-[#0a3b41] text-white rounded-lg text-sm font-medium hover:bg-[#0a3b41]/90 transition-colors disabled:opacity-50"
+                                        className="mt-3 px-4 py-2 bg-primary-900 text-white rounded-lg text-sm font-medium hover:bg-primary-900/90 transition-colors disabled:opacity-50"
                                     >
                                         <CheckCircle className="w-4 h-4 inline mr-1" />
                                         이 업체 선정
@@ -255,20 +255,20 @@ export default function InteriorDetailPage() {
             {/* 계약 정보 */}
             {project.contract && (
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-[#0a3b41] mb-4 flex items-center gap-2">
+                    <h2 className="text-lg font-semibold text-content-primary mb-4 flex items-center gap-2">
                         <CheckCircle className="w-5 h-5 text-green-500" />
                         계약 정보
                     </h2>
                     <dl className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                             <dt className="text-gray-500">업체</dt>
-                            <dd className="font-medium text-[#0a3b41]">
+                            <dd className="font-medium text-content-primary">
                                 {project.contract.vendorName ?? "업체"}
                             </dd>
                         </div>
                         <div>
                             <dt className="text-gray-500">계약 금액</dt>
-                            <dd className="font-medium text-[#0a3b41]">
+                            <dd className="font-medium text-content-primary">
                                 {project.contract.contractAmount.toLocaleString()}원
                             </dd>
                         </div>

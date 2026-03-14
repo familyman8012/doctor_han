@@ -133,7 +133,7 @@ const Modal: FC<ModalProps> = ({
                             )}
                         >
                             {typeof title === "string" ? (
-                                <h2 className="text-[#0a3b41] text-lg font-semibold leading-tight flex-1">
+                                <h2 className="text-content-primary text-lg font-semibold leading-tight flex-1">
                                     {title}
                                 </h2>
                             ) : (
@@ -146,7 +146,7 @@ const Modal: FC<ModalProps> = ({
                                     className="ml-auto p-1 hover:bg-gray-100 rounded-md transition-all duration-150"
                                     aria-label="닫기"
                                 >
-                                    <X size={20} className="text-[#5a6376]" />
+                                    <X size={20} className="text-content-secondary" />
                                 </button>
                             )}
                         </div>
@@ -170,7 +170,7 @@ const Modal: FC<ModalProps> = ({
                             type="button"
                             disabled={disabledFormSubmit}
                             onClick={handleSubmit}
-                            className="flex-1 h-[38px] text-sm leading-tight rounded-md bg-[#62e3d5] hover:bg-[#4dd4c5] border-[#62e3d5]"
+                            className="flex-1 h-[38px] text-sm leading-tight rounded-md bg-primary hover:bg-primary-700 border-primary"
                         >
                             {submitButtonText}
                         </Button>

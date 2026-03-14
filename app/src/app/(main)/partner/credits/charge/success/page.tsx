@@ -81,14 +81,14 @@ export default function ChargeSuccessPage() {
         return (
             <div className="max-w-md mx-auto py-10 text-center">
                 <div className="bg-white border border-gray-200 rounded-xl p-8">
-                    <CheckCircle2 className="w-16 h-16 text-[#62e3d5] mx-auto" />
-                    <h2 className="text-xl font-bold text-[#0a3b41] mt-4">충전 완료!</h2>
+                    <CheckCircle2 className="w-16 h-16 text-primary mx-auto" />
+                    <h2 className="text-xl font-bold text-content-primary mt-4">충전 완료!</h2>
                     <p className="text-gray-500 mt-2">
                         {formatKRW(data.payment.amount)}이 충전되었습니다.
                     </p>
                     <div className="bg-gray-50 rounded-lg p-4 mt-4">
                         <p className="text-sm text-gray-500">현재 잔액</p>
-                        <p className="text-2xl font-bold text-[#0a3b41]">
+                        <p className="text-2xl font-bold text-content-primary">
                             {formatKRW(data.creditBalance)}
                         </p>
                     </div>

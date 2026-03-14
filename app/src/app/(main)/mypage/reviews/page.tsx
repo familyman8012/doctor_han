@@ -80,8 +80,8 @@ export default function MyReviewsPage() {
             {/* 헤더 */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-[#0a3b41] flex items-center gap-2">
-                        <Star className="w-6 h-6 text-[#62e3d5]" />
+                    <h1 className="text-2xl font-bold text-content-primary flex items-center gap-2">
+                        <Star className="w-6 h-6 text-primary" />
                         내 리뷰
                     </h1>
                     <p className="text-gray-500 mt-1">총 {total}개의 리뷰</p>

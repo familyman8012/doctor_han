@@ -92,7 +92,7 @@ export const AddressSearch = forwardRef<HTMLInputElement, AddressSearchProps>(
             type="button"
             disabled={disabled}
             onClick={handleOpen}
-            className="ml-2 rounded-l-none h-[38px] px-3 text-sm font-medium text-white bg-[#0a3b41] hover:bg-[#062429] disabled:bg-gray-100 disabled:text-gray-300 transition-colors rounded-r-lg"
+            className="ml-2 rounded-l-none h-[38px] px-3 text-sm font-medium text-white bg-primary-900 hover:bg-[#062429] disabled:bg-gray-100 disabled:text-gray-300 transition-colors rounded-r-lg"
           >
             주소 검색
           </button>

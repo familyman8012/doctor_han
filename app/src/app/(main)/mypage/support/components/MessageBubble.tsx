@@ -15,13 +15,13 @@ export function MessageBubble({ message, isOwn }: MessageBubbleProps) {
             <div
                 className={`max-w-[70%] ${
                     isOwn
-                        ? "bg-[#0a3b41] text-white rounded-2xl rounded-br-md"
-                        : "bg-gray-100 text-[#0a3b41] rounded-2xl rounded-bl-md"
+                        ? "bg-primary-900 text-white rounded-2xl rounded-br-md"
+                        : "bg-gray-100 text-content-primary rounded-2xl rounded-bl-md"
                 } px-4 py-3`}
             >
                 {/* 관리자 표시 */}
                 {!isOwn && message.isAdmin && (
-                    <p className={`text-xs font-medium mb-1 ${isOwn ? "text-white/70" : "text-[#62e3d5]"}`}>
+                    <p className={`text-xs font-medium mb-1 ${isOwn ? "text-white/70" : "text-primary"}`}>
                         고객지원팀
                     </p>
                 )}

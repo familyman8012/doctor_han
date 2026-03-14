@@ -86,7 +86,7 @@ function LoginForm() {
         <div className="w-full max-w-md">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-[#0a3b41]">로그인</h1>
+                    <h1 className="text-2xl font-bold text-content-primary">로그인</h1>
                     <p className="text-gray-500 mt-2">메디허브에 오신 것을 환영합니다</p>
                 </div>
 
@@ -141,7 +141,7 @@ function LoginForm() {
                             })}
                         />
                         <div className="mt-1.5 text-right">
-                            <Link href="/reset-password" className="text-sm text-gray-500 hover:text-[#0a3b41]">
+                            <Link href="/reset-password" className="text-sm text-gray-500 hover:text-content-primary">
                                 비밀번호를 잊으셨나요?
                             </Link>
                         </div>
@@ -161,7 +161,7 @@ function LoginForm() {
 
                 <div className="mt-6 text-center text-sm">
                     <span className="text-gray-500">계정이 없으신가요? </span>
-                    <Link href="/signup" className="text-[#0a3b41] font-medium hover:underline">
+                    <Link href="/signup" className="text-content-primary font-medium hover:underline">
                         회원가입
                     </Link>
                 </div>

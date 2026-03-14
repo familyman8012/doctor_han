@@ -93,13 +93,13 @@ function OnboardingForm() {
         <div className="w-full max-w-md">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-[#0a3b41]">메디허브에 오신 것을 환영합니다</h1>
+                    <h1 className="text-2xl font-bold text-content-primary">메디허브에 오신 것을 환영합니다</h1>
                     <p className="text-gray-500 mt-2">시작하기 전에 프로필을 설정해주세요</p>
                 </div>
 
                 {/* 역할 선택 */}
                 <div className="mb-6">
-                    <label className="block text-sm font-medium text-[#0a3b41] mb-2">
+                    <label className="block text-sm font-medium text-content-primary mb-2">
                         회원 유형을 선택해주세요
                     </label>
                     <div className="grid grid-cols-2 gap-3">
@@ -141,7 +141,7 @@ function OnboardingForm() {
                         <label className="flex items-start gap-2 cursor-pointer">
                             <input
                                 type="checkbox"
-                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#62e3d5] focus:ring-[#62e3d5]"
+                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                                 {...register("termsAgreed", { required: true })}
                             />
                             <span className="text-sm text-gray-700">
@@ -150,7 +150,7 @@ function OnboardingForm() {
                                     href={TERMS_URLS.terms}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-[#0a3b41] underline hover:text-[#62e3d5] inline-flex items-center gap-0.5"
+                                    className="text-content-primary underline hover:text-primary inline-flex items-center gap-0.5"
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     이용약관
@@ -161,7 +161,7 @@ function OnboardingForm() {
                                     href={TERMS_URLS.privacy}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-[#0a3b41] underline hover:text-[#62e3d5] inline-flex items-center gap-0.5"
+                                    className="text-content-primary underline hover:text-primary inline-flex items-center gap-0.5"
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     개인정보처리방침
@@ -174,7 +174,7 @@ function OnboardingForm() {
                         <label className="flex items-start gap-2 cursor-pointer">
                             <input
                                 type="checkbox"
-                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#62e3d5] focus:ring-[#62e3d5]"
+                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                                 {...register("marketingAgreed")}
                             />
                             <span className="text-sm text-gray-700">
@@ -219,19 +219,19 @@ function RoleCard({
             className={cn(
                 "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
                 selected
-                    ? "border-[#62e3d5] bg-[#62e3d5]/5"
+                    ? "border-primary bg-primary-25"
                     : "border-gray-100 hover:border-gray-200"
             )}
         >
             <div
                 className={cn(
                     "flex items-center justify-center w-12 h-12 rounded-full",
-                    selected ? "bg-[#62e3d5]/20 text-[#0a3b41]" : "bg-gray-100 text-gray-400"
+                    selected ? "bg-primary-100 text-content-primary" : "bg-gray-100 text-gray-400"
                 )}
             >
                 {icon}
             </div>
-            <span className={cn("font-medium", selected ? "text-[#0a3b41]" : "text-gray-600")}>
+            <span className={cn("font-medium", selected ? "text-content-primary" : "text-gray-600")}>
                 {label}
             </span>
             <span className="text-xs text-gray-500 text-center">{description}</span>

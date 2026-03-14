@@ -51,7 +51,7 @@ export function DeleteConfirmModal({
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                     <div className="flex items-center gap-2">
                         <AlertTriangle className="w-5 h-5 text-red-500" />
-                        <h2 className="text-lg font-semibold text-[#0a3b41]">{title}</h2>
+                        <h2 className="text-lg font-semibold text-content-primary">{title}</h2>
                     </div>
                     <button
                         type="button"

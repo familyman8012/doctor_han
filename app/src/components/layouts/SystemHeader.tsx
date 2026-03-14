@@ -18,7 +18,7 @@ export function SystemHeader({ area, leftSlot, rightSlot }: SystemHeaderProps) {
         <header
             className={cn(
                 "sticky top-0 z-20 flex h-14 items-center border-b px-6",
-                area === "rms" ? "bg-[#f4f7fa] text-slate-700" : "bg-background"
+                area === "rms" ? "bg-primary-25 text-slate-700" : "bg-surface-raised"
             )}
         >
             <div className="flex flex-1 items-center gap-4">

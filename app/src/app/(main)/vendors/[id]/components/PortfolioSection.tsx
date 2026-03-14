@@ -32,7 +32,7 @@ export function PortfolioSection({ portfolios }: PortfolioSectionProps) {
 
     return (
         <div className="bg-white rounded-xl border border-gray-100 p-6">
-            <h2 className="text-lg font-bold text-[#0a3b41] mb-4">포트폴리오</h2>
+            <h2 className="text-lg font-bold text-content-primary mb-4">포트폴리오</h2>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {portfolios.map((portfolio) => (
@@ -43,7 +43,7 @@ export function PortfolioSection({ portfolios }: PortfolioSectionProps) {
                             setSelectedPortfolio(portfolio);
                             setCurrentAssetIndex(0);
                         }}
-                        className="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden hover:ring-2 hover:ring-[#62e3d5] transition-all"
+                        className="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden hover:ring-2 hover:ring-primary transition-all"
                     >
                         {portfolio.assets[0]?.url ? (
                             // eslint-disable-next-line @next/next/no-img-element

@@ -17,7 +17,7 @@ const buttonGroupVariants = cva("inline-flex rounded-lg border border-gray-200 p
 });
 
 const buttonGroupItemVariants = cva(
-    "inline-flex items-center justify-center whitespace-nowrap font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#62e3d5] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex items-center justify-center whitespace-nowrap font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
     {
         variants: {
             size: {
@@ -27,7 +27,7 @@ const buttonGroupItemVariants = cva(
                 lg: "h-9 px-3.5 text-base rounded-md",
             },
             isActive: {
-                true: "bg-white text-[#0a3b41] shadow-sm",
+                true: "bg-white text-content-primary shadow-sm",
                 false: "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
             },
         },
@@ -118,7 +118,7 @@ const segmentedVariants = cva("inline-flex items-center justify-center rounded-l
 });
 
 const segmentedItemVariants = cva(
-    "inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#62e3d5] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
     {
         variants: {
             size: {
@@ -128,7 +128,7 @@ const segmentedItemVariants = cva(
                 lg: "h-8.5 px-3.5 text-base",
             },
             isActive: {
-                true: "bg-white text-[#0a3b41] shadow-sm",
+                true: "bg-white text-content-primary shadow-sm",
                 false: "text-gray-600 hover:text-gray-900",
             },
         },

@@ -85,8 +85,8 @@ export const Radio: React.FC<RadioProps> = ({
 					className={cn(
 						radioVariants({ size }),
 						"border-gray-300",
-						"checked:border-[#62e3d5]",
-						"focus:outline-none focus:ring-2 focus:ring-[#62e3d5]/20 focus:ring-offset-2",
+						"checked:border-primary",
+						"focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2",
 						readOnly && "border-gray-300 bg-gray-50 pointer-events-none",
 						disabled && "border-gray-200 bg-gray-100 pointer-events-none",
 					)}
@@ -102,7 +102,7 @@ export const Radio: React.FC<RadioProps> = ({
 								: size === "sm"
 									? "w-2 h-2"
 									: "w-2.5 h-2.5",
-							disabled || readOnly ? "bg-gray-400" : "bg-[#62e3d5]",
+							disabled || readOnly ? "bg-gray-400" : "bg-primary",
 						)}
 					/>
 				)}
@@ -112,7 +112,7 @@ export const Radio: React.FC<RadioProps> = ({
 					{label && (
 						<span
 							className={cn(
-								"font-medium text-[#0a3b41]",
+								"font-medium text-content-primary",
 								size === "xs"
 									? "text-xs leading-4"
 									: size === "sm"

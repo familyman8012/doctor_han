@@ -111,7 +111,7 @@ export default function ChargePage() {
     return (
         <div className="max-w-md mx-auto space-y-6">
             <div>
-                <h1 className="text-xl font-bold text-[#0a3b41]">크레딧 충전</h1>
+                <h1 className="text-xl font-bold text-content-primary">크레딧 충전</h1>
                 {prepareMutation.data && (
                     <p className="text-gray-500 mt-1">
                         {prepareMutation.data.data.orderName} -{" "}

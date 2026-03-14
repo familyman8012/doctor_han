@@ -57,13 +57,13 @@ export function ConfirmModal({
                 <div className="p-5">
                     <div className="flex items-center gap-3 mb-4">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                            variant === "danger" ? "bg-red-100" : "bg-[#62e3d5]/20"
+                            variant === "danger" ? "bg-red-100" : "bg-primary-100"
                         }`}>
                             <AlertTriangle className={`w-5 h-5 ${
-                                variant === "danger" ? "text-red-600" : "text-[#0a3b41]"
+                                variant === "danger" ? "text-red-600" : "text-content-primary"
                             }`} />
                         </div>
-                        <h2 id="confirm-modal-title" className="text-lg font-semibold text-[#0a3b41]">
+                        <h2 id="confirm-modal-title" className="text-lg font-semibold text-content-primary">
                             {title}
                         </h2>
                     </div>

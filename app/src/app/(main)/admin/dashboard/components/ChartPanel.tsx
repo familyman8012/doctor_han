@@ -32,7 +32,7 @@ export default function ChartPanel({ title, subtitle, isLoading, children }: Cha
     return (
         <div className="bg-white rounded-xl border border-gray-200 p-5">
             <div className="mb-4">
-                <h3 className="text-sm font-semibold text-[#0a3b41]">{title}</h3>
+                <h3 className="text-sm font-semibold text-content-primary">{title}</h3>
                 {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
             </div>
             {isLoading ? (
@@ -50,7 +50,7 @@ export default function ChartPanel({ title, subtitle, isLoading, children }: Cha
 // Pre-built Chart Variants
 // ============================================
 
-const COLORS = ["#0a3b41", "#62e3d5", "#f59e0b", "#8b5cf6", "#ef4444", "#3b82f6"];
+const COLORS = ["var(--color-primary-900)", "var(--color-primary)", "#f59e0b", "#8b5cf6", "#ef4444", "#3b82f6"];
 
 interface LineChartViewProps {
     data: TimeSeriesPoint[];
@@ -58,7 +58,7 @@ interface LineChartViewProps {
     label?: string;
 }
 
-export function LineChartView({ data, color = "#62e3d5", label = "값" }: LineChartViewProps) {
+export function LineChartView({ data, color = "var(--color-primary)", label = "값" }: LineChartViewProps) {
     return (
         <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
@@ -122,7 +122,7 @@ interface BarChartViewProps {
     label?: string;
 }
 
-export function BarChartView({ data, color = "#62e3d5", label = "값" }: BarChartViewProps) {
+export function BarChartView({ data, color = "var(--color-primary)", label = "값" }: BarChartViewProps) {
     return (
         <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>

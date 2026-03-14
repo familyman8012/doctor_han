@@ -93,8 +93,8 @@ export function CategoryNav({ className }: CategoryNavProps) {
                             className={cn(
                                 "flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors",
                                 pathname === "/categories"
-                                    ? "text-[#0a3b41] bg-[#62e3d5]/10"
-                                    : "text-gray-600 hover:text-[#0a3b41] hover:bg-gray-50"
+                                    ? "text-content-primary bg-primary-50"
+                                    : "text-gray-600 hover:text-content-primary hover:bg-gray-50"
                             )}
                         >
                             전체
@@ -119,8 +119,8 @@ export function CategoryNav({ className }: CategoryNavProps) {
                                         className={cn(
                                             "flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors",
                                             isActive
-                                                ? "text-[#0a3b41] bg-[#62e3d5]/10"
-                                                : "text-gray-600 hover:text-[#0a3b41] hover:bg-gray-50"
+                                                ? "text-content-primary bg-primary-50"
+                                                : "text-gray-600 hover:text-content-primary hover:bg-gray-50"
                                         )}
                                     >
                                         {category.name}
@@ -137,8 +137,8 @@ export function CategoryNav({ className }: CategoryNavProps) {
                                         className={cn(
                                             "flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors",
                                             isActive
-                                                ? "text-[#0a3b41] bg-[#62e3d5]/10"
-                                                : "text-gray-600 hover:text-[#0a3b41] hover:bg-gray-50"
+                                                ? "text-content-primary bg-primary-50"
+                                                : "text-gray-600 hover:text-content-primary hover:bg-gray-50"
                                         )}
                                     >
                                         {category.name}
@@ -168,7 +168,7 @@ export function CategoryNav({ className }: CategoryNavProps) {
                         <Link
                             key={child.id}
                             href={`/categories/${openCat.slug}/${child.slug}`}
-                            className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-[#0a3b41]"
+                            className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-content-primary"
                             onClick={() => setOpenCategory(null)}
                         >
                             {child.name}

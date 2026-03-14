@@ -75,7 +75,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             <div className="fixed inset-y-0 left-0 w-80 max-w-[calc(100vw-3rem)] bg-white z-50 lg:hidden overflow-y-auto">
                 {/* 헤더 */}
                 <div className="sticky top-0 flex items-center justify-between p-4 border-b border-gray-100 bg-white">
-                    <span className="text-lg font-bold text-[#0a3b41]">메디허브</span>
+                    <span className="text-lg font-bold text-content-primary">메디허브</span>
                     <button
                         type="button"
                         onClick={onClose}
@@ -89,7 +89,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                 {isAuthenticated ? (
                     <div className="p-4 border-b border-gray-100 bg-gray-50">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full overflow-hidden bg-[#62e3d5]/20 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-full overflow-hidden bg-primary-100 flex items-center justify-center">
                                 {profile?.avatarUrl ? (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img
@@ -98,11 +98,11 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
-                                    <User className="w-6 h-6 text-[#0a3b41]" />
+                                    <User className="w-6 h-6 text-content-primary" />
                                 )}
                             </div>
                             <div>
-                                <p className="font-medium text-[#0a3b41]">
+                                <p className="font-medium text-content-primary">
                                     {profile?.displayName || "사용자"}
                                 </p>
                                 <p className="text-sm text-gray-500">
@@ -178,7 +178,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                             className={cn(
                                 "flex items-center w-full px-4 py-3 text-sm transition-colors",
                                 pathname === "/categories"
-                                    ? "text-[#0a3b41] bg-[#62e3d5]/10 font-medium"
+                                    ? "text-content-primary bg-primary-50 font-medium"
                                     : "text-gray-700 hover:bg-gray-50"
                             )}
                         >
@@ -204,7 +204,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                                         className={cn(
                                             "flex items-center justify-between w-full px-4 py-3 text-sm transition-colors",
                                             isActive
-                                                ? "text-[#0a3b41] bg-[#62e3d5]/10 font-medium"
+                                                ? "text-content-primary bg-primary-50 font-medium"
                                                 : "text-gray-700 hover:bg-gray-50"
                                         )}
                                     >
@@ -223,7 +223,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                                             <button
                                                 type="button"
                                                 onClick={() => handleNavigation(`/categories/${category.slug}`)}
-                                                className="block w-full text-left pl-8 pr-4 py-2.5 text-sm text-gray-600 hover:text-[#0a3b41]"
+                                                className="block w-full text-left pl-8 pr-4 py-2.5 text-sm text-gray-600 hover:text-content-primary"
                                             >
                                                 {category.name} 전체
                                             </button>
@@ -232,7 +232,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                                                     key={child.id}
                                                     type="button"
                                                     onClick={() => handleNavigation(`/categories/${category.slug}/${child.slug}`)}
-                                                    className="block w-full text-left pl-8 pr-4 py-2.5 text-sm text-gray-600 hover:text-[#0a3b41]"
+                                                    className="block w-full text-left pl-8 pr-4 py-2.5 text-sm text-gray-600 hover:text-content-primary"
                                                 >
                                                     {child.name}
                                                 </button>
@@ -284,7 +284,7 @@ function MenuLink({
             className={cn(
                 "flex items-center gap-3 px-4 py-3 text-sm transition-colors",
                 isActive
-                    ? "text-[#0a3b41] bg-[#62e3d5]/10 font-medium"
+                    ? "text-content-primary bg-primary-50 font-medium"
                     : "text-gray-700 hover:bg-gray-50"
             )}
         >

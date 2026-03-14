@@ -136,7 +136,7 @@ export function ReportDetailModal({ isOpen, onClose, reportId, onSanction, onDis
             >
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 sticky top-0 bg-white">
-                    <h2 id="report-detail-modal-title" className="text-lg font-semibold text-[#0a3b41]">신고 상세</h2>
+                    <h2 id="report-detail-modal-title" className="text-lg font-semibold text-content-primary">신고 상세</h2>
                     <button
                         type="button"
                         onClick={onClose}
@@ -179,15 +179,15 @@ export function ReportDetailModal({ isOpen, onClose, reportId, onSanction, onDis
                                 <dl className="space-y-2 text-sm">
                                     <div className="flex">
                                         <dt className="w-24 text-gray-500">유형</dt>
-                                        <dd className="text-[#0a3b41]">{TARGET_TYPE_LABELS[report.targetType]}</dd>
+                                        <dd className="text-content-primary">{TARGET_TYPE_LABELS[report.targetType]}</dd>
                                     </div>
                                     <div className="flex">
                                         <dt className="w-24 text-gray-500">대상 정보</dt>
-                                        <dd className="text-[#0a3b41]">{report.targetSummary}</dd>
+                                        <dd className="text-content-primary">{report.targetSummary}</dd>
                                     </div>
                                     <div className="flex">
                                         <dt className="w-24 text-gray-500">누적 신고</dt>
-                                        <dd className="text-[#0a3b41]">{targetReportCount}건</dd>
+                                        <dd className="text-content-primary">{targetReportCount}건</dd>
                                     </div>
                                 </dl>
                             </div>
@@ -198,11 +198,11 @@ export function ReportDetailModal({ isOpen, onClose, reportId, onSanction, onDis
                                 <dl className="space-y-2 text-sm">
                                     <div className="flex">
                                         <dt className="w-24 text-gray-500">이름</dt>
-                                        <dd className="text-[#0a3b41]">{report.reporterUser.displayName}</dd>
+                                        <dd className="text-content-primary">{report.reporterUser.displayName}</dd>
                                     </div>
                                     <div className="flex">
                                         <dt className="w-24 text-gray-500">이메일</dt>
-                                        <dd className="text-[#0a3b41]">{report.reporterUser.email ?? "-"}</dd>
+                                        <dd className="text-content-primary">{report.reporterUser.email ?? "-"}</dd>
                                     </div>
                                 </dl>
                             </div>
@@ -213,12 +213,12 @@ export function ReportDetailModal({ isOpen, onClose, reportId, onSanction, onDis
                                 <dl className="space-y-2 text-sm">
                                     <div className="flex">
                                         <dt className="w-24 text-gray-500">신고 사유</dt>
-                                        <dd className="text-[#0a3b41]">{REASON_LABELS[report.reason] ?? report.reason}</dd>
+                                        <dd className="text-content-primary">{REASON_LABELS[report.reason] ?? report.reason}</dd>
                                     </div>
                                     {report.detail && (
                                         <div className="flex">
                                             <dt className="w-24 text-gray-500">상세 내용</dt>
-                                            <dd className="text-[#0a3b41] whitespace-pre-wrap">{report.detail}</dd>
+                                            <dd className="text-content-primary whitespace-pre-wrap">{report.detail}</dd>
                                         </div>
                                     )}
                                 </dl>

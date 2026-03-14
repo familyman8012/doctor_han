@@ -137,7 +137,7 @@ export default function AdminSettlementDetailPage() {
                             {dayjs(settlement.periodStart).format("YYYY년 MM월")}
                         </span>
                     </div>
-                    <h1 className="text-lg font-bold text-[#0a3b41]">
+                    <h1 className="text-lg font-bold text-content-primary">
                         {settlement.vendorName ?? "업체"} 정산 상세
                     </h1>
                 </div>
@@ -148,7 +148,7 @@ export default function AdminSettlementDetailPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div>
                         <p className="text-sm text-gray-500">총수익</p>
-                        <p className="text-lg font-bold text-[#0a3b41]">{formatAmount(settlement.totalRevenue)}</p>
+                        <p className="text-lg font-bold text-content-primary">{formatAmount(settlement.totalRevenue)}</p>
                     </div>
                     <div>
                         <p className="text-sm text-gray-500">환불</p>
@@ -158,11 +158,11 @@ export default function AdminSettlementDetailPage() {
                     </div>
                     <div>
                         <p className="text-sm text-gray-500">순수익</p>
-                        <p className="text-lg font-bold text-[#0a3b41]">{formatAmount(settlement.netRevenue)}</p>
+                        <p className="text-lg font-bold text-content-primary">{formatAmount(settlement.netRevenue)}</p>
                     </div>
                     <div>
                         <p className="text-sm text-gray-500">항목수</p>
-                        <p className="text-lg font-bold text-[#0a3b41]">{settlement.totalItemCount}건</p>
+                        <p className="text-lg font-bold text-content-primary">{settlement.totalItemCount}건</p>
                     </div>
                 </div>
 
@@ -213,7 +213,7 @@ export default function AdminSettlementDetailPage() {
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder="메모 (선택)"
-                            className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#62e3d5]"
+                            className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             maxLength={1000}
                         />
                         <div className="flex gap-2">
@@ -248,7 +248,7 @@ export default function AdminSettlementDetailPage() {
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="px-4 py-3 border-b border-gray-200">
                     <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-[#0a3b41]">정산 항목</h3>
+                        <h3 className="font-medium text-content-primary">정산 항목</h3>
                         <div className="flex gap-2">
                             {ITEM_TYPE_OPTIONS.map((opt) => (
                                 <Button
@@ -296,7 +296,7 @@ export default function AdminSettlementDetailPage() {
                                         <td className="px-4 py-3 text-right text-red-500">
                                             {item.refundAmount > 0 ? `-${formatAmount(item.refundAmount)}` : "-"}
                                         </td>
-                                        <td className="px-4 py-3 text-right font-medium text-[#0a3b41]">
+                                        <td className="px-4 py-3 text-right font-medium text-content-primary">
                                             {formatAmount(item.netAmount)}
                                         </td>
                                         <td className="px-4 py-3 text-gray-600 max-w-[200px] truncate">

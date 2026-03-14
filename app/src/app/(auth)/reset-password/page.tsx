@@ -40,12 +40,12 @@ export default function ResetPasswordPage() {
             <div className="w-full max-w-md">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <div className="text-center">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#62e3d5]/10 flex items-center justify-center">
-                            <svg className="w-8 h-8 text-[#62e3d5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-50 flex items-center justify-center">
+                            <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
                         </div>
-                        <h1 className="text-2xl font-bold text-[#0a3b41] mb-2">이메일을 확인해주세요</h1>
+                        <h1 className="text-2xl font-bold text-content-primary mb-2">이메일을 확인해주세요</h1>
                         <p className="text-gray-500 mb-6">
                             입력하신 이메일로 비밀번호 재설정 안내를 발송했습니다.
                             <br />
@@ -64,7 +64,7 @@ export default function ResetPasswordPage() {
                                 href="https://pf.kakao.com/_메디허브"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm text-[#0a3b41] font-medium hover:underline"
+                                className="text-sm text-content-primary font-medium hover:underline"
                             >
                                 카카오톡으로 문의하기
                             </a>
@@ -79,7 +79,7 @@ export default function ResetPasswordPage() {
         <div className="w-full max-w-md">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-[#0a3b41]">비밀번호 재설정</h1>
+                    <h1 className="text-2xl font-bold text-content-primary">비밀번호 재설정</h1>
                     <p className="text-gray-500 mt-2">
                         가입하신 이메일 주소를 입력하시면
                         <br />
@@ -115,7 +115,7 @@ export default function ResetPasswordPage() {
                 </form>
 
                 <div className="mt-6 text-center text-sm">
-                    <Link href="/login" className="text-[#0a3b41] font-medium hover:underline">
+                    <Link href="/login" className="text-content-primary font-medium hover:underline">
                         로그인으로 돌아가기
                     </Link>
                 </div>
@@ -127,7 +127,7 @@ export default function ResetPasswordPage() {
                         href="https://pf.kakao.com/_메디허브"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-[#0a3b41] font-medium hover:underline"
+                        className="text-sm text-content-primary font-medium hover:underline"
                     >
                         카카오톡으로 문의하기
                     </a>

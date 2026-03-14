@@ -31,7 +31,7 @@ export function LeadAttachments({ attachments }: LeadAttachmentsProps) {
 
     return (
         <div className="bg-white rounded-xl border border-gray-100 p-6">
-            <h2 className="text-lg font-bold text-[#0a3b41] mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-content-primary mb-4 flex items-center gap-2">
                 <Paperclip className="w-5 h-5 text-gray-400" />
                 첨부파일 ({attachments.length})
             </h2>
@@ -69,7 +69,7 @@ function AttachmentItem({
                     <FileText className="w-5 h-5 text-gray-400" />
                 </div>
                 <div>
-                    <p className="text-sm text-[#0a3b41] font-medium">
+                    <p className="text-sm text-content-primary font-medium">
                         첨부파일
                     </p>
                     <p className="text-xs text-gray-400">

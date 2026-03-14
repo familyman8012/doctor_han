@@ -23,7 +23,7 @@ export const Empty: FC<React.PropsWithChildren<EmptyProps>> = ({ Icon, title, de
                     className={cn("w-8 h-8 text-gray-400 mb-2", Icon?.props?.className)}
                 />
             )}
-            <p className="text-sm text-[#5f6b6d] font-normal whitespace-pre-line">
+            <p className="text-sm text-content-secondary font-normal whitespace-pre-line">
                 {children || title || "데이터가 없습니다."}
             </p>
             {description && <p className="text-xs text-gray-400 mt-1.5">{description}</p>}

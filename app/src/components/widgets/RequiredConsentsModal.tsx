@@ -25,7 +25,7 @@ export function RequiredConsentsModal({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-xl">
-                <div className="bg-gradient-to-r from-[#62e3d5] to-[#4bc7b9] p-6 text-white">
+                <div className="bg-gradient-to-r from-primary to-primary-700 p-6 text-white">
                     <h2 className="text-xl font-bold">약관 동의가 필요합니다</h2>
                     <p className="text-white/90 mt-1 text-sm">
                         서비스 이용을 위해 아래 약관에 동의해주세요.
@@ -37,7 +37,7 @@ export function RequiredConsentsModal({
                         <label className="flex items-start gap-2 cursor-pointer">
                             <input
                                 type="checkbox"
-                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#62e3d5] focus:ring-[#62e3d5]"
+                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                                 checked={requiredChecked}
                                 onChange={(e) => setRequiredChecked(e.target.checked)}
                             />
@@ -47,7 +47,7 @@ export function RequiredConsentsModal({
                                     href={TERMS_URLS.terms}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-[#0a3b41] underline hover:text-[#62e3d5] inline-flex items-center gap-0.5"
+                                    className="text-content-primary underline hover:text-primary inline-flex items-center gap-0.5"
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     이용약관(버전 {currentTermsVersion})
@@ -58,7 +58,7 @@ export function RequiredConsentsModal({
                                     href={TERMS_URLS.privacy}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-[#0a3b41] underline hover:text-[#62e3d5] inline-flex items-center gap-0.5"
+                                    className="text-content-primary underline hover:text-primary inline-flex items-center gap-0.5"
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     개인정보처리방침(버전 {currentPrivacyVersion})
