@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ChevronRight, Star } from "lucide-react";
 import type { HomeVendorCarouselSection } from "@/lib/schema/home";
 import { VENDOR_DEFAULT_THUMBNAILS } from "@/lib/constants/assets";
+import { VendorBadgeList } from "@/components/widgets/VendorBadgeList";
 
 interface VendorSectionProps {
     section: HomeVendorCarouselSection;
@@ -93,6 +94,10 @@ function VendorCard({ vendor }: { vendor: VendorItem }) {
                     {vendor.name}
                 </h3>
 
+                {vendor.badges.length > 0 && (
+                    <VendorBadgeList badges={vendor.badges} maxCount={2} size="compact" />
+                )}
+
                 {vendor.summary && (
                     <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{vendor.summary}</p>
                 )}
@@ -172,6 +177,9 @@ function VendorCardGrid({ vendor }: { vendor: VendorItem }) {
             {/* Content */}
             <div className="p-3 space-y-1">
                 <h3 className="font-semibold text-gray-900 text-sm line-clamp-1">{vendor.name}</h3>
+                {vendor.badges.length > 0 && (
+                    <VendorBadgeList badges={vendor.badges} maxCount={2} size="compact" />
+                )}
                 <p className="text-xs text-gray-500 line-clamp-1">{vendor.summary || vendor.regionPrimary || "전국"}</p>
                 <p className="text-xs text-content-primary font-semibold">{formatPrice(vendor.priceMin, vendor.priceMax)}</p>
             </div>

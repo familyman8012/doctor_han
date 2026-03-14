@@ -5,10 +5,12 @@ import Image from "next/image";
 import { Star, MapPin, Heart } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/components/utils";
+import { VendorBadgeList } from "@/components/widgets/VendorBadgeList";
 import api from "@/api-client/client";
 import { useIsAuthenticated, useUserRole } from "@/stores/auth";
 import { toast } from "sonner";
 import { VENDOR_DEFAULT_THUMBNAILS } from "@/lib/constants/assets";
+import type { VendorBadge } from "@/lib/schema/badge";
 
 interface VendorCardProps {
     vendor: {
@@ -21,6 +23,7 @@ interface VendorCardProps {
         priceMax: number | null;
         ratingAvg: number | null;
         reviewCount: number;
+        badges?: VendorBadge[];
     };
     categorySlug?: string;
     isFavorited?: boolean;
@@ -108,6 +111,10 @@ export function VendorCard({ vendor, categorySlug, isFavorited = false }: Vendor
                 <h3 className="text-lg font-bold text-content-primary mb-1 group-hover:text-primary-800 transition-colors">
                     {vendor.name}
                 </h3>
+
+                {vendor.badges && vendor.badges.length > 0 && (
+                    <VendorBadgeList badges={vendor.badges} maxCount={3} size="compact" className="mb-1" />
+                )}
 
                 {vendor.summary && (
                     <p className="text-sm text-gray-500 line-clamp-2 mb-3">

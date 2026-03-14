@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/Button/button";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { cn } from "@/components/utils";
+import { VendorBadgeList } from "@/components/widgets/VendorBadgeList";
 import api from "@/api-client/client";
 import { useIsAuthenticated, useUserRole } from "@/stores/auth";
 import type { VendorDetail } from "@/lib/schema/vendor";
@@ -125,6 +126,11 @@ export function VendorHeader({ vendor, isFavorited }: VendorHeaderProps) {
                         <h1 className="text-2xl font-bold text-content-primary mb-2">
                             {vendor.name}
                         </h1>
+
+                        {/* 배지 */}
+                        {vendor.badges.length > 0 && (
+                            <VendorBadgeList badges={vendor.badges} size="default" className="mb-2" />
+                        )}
 
                         {/* 소개 */}
                         {vendor.summary && (
