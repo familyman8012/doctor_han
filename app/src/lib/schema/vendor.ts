@@ -68,7 +68,7 @@ export const VendorListQuerySchema = z
         categoryId: zUuid.optional(),
         priceMin: z.coerce.number().int().min(0).optional(),
         priceMax: z.coerce.number().int().min(0).optional(),
-        sort: z.enum(["newest", "rating"]).default("newest"),
+        sort: z.enum(["newest", "rating", "relevance"]).default("newest"),
     })
     .merge(zPaginationQuery)
     .refine((value) => value.priceMin === undefined || value.priceMax === undefined || value.priceMin <= value.priceMax, {
