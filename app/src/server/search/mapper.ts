@@ -20,5 +20,6 @@ export function mapRankedVendorRow(row: RankedVendorRow): VendorListItem {
         priceMax: row.price_max,
         ratingAvg: row.rating_avg,
         reviewCount: row.review_count,
+        badges: [],
     };
 }

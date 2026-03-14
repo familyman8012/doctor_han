@@ -7,7 +7,7 @@ import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
 import { Button } from "@/components/ui/Button/button";
-import { VendorCard } from "../../categories/[slug]/components/VendorCard";
+import { VendorCard } from "@/components/widgets/VendorCard";
 import type { VendorListItem } from "@/lib/schema/vendor";
 import { toast } from "sonner";
 
@@ -89,6 +89,7 @@ export default function MyFavoritesPage() {
                             <VendorCard
                                 vendor={item.vendor}
                                 isFavorited={favoriteVendorIds.includes(item.vendor.id)}
+                                showFavoriteButton={false}
                             />
                             {/* 삭제 버튼 오버레이 */}
                             <button
@@ -97,7 +98,7 @@ export default function MyFavoritesPage() {
                                     toggleMutation.mutate(item.vendor.id);
                                 }}
                                 disabled={toggleMutation.isPending}
-                                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-white transition-colors opacity-0 group-hover:opacity-100"
+                                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-white transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                             >
                                 <Trash2 className="w-4 h-4" />
                             </button>
