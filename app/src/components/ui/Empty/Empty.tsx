@@ -1,27 +1,40 @@
 import type React from "react";
 import type { FC, ReactElement } from "react";
+import Image from "next/image";
 import { cn } from "@/components/utils";
 import { AlertCircle } from "lucide-react";
 
 export interface EmptyProps {
     Icon?: ReactElement<{ className?: string }>;
+    illustration?: string;
     title?: string;
     description?: string;
     className?: string;
 }
 
-export const Empty: FC<React.PropsWithChildren<EmptyProps>> = ({ Icon, title, description, children, className }) => {
+export const Empty: FC<React.PropsWithChildren<EmptyProps>> = ({
+    Icon,
+    illustration,
+    title,
+    description,
+    children,
+    className,
+}) => {
     const IconComponent = Icon?.type || AlertCircle;
 
     return (
         <div
             className={cn("w-full flex flex-col items-center justify-center min-h-[100px] py-6 text-center", className)}
         >
-            {IconComponent && (
-                <IconComponent
-                    {...(Icon?.props || {})}
-                    className={cn("w-8 h-8 text-gray-400 mb-2", Icon?.props?.className)}
-                />
+            {illustration ? (
+                <Image src={illustration} alt="" width={120} height={120} className="mb-4" />
+            ) : (
+                IconComponent && (
+                    <IconComponent
+                        {...(Icon?.props || {})}
+                        className={cn("w-8 h-8 text-gray-400 mb-2", Icon?.props?.className)}
+                    />
+                )
             )}
             <p className="text-sm text-content-secondary font-normal whitespace-pre-line">
                 {children || title || "데이터가 없습니다."}

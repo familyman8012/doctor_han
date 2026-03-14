@@ -1,0 +1,11 @@
+<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Heart outline -->
+  <path d="M120 188s-56-36.6-56-76c0-22.1 17.9-40 40-40 14.4 0 27 7.6 34 19 7-11.4 19.6-19 34-19 22.1 0 40 17.9 40 40 0 39.4-56 76-56 76z" stroke="#2563EB" stroke-width="4" fill="#EFF6FF" stroke-linejoin="round"/>
+  <!-- Dashed line inside heart -->
+  <line x1="100" y1="124" x2="140" y2="124" stroke="#93C5FD" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 5"/>
+  <!-- Decorative dots -->
+  <circle cx="52" cy="92" r="3" fill="#DBEAFE"/>
+  <circle cx="188" cy="88" r="4" fill="#DBEAFE"/>
+  <circle cx="76" cy="56" r="2.5" fill="#DBEAFE"/>
+  <circle cx="164" cy="52" r="2" fill="#DBEAFE"/>
+</svg>

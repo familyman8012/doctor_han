@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronRight, Star, Image as ImageIcon } from "lucide-react";
+import { ChevronRight, Star } from "lucide-react";
 import type { HomeVendorCarouselSection } from "@/lib/schema/home";
+import { VENDOR_DEFAULT_THUMBNAILS } from "@/lib/constants/assets";
 
 interface VendorSectionProps {
     section: HomeVendorCarouselSection;
@@ -64,9 +65,17 @@ function VendorCard({ vendor }: { vendor: VendorItem }) {
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                        <ImageIcon className="w-10 h-10 text-gray-300" />
-                    </div>
+                    (() => {
+                        const catSlug = vendor.categories.find((c) => c.depth === 1)?.slug;
+                        const defaultImg = catSlug ? VENDOR_DEFAULT_THUMBNAILS[catSlug] : null;
+                        return defaultImg ? (
+                            <Image src={defaultImg} alt={vendor.name} fill className="object-cover opacity-70" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
+                                <span className="text-3xl text-primary-200">🏢</span>
+                            </div>
+                        );
+                    })()
                 )}
 
                 {/* Rating Badge */}
@@ -131,9 +140,17 @@ function VendorCardGrid({ vendor }: { vendor: VendorItem }) {
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                        <ImageIcon className="w-8 h-8 text-gray-300" />
-                    </div>
+                    (() => {
+                        const catSlug = vendor.categories.find((c) => c.depth === 1)?.slug;
+                        const defaultImg = catSlug ? VENDOR_DEFAULT_THUMBNAILS[catSlug] : null;
+                        return defaultImg ? (
+                            <Image src={defaultImg} alt={vendor.name} fill className="object-cover opacity-70" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
+                                <span className="text-3xl text-primary-200">🏢</span>
+                            </div>
+                        );
+                    })()
                 )}
 
                 {/* Rating Badge */}

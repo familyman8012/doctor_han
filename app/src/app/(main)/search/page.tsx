@@ -162,6 +162,7 @@ function SearchContent() {
                         </div>
                     ) : vendorData?.items.length === 0 ? (
                         <Empty
+                            illustration="/images/empty/empty-search.svg"
                             title="검색 결과가 없습니다"
                             description="다른 키워드로 검색하거나 필터를 변경해 보세요"
                         />

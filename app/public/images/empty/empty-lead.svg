@@ -1,0 +1,13 @@
+<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Envelope/mailbox -->
+  <rect x="52" y="84" width="136" height="96" rx="8" stroke="#2563EB" stroke-width="4" fill="#EFF6FF"/>
+  <!-- Envelope flap -->
+  <path d="M56 88l64 44 64-44" stroke="#2563EB" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Small notification badge (empty) -->
+  <circle cx="172" cy="84" r="12" fill="white" stroke="#93C5FD" stroke-width="3"/>
+  <text x="172" y="89" text-anchor="middle" fill="#93C5FD" font-size="14" font-weight="bold" font-family="system-ui">0</text>
+  <!-- Decorative dots -->
+  <circle cx="44" cy="72" r="3" fill="#DBEAFE"/>
+  <circle cx="196" cy="68" r="2.5" fill="#DBEAFE"/>
+  <circle cx="40" cy="168" r="2" fill="#DBEAFE"/>
+</svg>

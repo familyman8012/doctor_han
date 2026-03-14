@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { ChevronRight } from "lucide-react";
 import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
+import { CATEGORY_BG_PATHS } from "@/lib/constants/assets";
 import { VendorCard } from "./components/VendorCard";
 import { VendorFilter } from "./components/VendorFilter";
 import { SimplePagination } from "./components/SimplePagination";
@@ -100,12 +102,31 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
             </nav>
 
             {/* 헤더 */}
-            <div>
-                <h1 className="text-2xl font-bold text-content-primary mb-2">{currentCategory.name}</h1>
-                <p className="text-gray-500">
-                    {vendorData?.total ?? 0}개의 업체가 있습니다
-                </p>
-            </div>
+            {CATEGORY_BG_PATHS[slug] ? (
+                <div className="relative rounded-xl overflow-hidden">
+                    <Image
+                        src={CATEGORY_BG_PATHS[slug]}
+                        alt={currentCategory.name}
+                        width={1200}
+                        height={400}
+                        className="w-full h-32 md:h-48 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary-900/80 to-primary-900/40" />
+                    <div className="absolute inset-0 flex flex-col justify-center px-6">
+                        <h1 className="text-2xl font-bold text-white mb-2">{currentCategory.name}</h1>
+                        <p className="text-primary-200">
+                            {vendorData?.total ?? 0}개의 업체가 있습니다
+                        </p>
+                    </div>
+                </div>
+            ) : (
+                <div>
+                    <h1 className="text-2xl font-bold text-content-primary mb-2">{currentCategory.name}</h1>
+                    <p className="text-gray-500">
+                        {vendorData?.total ?? 0}개의 업체가 있습니다
+                    </p>
+                </div>
+            )}
 
             {/* 하위 카테고리 */}
             {subCategories.length > 0 && (
@@ -150,6 +171,7 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
                 </div>
             ) : vendorData?.items.length === 0 ? (
                 <Empty
+                    illustration="/images/empty/empty-search.svg"
                     title="등록된 업체가 없습니다"
                     description="다른 카테고리를 선택하거나 필터를 변경해 보세요"
                 />
@@ -160,6 +182,7 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
                             <VendorCard
                                 key={vendor.id}
                                 vendor={vendor}
+                                categorySlug={slug}
                                 isFavorited={favorites.includes(vendor.id)}
                             />
                         ))}

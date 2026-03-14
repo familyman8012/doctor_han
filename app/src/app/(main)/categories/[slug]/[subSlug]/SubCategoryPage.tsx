@@ -106,7 +106,9 @@ export default function SubCategoryPage({ slug, subSlug }: SubCategoryPageProps)
 
             {/* 헤더 */}
             <div>
-                <h1 className="text-2xl font-bold text-content-primary mb-2">{currentCategory.name}</h1>
+                <h1 className="text-2xl font-bold text-content-primary mb-2">
+                    {parentCategory.name} &middot; {currentCategory.name}
+                </h1>
                 <p className="text-gray-500">
                     {vendorData?.total ?? 0}개의 업체가 있습니다
                 </p>
@@ -154,6 +156,7 @@ export default function SubCategoryPage({ slug, subSlug }: SubCategoryPageProps)
                 </div>
             ) : vendorData?.items.length === 0 ? (
                 <Empty
+                    illustration="/images/empty/empty-search.svg"
                     title="등록된 업체가 없습니다"
                     description="다른 카테고리를 선택하거나 필터를 변경해 보세요"
                 />
@@ -164,6 +167,7 @@ export default function SubCategoryPage({ slug, subSlug }: SubCategoryPageProps)
                             <VendorCard
                                 key={vendor.id}
                                 vendor={vendor}
+                                categorySlug={slug}
                                 isFavorited={favorites.includes(vendor.id)}
                             />
                         ))}

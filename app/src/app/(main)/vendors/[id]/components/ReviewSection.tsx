@@ -144,6 +144,7 @@ export function ReviewSection({ vendorId, ratingAvg, reviewCount, currentUserId 
                 <Empty title="리뷰를 불러올 수 없습니다" />
             ) : reviewData?.items.length === 0 ? (
                 <Empty
+                    illustration="/images/empty/empty-review.svg"
                     title="아직 리뷰가 없습니다"
                     description="첫 번째 리뷰를 작성해 보세요"
                 />

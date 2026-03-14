@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { HERO_BANNER_IMAGES } from "@/lib/constants/assets";
 
 interface BannerSlide {
     id: string;
@@ -26,6 +28,7 @@ const defaultSlides: BannerSlide[] = [
         bgColor: "from-primary-900 to-primary-800",
         textColor: "text-white",
         accentColor: "text-primary",
+        imageUrl: HERO_BANNER_IMAGES[0],
     },
     {
         id: "2",
@@ -36,6 +39,7 @@ const defaultSlides: BannerSlide[] = [
         bgColor: "from-primary-800 to-primary-800",
         textColor: "text-white",
         accentColor: "text-primary-300",
+        imageUrl: HERO_BANNER_IMAGES[1],
     },
     {
         id: "3",
@@ -46,6 +50,7 @@ const defaultSlides: BannerSlide[] = [
         bgColor: "from-primary-900 to-primary-900",
         textColor: "text-white",
         accentColor: "text-primary-300",
+        imageUrl: HERO_BANNER_IMAGES[2],
     },
 ];
 
@@ -86,9 +91,22 @@ export function HeroBanner({ slides = defaultSlides, autoPlayInterval = 5000 }: 
             onMouseLeave={() => setIsPaused(false)}
         >
             {/* Background */}
-            <div
-                className={`absolute inset-0 bg-gradient-to-br ${currentSlide.bgColor} transition-all duration-500`}
-            />
+            {currentSlide.imageUrl ? (
+                <>
+                    <Image
+                        src={currentSlide.imageUrl}
+                        alt=""
+                        fill
+                        className="object-cover transition-all duration-500"
+                        priority
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
+                </>
+            ) : (
+                <div
+                    className={`absolute inset-0 bg-gradient-to-br ${currentSlide.bgColor} transition-all duration-500`}
+                />
+            )}
             <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
 
             {/* Content */}

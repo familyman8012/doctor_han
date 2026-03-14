@@ -75,6 +75,7 @@ export default function PartnerLeadsPage() {
                 </div>
             ) : leads.length === 0 ? (
                 <Empty
+                    illustration="/images/empty/empty-lead.svg"
                     title="받은 문의가 없습니다"
                     description={statusFilter ? "해당 상태의 문의가 없습니다" : "아직 받은 문의가 없습니다"}
                 />

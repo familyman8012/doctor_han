@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Star, MapPin, Heart } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/components/utils";
 import api from "@/api-client/client";
 import { useIsAuthenticated, useUserRole } from "@/stores/auth";
 import { toast } from "sonner";
+import { VENDOR_DEFAULT_THUMBNAILS } from "@/lib/constants/assets";
 
 interface VendorCardProps {
     vendor: {
@@ -20,10 +22,11 @@ interface VendorCardProps {
         ratingAvg: number | null;
         reviewCount: number;
     };
+    categorySlug?: string;
     isFavorited?: boolean;
 }
 
-export function VendorCard({ vendor, isFavorited = false }: VendorCardProps) {
+export function VendorCard({ vendor, categorySlug, isFavorited = false }: VendorCardProps) {
     const isAuthenticated = useIsAuthenticated();
     const role = useUserRole();
     const queryClient = useQueryClient();
@@ -73,10 +76,19 @@ export function VendorCard({ vendor, isFavorited = false }: VendorCardProps) {
             className="group block bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-primary transition-all"
         >
             {/* 썸네일 영역 */}
-            <div className="relative aspect-[4/3] bg-gray-100">
-                <div className="absolute inset-0 flex items-center justify-center text-4xl text-gray-300">
-                    🏢
-                </div>
+            <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+                {categorySlug && VENDOR_DEFAULT_THUMBNAILS[categorySlug] ? (
+                    <Image
+                        src={VENDOR_DEFAULT_THUMBNAILS[categorySlug]}
+                        alt={vendor.name}
+                        fill
+                        className="object-cover opacity-80"
+                    />
+                ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
+                        <span className="text-4xl text-primary-200">🏢</span>
+                    </div>
+                )}
                 <button
                     type="button"
                     onClick={handleFavoriteClick}

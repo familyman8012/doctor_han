@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Star, MapPin, Heart, Share2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -9,6 +10,7 @@ import { cn } from "@/components/utils";
 import api from "@/api-client/client";
 import { useIsAuthenticated, useUserRole } from "@/stores/auth";
 import type { VendorDetail } from "@/lib/schema/vendor";
+import { VENDOR_DEFAULT_THUMBNAILS } from "@/lib/constants/assets";
 
 interface VendorHeaderProps {
     vendor: VendorDetail;
@@ -84,10 +86,26 @@ export function VendorHeader({ vendor, isFavorited }: VendorHeaderProps) {
     return (
         <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
             {/* 썸네일 */}
-            <div className="relative aspect-[3/1] bg-gradient-to-br from-primary-900 to-primary-800">
-                <div className="absolute inset-0 flex items-center justify-center text-6xl text-white/20">
-                    🏢
-                </div>
+            <div className="relative aspect-[3/1] bg-gradient-to-br from-primary-900 to-primary-800 overflow-hidden">
+                {(() => {
+                    const categorySlug = vendor.categories.find((c) => c.depth === 1)?.slug;
+                    const defaultImg = categorySlug ? VENDOR_DEFAULT_THUMBNAILS[categorySlug] : null;
+                    return defaultImg ? (
+                        <>
+                            <Image
+                                src={defaultImg}
+                                alt=""
+                                fill
+                                className="object-cover opacity-40"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary-900/60 to-transparent" />
+                        </>
+                    ) : (
+                        <div className="absolute inset-0 flex items-center justify-center text-6xl text-white/20">
+                            🏢
+                        </div>
+                    );
+                })()}
             </div>
 
             {/* 정보 영역 */}

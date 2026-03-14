@@ -1,0 +1,11 @@
+<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Speech bubble -->
+  <path d="M60 76h120c6.627 0 12 5.373 12 12v72c0 6.627-5.373 12-12 12H108l-24 20v-20H60c-6.627 0-12-5.373-12-12V88c0-6.627 5.373-12 12-12z" stroke="#2563EB" stroke-width="4" fill="#EFF6FF"/>
+  <!-- Three stars (empty/outlined) -->
+  <path d="M96 112l4.09 8.29L109 121.54l-6.5 6.34 1.53 8.95L96 132.27l-8.03 4.56 1.53-8.95-6.5-6.34 8.91-1.25z" stroke="#93C5FD" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+  <path d="M120 108l5.09 10.29L136 119.79l-8 7.71 1.91 11.13L120 133.27l-9.91 5.36L112 127.5l-8-7.71 10.91-1.5z" stroke="#DBEAFE" stroke-width="2.5" fill="#DBEAFE" stroke-linejoin="round"/>
+  <path d="M144 112l4.09 8.29 8.91 1.25-6.5 6.34 1.53 8.95L144 132.27l-8.03 4.56 1.53-8.95-6.5-6.34 8.91-1.25z" stroke="#93C5FD" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+  <!-- Small decorative elements -->
+  <circle cx="56" cy="64" r="3" fill="#DBEAFE"/>
+  <circle cx="184" cy="68" r="4" fill="#DBEAFE"/>
+</svg>

@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
+import { CATEGORY_ICON_PATHS } from "@/lib/constants/assets";
 
 interface Category {
     id: string;
@@ -14,17 +16,6 @@ interface Category {
     depth: number;
     sortOrder: number;
 }
-
-const CATEGORY_ICONS: Record<string, string> = {
-    원외탕전: "🏥",
-    의료기기: "🩺",
-    인테리어: "🏠",
-    간판: "🪧",
-    전자차트: "💻",
-    마케팅: "📣",
-    "세무·노무": "📊",
-    홈페이지: "🌐",
-};
 
 export default function CategoriesPage() {
     const { data: categories = [], isLoading } = useQuery({
@@ -66,8 +57,18 @@ export default function CategoriesPage() {
                                 href={`/categories/${category.slug}`}
                                 className="flex items-center gap-4 p-5 border-b border-gray-50 hover:bg-gray-50 transition-colors"
                             >
-                                <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center text-2xl">
-                                    {CATEGORY_ICONS[category.name] || "📦"}
+                                <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center overflow-hidden">
+                                    {CATEGORY_ICON_PATHS[category.slug] ? (
+                                        <Image
+                                            src={CATEGORY_ICON_PATHS[category.slug]}
+                                            alt={category.name}
+                                            width={36}
+                                            height={36}
+                                            className="w-9 h-9 rounded-full object-cover"
+                                        />
+                                    ) : (
+                                        <span className="text-2xl">📦</span>
+                                    )}
                                 </div>
                                 <div className="flex-1">
                                     <h2 className="text-lg font-bold text-content-primary">{category.name}</h2>

@@ -84,7 +84,7 @@ export default function FavoritesPage() {
             {/* 업체 리스트 */}
             {favoritesData?.length === 0 ? (
                 <Empty
-                    Icon={<Heart className="w-8 h-8" />}
+                    illustration="/images/empty/empty-favorite.svg"
                     title="찜한 업체가 없습니다"
                     description="마음에 드는 업체를 찜해 보세요"
                 />

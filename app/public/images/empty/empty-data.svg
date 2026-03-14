@@ -1,0 +1,15 @@
+<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Clipboard -->
+  <rect x="64" y="56" width="112" height="140" rx="8" stroke="#2563EB" stroke-width="4" fill="#EFF6FF"/>
+  <!-- Clipboard clip -->
+  <rect x="96" y="48" width="48" height="20" rx="4" stroke="#2563EB" stroke-width="3" fill="white"/>
+  <!-- Empty lines (dashed) -->
+  <line x1="88" y1="100" x2="152" y2="100" stroke="#DBEAFE" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 6"/>
+  <line x1="88" y1="120" x2="140" y2="120" stroke="#DBEAFE" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 6"/>
+  <line x1="88" y1="140" x2="148" y2="140" stroke="#DBEAFE" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 6"/>
+  <line x1="88" y1="160" x2="128" y2="160" stroke="#DBEAFE" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 6"/>
+  <!-- Decorative dots -->
+  <circle cx="48" cy="80" r="3" fill="#DBEAFE"/>
+  <circle cx="192" cy="72" r="4" fill="#DBEAFE"/>
+  <circle cx="196" cy="176" r="2.5" fill="#DBEAFE"/>
+</svg>
