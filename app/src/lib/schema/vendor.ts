@@ -1,5 +1,6 @@
 import { API_SUCCESS_CODE } from "@/lib/api/types";
 import { z } from "zod";
+import { VendorBadgeSchema } from "./badge";
 import { CategoryViewSchema } from "./category";
 import { zNonEmptyString, zPaginationQuery, zUuid } from "./common";
 import { VendorServicePriceSchema } from "./vendor-pricing";
@@ -23,6 +24,7 @@ export const VendorListItemSchema = z.object({
     priceMax: z.number().int().nullable(),
     ratingAvg: z.number().nullable(),
     reviewCount: z.number().int(),
+    badges: z.array(VendorBadgeSchema).default([]),
 });
 
 export type VendorListItem = z.infer<typeof VendorListItemSchema>;

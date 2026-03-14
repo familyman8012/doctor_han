@@ -1,6 +1,7 @@
 import type { Tables } from "@/lib/database.types";
 import type { VendorDetail, VendorListItem, VendorPortfolio, VendorPortfolioAsset } from "@/lib/schema/vendor";
 import type { VendorServicePrice } from "@/lib/schema/vendor-pricing";
+import { parseBadgesFromJson } from "@/server/badge/mapper";
 
 type VendorRow = Tables<"vendors">;
 type VendorPortfolioRow = Tables<"vendor_portfolios">;
@@ -23,6 +24,7 @@ export function mapVendorListItem(row: VendorRow): VendorListItem {
         priceMax: row.price_max,
         ratingAvg: row.rating_avg,
         reviewCount: row.review_count,
+        badges: parseBadgesFromJson((row as Record<string, unknown>).badges),
     };
 }
 
