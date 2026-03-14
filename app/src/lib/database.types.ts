@@ -10,6 +10,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
   public: {
     Tables: {
       ad_campaigns: {
@@ -1998,6 +2003,48 @@ export type Database = {
           },
         ]
       }
+      review_replies: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          review_id: string
+          updated_at: string
+          vendor_user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          review_id: string
+          updated_at?: string
+          vendor_user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          review_id?: string
+          updated_at?: string
+          vendor_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_replies_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: true
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_replies_vendor_user_id_fkey"
+            columns: ["vendor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       review_reports: {
         Row: {
           created_at: string
@@ -2062,13 +2109,16 @@ export type Database = {
       reviews: {
         Row: {
           amount: number | null
+          communication_rating: number | null
           content: string
           created_at: string
           doctor_user_id: string
           id: string
           lead_id: string | null
           photo_file_ids: string[]
+          quality_rating: number | null
           rating: number
+          speed_rating: number | null
           status: Database["public"]["Enums"]["review_status"]
           updated_at: string
           vendor_id: string
@@ -2076,13 +2126,16 @@ export type Database = {
         }
         Insert: {
           amount?: number | null
+          communication_rating?: number | null
           content: string
           created_at?: string
           doctor_user_id: string
           id?: string
           lead_id?: string | null
           photo_file_ids?: string[]
+          quality_rating?: number | null
           rating: number
+          speed_rating?: number | null
           status?: Database["public"]["Enums"]["review_status"]
           updated_at?: string
           vendor_id: string
@@ -2090,13 +2143,16 @@ export type Database = {
         }
         Update: {
           amount?: number | null
+          communication_rating?: number | null
           content?: string
           created_at?: string
           doctor_user_id?: string
           id?: string
           lead_id?: string | null
           photo_file_ids?: string[]
+          quality_rating?: number | null
           rating?: number
+          speed_rating?: number | null
           status?: Database["public"]["Enums"]["review_status"]
           updated_at?: string
           vendor_id?: string
@@ -2751,7 +2807,9 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_featured: boolean
           sort_order: number
+          tags: string[] | null
           title: string | null
           updated_at: string
           vendor_id: string
@@ -2760,7 +2818,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_featured?: boolean
           sort_order?: number
+          tags?: string[] | null
           title?: string | null
           updated_at?: string
           vendor_id: string
@@ -2769,7 +2829,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_featured?: boolean
           sort_order?: number
+          tags?: string[] | null
           title?: string | null
           updated_at?: string
           vendor_id?: string
@@ -3028,6 +3090,7 @@ export type Database = {
           longitude: number | null
           name: string
           owner_user_id: string
+          popularity_score: number
           price_max: number | null
           price_min: number | null
           rating_avg: number | null
@@ -3050,6 +3113,7 @@ export type Database = {
           longitude?: number | null
           name: string
           owner_user_id: string
+          popularity_score?: number
           price_max?: number | null
           price_min?: number | null
           rating_avg?: number | null
@@ -3072,6 +3136,7 @@ export type Database = {
           longitude?: number | null
           name?: string
           owner_user_id?: string
+          popularity_score?: number
           price_max?: number | null
           price_min?: number | null
           rating_avg?: number | null
@@ -3173,6 +3238,14 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["profile_role"]
       }
+      get_vendor_sub_rating_summary: {
+        Args: { target_vendor_id: string }
+        Returns: {
+          communication_avg: number
+          quality_avg: number
+          speed_avg: number
+        }[]
+      }
       has_active_vendor_membership: {
         Args: { p_reference_time?: string; p_vendor_id: string }
         Returns: boolean
@@ -3220,6 +3293,10 @@ export type Database = {
           transaction_id: string
           was_extended: boolean
         }[]
+      }
+      refresh_vendor_popularity: {
+        Args: { target_vendor_id: string }
+        Returns: undefined
       }
       refresh_vendor_rating: {
         Args: { target_vendor_id: string }

@@ -1,9 +1,12 @@
 import type { Database, Tables } from "@/lib/database.types";
 import type { CategoryView } from "@/lib/schema/category";
 import type { VendorPortfolio } from "@/lib/schema/vendor";
+import type { VendorServicePrice } from "@/lib/schema/vendor-pricing";
 import { internalServerError } from "@/server/api/errors";
 import { mapCategoryRow } from "@/server/category/mapper";
 import { mapVendorPortfolio, mapVendorPortfolioAsset } from "@/server/vendor/mapper";
+import { mapVendorServicePriceRow } from "@/server/vendor/pricing-mapper";
+import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type VendorThumbnail = {
@@ -189,4 +192,30 @@ export async function fetchVendorPortfolios(
     }
 
     return portfolioRows.map((portfolio) => mapVendorPortfolio(portfolio, assetsByPortfolioId.get(portfolio.id) ?? []));
+}
+
+export async function fetchVendorServicePricesPublic(vendorId: string): Promise<VendorServicePrice[]> {
+    const admin = createSupabaseAdminClient();
+
+    const { data: rows, error } = await admin
+        .from("vendor_service_prices")
+        .select("*")
+        .eq("vendor_id", vendorId)
+        .eq("status", "active");
+
+    if (error) {
+        throw internalServerError("서비스 단가를 조회할 수 없습니다.", {
+            message: error.message,
+            code: error.code,
+        });
+    }
+
+    if (!rows || rows.length === 0) return [];
+
+    const categoryIds = [...new Set(rows.map((r) => r.category_id))];
+    const { data: categoryRows } = await admin.from("categories").select("*").in("id", categoryIds);
+
+    const categoryMap = new Map((categoryRows ?? []).map((c) => [c.id, mapCategoryRow(c)]));
+
+    return rows.map((row) => mapVendorServicePriceRow(row, categoryMap.get(row.category_id)));
 }

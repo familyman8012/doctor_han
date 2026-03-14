@@ -1,5 +1,6 @@
 import type { Tables } from "@/lib/database.types";
 import type { VendorDetail, VendorListItem, VendorPortfolio, VendorPortfolioAsset } from "@/lib/schema/vendor";
+import type { VendorServicePrice } from "@/lib/schema/vendor-pricing";
 
 type VendorRow = Tables<"vendors">;
 type VendorPortfolioRow = Tables<"vendor_portfolios">;
@@ -43,6 +44,8 @@ export function mapVendorPortfolio(row: VendorPortfolioRow, assets: VendorPortfo
         title: row.title,
         description: row.description,
         sortOrder: row.sort_order,
+        tags: row.tags ?? [],
+        isFeatured: row.is_featured,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
         assets,
@@ -54,6 +57,7 @@ export function mapVendorDetail(input: {
     ownerUserId?: string;
     categories: VendorDetail["categories"];
     portfolios: VendorDetail["portfolios"];
+    servicePrices?: VendorServicePrice[];
 }): VendorDetail {
     const row = input.vendor;
     return {
@@ -65,6 +69,7 @@ export function mapVendorDetail(input: {
         updatedAt: row.updated_at,
         categories: input.categories,
         portfolios: input.portfolios,
+        ...(input.servicePrices ? { servicePrices: input.servicePrices } : {}),
     };
 }
 

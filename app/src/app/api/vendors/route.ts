@@ -5,7 +5,6 @@ import { internalServerError } from "@/server/api/errors";
 import { buildOrIlikeFilter } from "@/server/api/postgrest";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
-import { searchVendors } from "@/server/search/service";
 import { mapVendorListItem } from "@/server/vendor/mapper";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import { createSupabaseServerClient } from "@/server/supabase/server";
@@ -14,7 +13,7 @@ import type { NextRequest } from "next/server";
 type VendorRow = Tables<"vendors">;
 type ParsedQuery = z.infer<typeof VendorListQuerySchema>;
 
-// Supabase 쿼리 빌더에 공통 필터 및 정렬 적용 (q 없을 때만 사용)
+// Supabase 쿼리 빌더에 공통 필터 및 정렬 적용
 function applyFiltersAndSort<T>(qb: T, query: ParsedQuery): T {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase 쿼리 빌더 체이닝
     let result = qb as any;
@@ -34,61 +33,46 @@ function applyFiltersAndSort<T>(qb: T, query: ParsedQuery): T {
         result = result.lte("price_min", query.priceMax);
     }
 
-    if (query.sort === "rating") {
-        result = result.order("rating_avg", { ascending: false });
-        result = result.order("review_count", { ascending: false });
-    } else {
-        result = result.order("created_at", { ascending: false });
+    // 지역 필터
+    if (query.regionPrimary) {
+        result = result.eq("region_primary", query.regionPrimary);
+    }
+    if (query.regionSecondary) {
+        result = result.eq("region_secondary", query.regionSecondary);
+    }
+
+    // 평점 필터
+    if (typeof query.ratingMin !== "undefined") {
+        result = result.gte("rating_avg", query.ratingMin);
+    }
+
+    // 리뷰 유무 필터
+    if (query.hasReviews === "true") {
+        result = result.gt("review_count", 0);
+    } else if (query.hasReviews === "false") {
+        result = result.eq("review_count", 0);
+    }
+
+    // 정렬
+    switch (query.sort) {
+        case "rating":
+            result = result.order("rating_avg", { ascending: false });
+            result = result.order("review_count", { ascending: false });
+            break;
+        case "reviewCount":
+            result = result.order("review_count", { ascending: false });
+            result = result.order("rating_avg", { ascending: false });
+            break;
+        case "popular":
+            result = result.order("popularity_score", { ascending: false });
+            break;
+        case "newest":
+        default:
+            result = result.order("created_at", { ascending: false });
+            break;
     }
 
     return result as T;
-}
-
-// S등급 카테고리로 조회 시: 활성 멤버십 업체 상단 재정렬
-async function reorderBySGradeMembership(
-    items: VendorListItem[],
-    categoryId: string,
-): Promise<void> {
-    if (items.length === 0) return;
-
-    const adminClient = createSupabaseAdminClient();
-    const { data: catRow, error: catError } = await adminClient
-        .from("categories")
-        .select("tier")
-        .eq("id", categoryId)
-        .maybeSingle();
-
-    if (catError) {
-        throw internalServerError("카테고리 정보를 조회할 수 없습니다.", {
-            message: catError.message,
-            code: catError.code,
-        });
-    }
-
-    if (catRow?.tier === "s_grade") {
-        const vendorIds = items.map((item) => item.id);
-        const { data: membershipRows, error: membershipError } = await adminClient
-            .from("vendor_memberships")
-            .select("vendor_id")
-            .in("vendor_id", vendorIds)
-            .eq("status", "active")
-            .gt("expires_at", new Date().toISOString());
-
-        if (membershipError) {
-            throw internalServerError("멤버십 정보를 조회할 수 없습니다.", {
-                message: membershipError.message,
-                code: membershipError.code,
-            });
-        }
-
-        const activeVendorIds = new Set((membershipRows ?? []).map((r) => r.vendor_id));
-
-        items.sort((a, b) => {
-            const aActive = activeVendorIds.has(a.id) ? 1 : 0;
-            const bActive = activeVendorIds.has(b.id) ? 1 : 0;
-            return bActive - aActive;
-        });
-    }
 }
 
 export const GET = withApi(async (req: NextRequest) => {
@@ -98,46 +82,15 @@ export const GET = withApi(async (req: NextRequest) => {
         categoryId: searchParams.get("categoryId") ?? undefined,
         priceMin: searchParams.get("priceMin") ?? undefined,
         priceMax: searchParams.get("priceMax") ?? undefined,
+        regionPrimary: searchParams.get("regionPrimary") ?? undefined,
+        regionSecondary: searchParams.get("regionSecondary") ?? undefined,
+        ratingMin: searchParams.get("ratingMin") ?? undefined,
+        hasReviews: searchParams.get("hasReviews") ?? undefined,
         sort: searchParams.get("sort") ?? undefined,
         page: searchParams.get("page") ?? undefined,
         pageSize: searchParams.get("pageSize") ?? undefined,
     });
 
-    // --- Ranked search (pg_trgm) when q is present ---
-    if (query.q) {
-        let userId: string | undefined;
-        try {
-            const supabase = await createSupabaseServerClient();
-            const { data } = await supabase.auth.getUser();
-            userId = data.user?.id;
-        } catch {
-            // Anonymous search is fine
-        }
-
-        const result = await searchVendors({
-            query: query.q,
-            categoryId: query.categoryId,
-            priceMin: query.priceMin,
-            priceMax: query.priceMax,
-            sort: query.sort,
-            page: query.page,
-            pageSize: query.pageSize,
-            userId,
-        });
-
-        if (query.categoryId) {
-            await reorderBySGradeMembership(result.items, query.categoryId);
-        }
-
-        return ok({
-            items: result.items,
-            page: query.page,
-            pageSize: query.pageSize,
-            total: result.total,
-        });
-    }
-
-    // --- No-search-term listing (existing ILIKE path) ---
     const supabase = await createSupabaseServerClient();
 
     const from = (query.page - 1) * query.pageSize;
@@ -166,8 +119,46 @@ export const GET = withApi(async (req: NextRequest) => {
 
     const items = (data ?? []).map((row: VendorRow) => mapVendorListItem(row));
 
-    if (query.categoryId) {
-        await reorderBySGradeMembership(items, query.categoryId);
+    // S등급 카테고리로 조회 시: 활성 멤버십 업체 상단, 미납 업체 하단 재정렬
+    if (query.categoryId && items.length > 0) {
+        const adminClient = createSupabaseAdminClient();
+        const { data: catRow, error: catError } = await adminClient
+            .from("categories")
+            .select("tier")
+            .eq("id", query.categoryId)
+            .maybeSingle();
+
+        if (catError) {
+            throw internalServerError("카테고리 정보를 조회할 수 없습니다.", {
+                message: catError.message,
+                code: catError.code,
+            });
+        }
+
+        if (catRow?.tier === "s_grade") {
+            const vendorIds = items.map((item: VendorListItem) => item.id);
+            const { data: membershipRows, error: membershipError } = await adminClient
+                .from("vendor_memberships")
+                .select("vendor_id")
+                .in("vendor_id", vendorIds)
+                .eq("status", "active")
+                .gt("expires_at", new Date().toISOString());
+
+            if (membershipError) {
+                throw internalServerError("멤버십 정보를 조회할 수 없습니다.", {
+                    message: membershipError.message,
+                    code: membershipError.code,
+                });
+            }
+
+            const activeVendorIds = new Set((membershipRows ?? []).map((r) => r.vendor_id));
+
+            items.sort((a: VendorListItem, b: VendorListItem) => {
+                const aActive = activeVendorIds.has(a.id) ? 1 : 0;
+                const bActive = activeVendorIds.has(b.id) ? 1 : 0;
+                return bActive - aActive;
+            });
+        }
     }
 
     return ok({

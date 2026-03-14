@@ -33,6 +33,8 @@ export const POST = withApi(
                 title: body.title,
                 description: body.description ?? null,
                 sort_order: body.sortOrder ?? 0,
+                tags: body.tags ?? [],
+                is_featured: body.isFeatured ?? false,
             })
             .select("*")
             .single();

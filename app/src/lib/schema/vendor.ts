@@ -2,6 +2,7 @@ import { API_SUCCESS_CODE } from "@/lib/api/types";
 import { z } from "zod";
 import { CategoryViewSchema } from "./category";
 import { zNonEmptyString, zPaginationQuery, zUuid } from "./common";
+import { VendorServicePriceSchema } from "./vendor-pricing";
 
 export const VendorStatusSchema = z.enum(["draft", "active", "inactive", "banned"]);
 export type VendorStatus = z.infer<typeof VendorStatusSchema>;
@@ -43,6 +44,8 @@ export const VendorPortfolioSchema = z.object({
     title: z.string().nullable(),
     description: z.string().nullable(),
     sortOrder: z.number().int(),
+    tags: z.array(z.string()).default([]),
+    isFeatured: z.boolean(),
     createdAt: z.string(),
     updatedAt: z.string(),
     assets: z.array(VendorPortfolioAssetSchema),
@@ -58,6 +61,7 @@ export const VendorDetailSchema = VendorListItemSchema.extend({
     updatedAt: z.string(),
     categories: z.array(CategoryViewSchema),
     portfolios: z.array(VendorPortfolioSchema),
+    servicePrices: z.array(VendorServicePriceSchema).optional(),
 });
 
 export type VendorDetail = z.infer<typeof VendorDetailSchema>;
@@ -68,7 +72,11 @@ export const VendorListQuerySchema = z
         categoryId: zUuid.optional(),
         priceMin: z.coerce.number().int().min(0).optional(),
         priceMax: z.coerce.number().int().min(0).optional(),
-        sort: z.enum(["newest", "rating", "relevance"]).default("newest"),
+        regionPrimary: z.string().trim().min(1).optional(),
+        regionSecondary: z.string().trim().min(1).optional(),
+        ratingMin: z.coerce.number().min(0).max(5).optional(),
+        hasReviews: z.enum(["true", "false"]).optional(),
+        sort: z.enum(["newest", "rating", "reviewCount", "popular"]).default("newest"),
     })
     .merge(zPaginationQuery)
     .refine((value) => value.priceMin === undefined || value.priceMax === undefined || value.priceMin <= value.priceMax, {
@@ -164,6 +172,8 @@ export const VendorPortfolioCreateBodySchema = z
         title: zNonEmptyString,
         description: z.string().trim().min(1).optional().nullable(),
         sortOrder: z.number().int().min(0).optional(),
+        tags: z.array(z.string().trim().min(1)).max(10).optional(),
+        isFeatured: z.boolean().optional(),
         assets: z
             .array(
                 z
@@ -181,6 +191,27 @@ export const VendorPortfolioCreateBodySchema = z
     .strict();
 
 export type VendorPortfolioCreateBody = z.infer<typeof VendorPortfolioCreateBodySchema>;
+
+export const VendorPortfolioPatchBodySchema = z
+    .object({
+        title: zNonEmptyString.optional(),
+        description: z.string().trim().min(1).optional().nullable(),
+        sortOrder: z.number().int().min(0).optional(),
+        tags: z.array(z.string().trim().min(1)).max(10).optional(),
+        isFeatured: z.boolean().optional(),
+    })
+    .refine(
+        (value) =>
+            value.title !== undefined ||
+            value.description !== undefined ||
+            value.sortOrder !== undefined ||
+            value.tags !== undefined ||
+            value.isFeatured !== undefined,
+        { message: "수정할 필드가 없습니다." },
+    )
+    .strict();
+
+export type VendorPortfolioPatchBody = z.infer<typeof VendorPortfolioPatchBodySchema>;
 
 export const VendorListResponseSchema = z.object({
     code: z.literal(API_SUCCESS_CODE),
