@@ -120,6 +120,7 @@ export const POST = withApi(
             .insert({
                 doctor_user_id: ctx.user.id,
                 vendor_id: body.vendorId,
+                product_id: body.productId ?? null,
                 category_ids: body.categoryIds,
                 service_name: body.serviceName ?? null,
                 contact_name: body.contactName,

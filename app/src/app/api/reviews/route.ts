@@ -63,6 +63,27 @@ export const POST = withApi(
 
         if (!vendor) throw notFound("업체를 찾을 수 없습니다.");
 
+        // productId가 있으면 해당 상품이 실제로 이 vendor 소속인지 검증
+        if (body.productId) {
+            const { data: product, error: productError } = await ctx.supabase
+                .from("products")
+                .select("id, vendor_id")
+                .eq("id", body.productId)
+                .maybeSingle();
+
+            if (productError) {
+                throw internalServerError("상품을 확인할 수 없습니다.", {
+                    message: productError.message,
+                    code: productError.code,
+                });
+            }
+
+            if (!product) throw badRequest("존재하지 않는 상품입니다.");
+            if (product.vendor_id !== body.vendorId) {
+                throw badRequest("상품이 해당 업체에 속하지 않습니다.");
+            }
+        }
+
         const insertPayload: Parameters<typeof insertReview>[1] = {
             vendor_id: body.vendorId,
             doctor_user_id: ctx.user.id,
@@ -76,6 +97,9 @@ export const POST = withApi(
             worked_at: body.workedAt ?? null,
             status: "published",
         };
+        if (body.productId) {
+            (insertPayload as Record<string, unknown>).product_id = body.productId;
+        }
         if (photoFileIds) {
             insertPayload.photo_file_ids = photoFileIds;
         }

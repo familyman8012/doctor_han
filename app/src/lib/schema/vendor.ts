@@ -134,7 +134,7 @@ export const VendorPatchBodySchema = z
         longitude: z.number().min(-180).max(180).optional().nullable(),
         priceMin: z.number().int().min(0).optional().nullable(),
         priceMax: z.number().int().min(0).optional().nullable(),
-        status: z.enum(["draft", "active", "inactive"]).optional(),
+        status: z.enum(["draft", "inactive"]).optional(),
         categoryIds: z.array(zUuid).max(50).optional(),
     })
     .refine(
