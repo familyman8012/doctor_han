@@ -3,31 +3,56 @@
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Heart } from "lucide-react";
+import { useState } from "react";
 import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
 import { Button } from "@/components/ui/Button/button";
+import { Tabs } from "@/components/ui/Tab/Tab";
 import { VendorCard } from "../categories/[slug]/components/VendorCard";
+import { ProductCard } from "@/components/widgets/ProductCard";
 import { useIsAuthenticated } from "@/stores/auth";
 import type { VendorListItem } from "@/lib/schema/vendor";
+import type { ProductListItem } from "@/lib/schema/product";
 
-interface FavoriteItem {
+interface VendorFavoriteItem {
     createdAt: string;
     vendor: VendorListItem;
 }
 
+interface ProductFavoriteItem {
+    createdAt: string;
+    product: ProductListItem;
+}
+
+const TAB_OPTIONS = [
+    { title: "업체" },
+    { title: "상품" },
+];
+
 export default function FavoritesPage() {
     const router = useRouter();
     const isAuthenticated = useIsAuthenticated();
+    const [tabIndex, setTabIndex] = useState(0);
 
-    // 찜 목록 조회
-    const { data: favoritesData, isLoading, isError } = useQuery({
+    // 업체 찜 목록
+    const { data: vendorFavoritesData, isLoading: vendorLoading, isError: vendorError } = useQuery({
         queryKey: ["favorites", "list"],
-        queryFn: async (): Promise<FavoriteItem[]> => {
-            const response = await api.get<{ data: { items: FavoriteItem[] } }>("/api/favorites");
+        queryFn: async (): Promise<VendorFavoriteItem[]> => {
+            const response = await api.get<{ data: { items: VendorFavoriteItem[] } }>("/api/favorites");
             return response.data.data.items;
         },
         enabled: isAuthenticated,
+    });
+
+    // 상품 찜 목록
+    const { data: productFavoritesData, isLoading: productLoading, isError: productError } = useQuery({
+        queryKey: ["product-favorites", "list"],
+        queryFn: async (): Promise<ProductFavoriteItem[]> => {
+            const response = await api.get<{ data: { items: ProductFavoriteItem[] } }>("/api/product-favorites");
+            return response.data.data.items;
+        },
+        enabled: isAuthenticated && tabIndex === 1,
     });
 
     // 로그인하지 않은 경우
@@ -50,26 +75,15 @@ export default function FavoritesPage() {
         );
     }
 
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center py-20">
-                <Spinner size="lg" />
-            </div>
-        );
-    }
+    const isLoading = tabIndex === 0 ? vendorLoading : productLoading;
+    const isError = tabIndex === 0 ? vendorError : productError;
 
-    if (isError) {
-        return (
-            <div className="py-20">
-                <Empty
-                    title="찜 목록을 불러올 수 없습니다"
-                    description="잠시 후 다시 시도해 주세요"
-                />
-            </div>
-        );
-    }
+    const favoriteVendorIds = vendorFavoritesData?.map((f) => f.vendor.id) ?? [];
+    const favoriteProductIds = productFavoritesData?.map((f) => f.product.id) ?? [];
 
-    const favoriteVendorIds = favoritesData?.map((f) => f.vendor.id) ?? [];
+    const currentCount = tabIndex === 0
+        ? vendorFavoritesData?.length ?? 0
+        : productFavoritesData?.length ?? 0;
 
     return (
         <div className="space-y-6">
@@ -77,27 +91,79 @@ export default function FavoritesPage() {
             <div>
                 <h1 className="text-2xl font-bold text-content-primary mb-2">찜 목록</h1>
                 <p className="text-gray-500">
-                    {favoritesData?.length ?? 0}개의 업체를 찜했습니다
+                    {currentCount}개의 {tabIndex === 0 ? "업체" : "상품"}를 찜했습니다
                 </p>
             </div>
 
-            {/* 업체 리스트 */}
-            {favoritesData?.length === 0 ? (
-                <Empty
-                    illustration="/images/empty/empty-favorite.svg"
-                    title="찜한 업체가 없습니다"
-                    description="마음에 드는 업체를 찜해 보세요"
-                />
-            ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {favoritesData?.map((item) => (
-                        <VendorCard
-                            key={item.vendor.id}
-                            vendor={item.vendor}
-                            isFavorited={favoriteVendorIds.includes(item.vendor.id)}
-                        />
-                    ))}
+            {/* 탭 */}
+            <Tabs
+                id="favorites-tabs"
+                tabs={TAB_OPTIONS}
+                activeTabIndex={tabIndex}
+                onTabChange={setTabIndex}
+            />
+
+            {/* 로딩 */}
+            {isLoading && (
+                <div className="flex justify-center items-center py-20">
+                    <Spinner size="lg" />
                 </div>
+            )}
+
+            {/* 에러 */}
+            {isError && !isLoading && (
+                <div className="py-20">
+                    <Empty
+                        title="찜 목록을 불러올 수 없습니다"
+                        description="잠시 후 다시 시도해 주세요"
+                    />
+                </div>
+            )}
+
+            {/* 업체 탭 */}
+            {!isLoading && !isError && tabIndex === 0 && (
+                <>
+                    {vendorFavoritesData?.length === 0 ? (
+                        <Empty
+                            illustration="/images/empty/empty-favorite.svg"
+                            title="찜한 업체가 없습니다"
+                            description="마음에 드는 업체를 찜해 보세요"
+                        />
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {vendorFavoritesData?.map((item) => (
+                                <VendorCard
+                                    key={item.vendor.id}
+                                    vendor={item.vendor}
+                                    isFavorited={favoriteVendorIds.includes(item.vendor.id)}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </>
+            )}
+
+            {/* 상품 탭 */}
+            {!isLoading && !isError && tabIndex === 1 && (
+                <>
+                    {productFavoritesData?.length === 0 ? (
+                        <Empty
+                            illustration="/images/empty/empty-favorite.svg"
+                            title="찜한 상품이 없습니다"
+                            description="마음에 드는 상품을 찜해 보세요"
+                        />
+                    ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {productFavoritesData?.map((item) => (
+                                <ProductCard
+                                    key={item.product.id}
+                                    product={item.product}
+                                    isFavorited={favoriteProductIds.includes(item.product.id)}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );

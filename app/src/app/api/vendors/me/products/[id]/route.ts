@@ -120,6 +120,27 @@ export const PATCH = withApi(
             throw notFound("업체 프로필이 없습니다.");
         }
 
+        // 현재 상태를 먼저 확인해 unchanged active 저장은 허용하고,
+        // 실제 상태 변경으로 active를 요청하는 경우만 차단한다.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: currentProductRow, error: currentProductError } = await (ctx.supabase as any)
+            .from("products")
+            .select("id, status")
+            .eq("id", productId)
+            .eq("vendor_id", vendor.id)
+            .maybeSingle();
+
+        if (currentProductError) {
+            throw internalServerError("상품을 조회할 수 없습니다.", {
+                message: currentProductError.message,
+                code: currentProductError.code,
+            });
+        }
+
+        if (!currentProductRow) {
+            throw notFound("상품을 찾을 수 없습니다.");
+        }
+
         // Build update object
         const updateData: Record<string, unknown> = {};
         if (body.title !== undefined) updateData.title = body.title;
@@ -131,11 +152,14 @@ export const PATCH = withApi(
         if (body.priceUnit !== undefined) updateData.price_unit = body.priceUnit;
         if (body.sortOrder !== undefined) updateData.sort_order = body.sortOrder;
         if (body.status !== undefined) {
-            // Vendor는 active 설정 불가 — admin 승인 전용
-            if (body.status === "active") {
+            const currentStatus = (currentProductRow as Record<string, unknown>).status as string;
+            // Vendor는 active로 "변경"할 수 없고, 이미 active인 값을 그대로 보내는 경우만 허용한다.
+            if (body.status === "active" && currentStatus !== "active") {
                 throw badRequest("상품 상태를 직접 변경할 수 없습니다. 관리자 승인을 요청하세요.");
             }
-            updateData.status = body.status;
+            if (body.status !== currentStatus) {
+                updateData.status = body.status;
+            }
         }
 
         let updated: Record<string, unknown>;

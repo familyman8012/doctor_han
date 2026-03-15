@@ -4,7 +4,13 @@ import { badRequest, internalServerError, notFound } from "@/server/api/errors";
 import { created, ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withRole } from "@/server/auth/guards";
-import { mapProductDetail, mapProductFaq, mapProductImage, mapProductListItem } from "@/server/product/mapper";
+import {
+    mapProductDetail,
+    mapProductFaq,
+    mapProductImage,
+    mapProductListItem,
+    resolveProductImageUrl,
+} from "@/server/product/mapper";
 
 export const GET = withApi(
     withRole(["vendor"], async (ctx) => {
@@ -63,7 +69,7 @@ export const GET = withApi(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { data: imageRows } = await (ctx.supabase as any)
                 .from("product_images")
-                .select("product_id, url, is_primary, sort_order")
+                .select("product_id, file_id, url, is_primary, sort_order")
                 .in("product_id", productIds)
                 .order("is_primary", { ascending: false })
                 .order("sort_order", { ascending: true });
@@ -72,8 +78,14 @@ export const GET = withApi(
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 for (const img of imageRows as any[]) {
                     const pid = img.product_id as string;
-                    if (!thumbnailMap.has(pid) && img.url) {
-                        thumbnailMap.set(pid, img.url as string);
+                    if (!thumbnailMap.has(pid)) {
+                        const thumbnail = resolveProductImageUrl({
+                            fileId: (img.file_id as string) ?? null,
+                            url: (img.url as string) ?? null,
+                        });
+                        if (thumbnail) {
+                            thumbnailMap.set(pid, thumbnail);
+                        }
                     }
                 }
             }
@@ -118,6 +130,32 @@ export const POST = withApi(
 
         if (!vendor) {
             throw notFound("업체 프로필이 없습니다.");
+        }
+
+        const { data: vendorCategory, error: vendorCategoryError } = await ctx.supabase
+            .from("vendor_categories")
+            .select("category_id, categories!inner(listing_type)")
+            .eq("vendor_id", vendor.id)
+            .eq("category_id", body.categoryId)
+            .maybeSingle();
+
+        if (vendorCategoryError) {
+            throw internalServerError("업체 카테고리를 확인할 수 없습니다.", {
+                message: vendorCategoryError.message,
+                code: vendorCategoryError.code,
+            });
+        }
+
+        const categoryMeta = (vendorCategory as Record<string, unknown> | null)?.categories as
+            | { listing_type: string }
+            | null;
+
+        if (!vendorCategory) {
+            throw badRequest("등록된 카테고리에서만 상품을 생성할 수 있습니다.");
+        }
+
+        if (categoryMeta?.listing_type !== "product") {
+            throw badRequest("상품형 카테고리에서만 상품을 생성할 수 있습니다.");
         }
 
         // Insert product

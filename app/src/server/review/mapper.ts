@@ -12,6 +12,7 @@ export function mapReviewRow(row: ReviewRow): ReviewView {
     return {
         id: row.id,
         vendorId: row.vendor_id,
+        productId: (row as Record<string, unknown>).product_id as string | null ?? null,
         doctorUserId: row.doctor_user_id,
         leadId: row.lead_id,
         rating: row.rating,

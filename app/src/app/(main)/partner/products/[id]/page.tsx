@@ -220,8 +220,11 @@ function ProductEditForm({
                 description: data.description.trim() || null,
                 priceType: priceType,
                 priceUnit: data.priceUnit.trim() || null,
-                status: status,
             };
+
+            if (status !== product.status) {
+                body.status = status;
+            }
 
             if (priceType === "fixed" && data.priceMin) {
                 body.priceMin = Number(data.priceMin);

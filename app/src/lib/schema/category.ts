@@ -5,6 +5,9 @@ import { zUuid } from "./common";
 export const CategoryTierSchema = z.enum(["standard", "s_grade"]);
 export type CategoryTier = z.infer<typeof CategoryTierSchema>;
 
+export const CategoryListingTypeSchema = z.enum(["vendor", "product"]);
+export type CategoryListingType = z.infer<typeof CategoryListingTypeSchema>;
+
 export const CategoryViewSchema = z.object({
     id: zUuid,
     parentId: zUuid.nullable(),
@@ -14,6 +17,7 @@ export const CategoryViewSchema = z.object({
     sortOrder: z.number().int(),
     isActive: z.boolean(),
     tier: CategoryTierSchema.default("standard"),
+    listingType: CategoryListingTypeSchema.default("vendor"),
     createdAt: z.string(),
     updatedAt: z.string(),
 });
@@ -39,4 +43,5 @@ export interface Category {
     depth: number;
     sortOrder: number;
     tier?: CategoryTier;
+    listingType?: CategoryListingType;
 }

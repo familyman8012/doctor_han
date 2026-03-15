@@ -26,6 +26,7 @@ export const LeadListItemSchema = z.object({
     id: zUuid,
     doctorUserId: zUuid,
     vendorId: zUuid,
+    productId: zUuid.nullable().optional(),
     categoryIds: z.array(zUuid),
     serviceName: z.string().nullable(),
     contactName: z.string().nullable(),
@@ -190,6 +191,7 @@ export type LeadDetail = z.infer<typeof LeadDetailSchema>;
 export const LeadCreateBodySchema = z
     .object({
         vendorId: zUuid,
+        productId: zUuid.optional(),
         categoryIds: z.array(zUuid).min(1).max(10),
         serviceName: z.string().trim().min(1).optional().nullable(),
         contactName: zNonEmptyString,

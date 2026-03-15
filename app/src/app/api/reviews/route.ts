@@ -33,7 +33,7 @@ export const POST = withApi(
 
         const { data: lead, error: leadError } = await ctx.supabase
             .from("leads")
-            .select("id, vendor_id, status")
+            .select("id, vendor_id, product_id, status")
             .eq("id", body.leadId)
             .maybeSingle();
 
@@ -47,6 +47,18 @@ export const POST = withApi(
         if (!lead) throw notFound("리드를 찾을 수 없습니다.");
         if (lead.vendor_id !== body.vendorId) throw badRequest("leadId와 vendorId가 일치하지 않습니다.");
         if (lead.status === "canceled") throw badRequest("취소된 문의로는 리뷰를 작성할 수 없습니다.");
+
+        if (lead.product_id) {
+            if (!body.productId) {
+                throw badRequest("상품 문의로 생성된 리드는 상품 리뷰로만 작성할 수 있습니다.");
+            }
+
+            if (body.productId !== lead.product_id) {
+                throw badRequest("문의한 상품과 다른 상품으로 리뷰를 작성할 수 없습니다.");
+            }
+        } else if (body.productId) {
+            throw badRequest("업체 문의로 생성된 리드는 상품 리뷰를 작성할 수 없습니다.");
+        }
 
         const { data: vendor, error: vendorError } = await ctx.supabase
             .from("vendors")

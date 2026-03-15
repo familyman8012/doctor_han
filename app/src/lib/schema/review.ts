@@ -16,6 +16,7 @@ export const MAX_REVIEW_PHOTOS = 10;
 export const ReviewViewSchema = z.object({
     id: zUuid,
     vendorId: zUuid,
+    productId: zUuid.nullable().optional(),
     doctorUserId: zUuid,
     leadId: zUuid.nullable(),
     rating: z.number().int().min(1).max(5),
@@ -36,6 +37,7 @@ export type ReviewView = z.infer<typeof ReviewViewSchema>;
 export const ReviewCreateBodySchema = z
     .object({
         vendorId: zUuid,
+        productId: zUuid.optional(),
         leadId: zUuid,
         rating: z.number().int().min(1).max(5),
         qualityRating: zSubRating.optional(),

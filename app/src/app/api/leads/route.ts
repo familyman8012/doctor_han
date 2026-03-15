@@ -84,6 +84,43 @@ export const POST = withApi(
             throw notFound("업체를 찾을 수 없습니다.");
         }
 
+        let validatedProduct:
+            | {
+                  id: string;
+                  vendor_id: string;
+                  category_id: string;
+              }
+            | null = null;
+
+        if (body.productId) {
+            const { data: product, error: productError } = await ctx.supabase
+                .from("products")
+                .select("id, vendor_id, category_id")
+                .eq("id", body.productId)
+                .maybeSingle();
+
+            if (productError) {
+                throw internalServerError("상품을 확인할 수 없습니다.", {
+                    message: productError.message,
+                    code: productError.code,
+                });
+            }
+
+            if (!product) {
+                throw notFound("상품을 찾을 수 없습니다.");
+            }
+
+            if (product.vendor_id !== body.vendorId) {
+                throw badRequest("상품이 해당 업체에 속하지 않습니다.");
+            }
+
+            if (body.categoryIds.length !== 1 || body.categoryIds[0] !== product.category_id) {
+                throw badRequest("상품 문의의 카테고리 정보가 올바르지 않습니다.");
+            }
+
+            validatedProduct = product;
+        }
+
         // S등급 업체 멤버십 확인: 미납 && 유예기간 아니면 리드 차단
         const admin = createSupabaseAdminClient();
         const { data: vendorSGradeCategories, error: vendorSGradeCategoriesError } = await admin
@@ -139,6 +176,30 @@ export const POST = withApi(
                 message: leadError.message,
                 code: leadError.code,
             });
+        }
+
+        if (validatedProduct) {
+            const admin = createSupabaseAdminClient();
+            const { data: productCounter, error: productCounterError } = await admin
+                .from("products")
+                .select("inquiry_count")
+                .eq("id", validatedProduct.id)
+                .maybeSingle();
+
+            if (productCounterError) {
+                console.error("[POST /api/leads] product inquiry_count select failed", productCounterError);
+            } else if (productCounter) {
+                const { error: productUpdateError } = await admin
+                    .from("products")
+                    .update({
+                        inquiry_count: (productCounter.inquiry_count ?? 0) + 1,
+                    })
+                    .eq("id", validatedProduct.id);
+
+                if (productUpdateError) {
+                    console.error("[POST /api/leads] product inquiry_count update failed", productUpdateError);
+                }
+            }
         }
 
         // 상태 이력은 best-effort로 기록한다 (트랜잭션이 아니므로 실패해도 생성 자체는 유지)

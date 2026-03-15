@@ -2,8 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import api from "@/api-client/client";
-import type { HomeCategoryGridSection, HomeScreen, HomeVendorCarouselSection } from "@/lib/schema/home";
-import { HeroBanner, CategoryScroller, VendorSection, PromoBanner } from "./components";
+import type { HomeCategoryGridSection, HomeProductCarouselSection, HomeScreen, HomeVendorCarouselSection } from "@/lib/schema/home";
+import { HeroBanner, CategoryScroller, VendorSection, ProductSection, PromoBanner } from "./components";
 import { AdBanner } from "@/components/widgets/AdBanner";
 
 export default function HomePage() {
@@ -19,6 +19,7 @@ export default function HomePage() {
     const sections = home?.sections ?? [];
     const categorySection = sections.find((s): s is HomeCategoryGridSection => s.type === "category_grid");
     const vendorSections = sections.filter((s): s is HomeVendorCarouselSection => s.type === "vendor_carousel");
+    const productSections = sections.filter((s): s is HomeProductCarouselSection => s.type === "product_carousel");
 
     // 메인 섹션들 분리
     const recommendedSection = vendorSections.find((s) => s.id === "recommended");
@@ -50,6 +51,15 @@ export default function HomePage() {
 
             {/* 인기 업체 (그리드 형태) */}
             {popularSection && <VendorSection section={popularSection} variant="grid" />}
+
+            {/* 상품 카테고리별 인기 상품 */}
+            {productSections.map((section, index) => (
+                <ProductSection
+                    key={section.id}
+                    section={section}
+                    variant={index % 2 === 0 ? "carousel" : "grid"}
+                />
+            ))}
 
             {/* 업체 등록 CTA 배너 */}
             <PromoBanner variant="vendor-cta" />

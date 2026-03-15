@@ -16,7 +16,7 @@ export type SearchAutocompleteQuery = z.infer<typeof SearchAutocompleteQuerySche
 
 export const SearchAutocompleteItemSchema = z.object({
     label: z.string(),
-    type: z.enum(["vendor", "category"]),
+    type: z.enum(["vendor", "category", "product"]),
     score: z.number(),
 });
 

@@ -1,7 +1,10 @@
 import type { Database, Tables } from "@/lib/database.types";
+import type { ProductListItem } from "@/lib/schema/product";
 import type { HomeScreen, HomeSection, HomeVendorCard } from "@/lib/schema/home";
 import { internalServerError } from "@/server/api/errors";
 import { mapCategoryRow } from "@/server/category/mapper";
+import { mapProductListItem } from "@/server/product/mapper";
+import { fetchProductThumbnailsByProductIds } from "@/server/product/repository";
 import { mapVendorListItem } from "@/server/vendor/mapper";
 import {
     fetchVendorCategoriesByVendorIds,
@@ -18,6 +21,7 @@ const HOME_VENDOR_CANDIDATE_SIZE = 60;
 const HOME_CATEGORY_GRID_SIZE = 10;
 const HOME_CATEGORY_SECTION_COUNT = 4;
 const HOME_VENDOR_MAX_SECTION_APPEARANCES = 2;
+const HOME_PRODUCT_SECTION_SIZE = 8;
 
 type VendorSort = "recommended" | "popular" | "reviewed" | "newest";
 
@@ -64,6 +68,74 @@ async function fetchVendors(
     return (data ?? []) as unknown as VendorRow[];
 }
 
+async function fetchHomeProducts(
+    supabase: SupabaseClient<Database>,
+    input: { categoryId?: string; sort: string; limit: number },
+): Promise<{ rows: Record<string, unknown>[]; categorySlugMap: Map<string, string | null>; thumbnailMap: Map<string, string | null> }> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let builder = (supabase as any)
+        .from("products")
+        .select("*, vendors!inner(id, name)")
+        .eq("status", "active");
+
+    if (input.categoryId) {
+        builder = builder.eq("category_id", input.categoryId);
+    }
+
+    if (input.sort === "popular") {
+        builder = builder.order("view_count", { ascending: false }).order("created_at", { ascending: false });
+    } else if (input.sort === "rating") {
+        builder = builder.order("rating_avg", { ascending: false }).order("review_count", { ascending: false });
+    } else {
+        builder = builder.order("created_at", { ascending: false });
+    }
+
+    builder = builder.limit(input.limit);
+
+    const { data, error } = await builder;
+    if (error) {
+        // If products table doesn't exist yet (migration not applied), return empty
+        if (error.code === "42P01" || error.message?.includes("products")) {
+            return { rows: [], categorySlugMap: new Map(), thumbnailMap: new Map() };
+        }
+        throw internalServerError("홈 상품을 조회할 수 없습니다.", {
+            message: error.message,
+            code: error.code,
+        });
+    }
+
+    const rows = (data ?? []) as Record<string, unknown>[];
+    const productIds = rows.map((r) => r.id as string);
+    const categoryIds = [...new Set(rows.map((r) => r.category_id as string))];
+
+    const [thumbnailMap, categorySlugMap] = await Promise.all([
+        productIds.length > 0 ? fetchProductThumbnailsByProductIds(supabase, productIds) : new Map<string, string | null>(),
+        categoryIds.length > 0 ? fetchCategorySlugsByIdsForHome(supabase, categoryIds) : new Map<string, string | null>(),
+    ]);
+
+    return { rows, categorySlugMap, thumbnailMap };
+}
+
+async function fetchCategorySlugsByIdsForHome(
+    supabase: SupabaseClient<Database>,
+    categoryIds: string[],
+): Promise<Map<string, string | null>> {
+    const result = new Map<string, string | null>();
+    if (categoryIds.length === 0) return result;
+
+    const { data, error } = await supabase
+        .from("categories")
+        .select("id, slug")
+        .in("id", categoryIds);
+
+    if (error) return result;
+
+    for (const row of data ?? []) {
+        result.set(row.id, row.slug);
+    }
+    return result;
+}
+
 export async function buildHomeScreen(supabase: SupabaseClient<Database>): Promise<HomeScreen> {
     const { data: categoryRows, error: categoryError } = await supabase
         .from("categories")
@@ -82,7 +154,11 @@ export async function buildHomeScreen(supabase: SupabaseClient<Database>): Promi
     const categories = (categoryRows ?? []).map(mapCategoryRow);
     const mainCategories = categories.filter((c) => c.depth === 1);
     const gridCategories = mainCategories.slice(0, HOME_CATEGORY_GRID_SIZE);
-    const sectionCategories = mainCategories.slice(0, HOME_CATEGORY_SECTION_COUNT);
+
+    // Split categories by listing type for section generation
+    const vendorSectionCategories = mainCategories.filter((c) => c.listingType !== "product").slice(0, HOME_CATEGORY_SECTION_COUNT);
+    const productSectionCategories = mainCategories.filter((c) => c.listingType === "product").slice(0, HOME_CATEGORY_SECTION_COUNT);
+    const sectionCategories = vendorSectionCategories;
 
     const [recommendedCandidates, popularCandidates, reviewedCandidates, newCandidates, ...categoryCandidateResults] =
         await Promise.all([
@@ -301,6 +377,42 @@ export async function buildHomeScreen(supabase: SupabaseClient<Database>): Promi
             category,
             items: picked,
         });
+    }
+
+    // Product-type category sections
+    if (productSectionCategories.length > 0) {
+        const productResults = await Promise.all(
+            productSectionCategories.map((category) =>
+                fetchHomeProducts(supabase, {
+                    categoryId: category.id,
+                    sort: "popular",
+                    limit: HOME_PRODUCT_SECTION_SIZE,
+                }),
+            ),
+        );
+
+        for (let i = 0; i < productSectionCategories.length; i++) {
+            const category = productSectionCategories[i];
+            const { rows, categorySlugMap, thumbnailMap } = productResults[i];
+
+            const items: ProductListItem[] = rows.map((row) => {
+                const vendorData = row.vendors as Record<string, unknown>;
+                const vendor = { id: vendorData.id as string, name: vendorData.name as string };
+                const categorySlug = categorySlugMap.get(row.category_id as string) ?? null;
+                const thumbnail = thumbnailMap.get(row.id as string) ?? null;
+                return mapProductListItem(row, vendor, categorySlug, thumbnail);
+            });
+
+            if (items.length === 0) continue;
+
+            sections.push({
+                id: `product-category:${category.slug}`,
+                type: "product_carousel",
+                title: `${category.name} 인기 상품`,
+                category,
+                items,
+            });
+        }
     }
 
     return {

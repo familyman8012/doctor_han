@@ -13,6 +13,7 @@ import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { ProductImageManager, type ProductImageItem } from "@/components/widgets/ProductImageManager";
 import { ProductFaqEditor, type ProductFaqItem } from "@/components/widgets/ProductFaqEditor";
 import type { ProductPriceType } from "@/lib/schema/product";
+import type { VendorMeResponse } from "@/lib/schema/vendor";
 
 interface CategoryOption {
     id: string;
@@ -62,18 +63,16 @@ export default function PartnerProductNewPage() {
         },
     });
 
-    // Fetch categories where listingType is 'product'
-    const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
-        queryKey: ["categories"],
+    // Fetch vendor-owned product categories only
+    const { data: productCategories = [], isLoading: categoriesLoading } = useQuery({
+        queryKey: ["vendor", "me", "product-categories"],
         queryFn: async () => {
-            const res = await api.get<{ data: { items: CategoryOption[] } }>("/api/categories");
-            return res.data.data.items;
+            const res = await api.get<VendorMeResponse>("/api/vendors/me");
+            return (res.data.data.vendor?.categories ?? []).filter(
+                (category) => category.listingType === "product",
+            ) as CategoryOption[];
         },
     });
-
-    const productCategories = (categoriesData ?? []).filter(
-        (c) => c.listingType === "product",
-    );
 
     const createMutation = useMutation({
         mutationFn: async (data: ProductFormData) => {

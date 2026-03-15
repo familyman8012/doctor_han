@@ -13,6 +13,7 @@ export function mapCategoryRow(row: CategoryRow): CategoryView {
         sortOrder: row.sort_order,
         isActive: row.is_active,
         tier: (row.tier as CategoryView["tier"]) ?? "standard",
+        listingType: ((row as Record<string, unknown>).listing_type as CategoryView["listingType"]) ?? "vendor",
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };
