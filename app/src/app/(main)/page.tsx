@@ -50,117 +50,60 @@ export default function HomePage() {
     }
 
     return (
-        <div className="-mx-4 sm:-mx-6 lg:-mx-8">
+        <div className="space-y-8 md:space-y-10">
             {/* 히어로 배너 */}
-            <SectionWrapper bg="white">
-                <HeroBanner />
-            </SectionWrapper>
+            <HeroBanner />
 
             {/* 카테고리 */}
-            <SectionWrapper bg="gray">
-                {categorySection && <CategoryScroller categories={categorySection.items} />}
-            </SectionWrapper>
+            {categorySection && <CategoryScroller categories={categorySection.items} />}
 
             {/* 신뢰 구간 — 통계 */}
-            <SectionWrapper bg="white">
-                <PromoBanner variant="stats" />
-            </SectionWrapper>
+            <PromoBanner variant="stats" />
 
             {/* 메인 광고 배너 */}
-            <SectionWrapper bg="gray">
-                <AdBanner position="main" />
-            </SectionWrapper>
+            <AdBanner position="main" />
 
             {/* 추천 파트너 */}
-            {recommendedSection && (
-                <SectionWrapper bg="white">
-                    <VendorSection section={recommendedSection} />
-                </SectionWrapper>
-            )}
+            {recommendedSection && <VendorSection section={recommendedSection} />}
 
             {/* 인기 업체 (그리드) */}
-            {popularSection && (
-                <SectionWrapper bg="gray">
-                    <VendorSection section={popularSection} variant="grid" />
-                </SectionWrapper>
-            )}
+            {popularSection && <VendorSection section={popularSection} variant="grid" />}
 
             {/* 특징 소개 */}
-            <SectionWrapper bg="white">
-                <PromoBanner variant="feature" />
-            </SectionWrapper>
+            <PromoBanner variant="feature" />
 
             {/* 상품 섹션들 */}
             {productSections.map((section, index) => (
-                <SectionWrapper key={section.id} bg={index % 2 === 0 ? "gray" : "white"}>
-                    <ProductSection
-                        section={section}
-                        variant={index % 2 === 0 ? "carousel" : "grid"}
-                    />
-                </SectionWrapper>
+                <ProductSection
+                    key={section.id}
+                    section={section}
+                    variant={index % 2 === 0 ? "carousel" : "grid"}
+                />
             ))}
 
             {/* 의사 추천사 */}
-            <SectionWrapper bg="gray">
-                <TestimonialSection />
-            </SectionWrapper>
+            <TestimonialSection />
 
             {/* 업체/의사 CTA */}
-            <SectionWrapper bg="white">
-                <PromoBanner variant="vendor-cta" />
-            </SectionWrapper>
+            <PromoBanner variant="vendor-cta" />
 
             {/* 서브 광고 배너 */}
-            <SectionWrapper bg="gray">
-                <AdBanner position="sub" />
-            </SectionWrapper>
+            <AdBanner position="sub" />
 
             {/* 리뷰로 검증 */}
-            {reviewedSection && (
-                <SectionWrapper bg="white">
-                    <VendorSection section={reviewedSection} />
-                </SectionWrapper>
-            )}
+            {reviewedSection && <VendorSection section={reviewedSection} />}
 
             {/* 신규 입점 */}
-            {newestSection && (
-                <SectionWrapper bg="gray">
-                    <VendorSection section={newestSection} />
-                </SectionWrapper>
-            )}
+            {newestSection && <VendorSection section={newestSection} />}
 
             {/* 카테고리별 추천 */}
             {categorySections.map((section, index) => (
-                <SectionWrapper
+                <VendorSection
                     key={section.id}
-                    bg={index % 2 === 0 ? "white" : "gray"}
-                >
-                    <VendorSection
-                        section={section}
-                        variant={index % 2 === 0 ? "carousel" : "grid"}
-                    />
-                </SectionWrapper>
+                    section={section}
+                    variant={index % 2 === 0 ? "carousel" : "grid"}
+                />
             ))}
-        </div>
-    );
-}
-
-// ---------------------------------------------------------------------------
-// Section wrapper for alternating backgrounds
-// ---------------------------------------------------------------------------
-
-function SectionWrapper({
-    children,
-    bg,
-}: {
-    children: React.ReactNode;
-    bg: "white" | "gray";
-}) {
-    return (
-        <div className={bg === "gray" ? "bg-gray-50" : "bg-white"}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
-                {children}
-            </div>
         </div>
     );
 }
@@ -171,66 +114,60 @@ function SectionWrapper({
 
 function HomePageSkeleton() {
     return (
-        <div className="-mx-4 sm:-mx-6 lg:-mx-8 animate-pulse">
+        <div className="space-y-8 md:space-y-10 animate-pulse">
             {/* 배너 */}
-            <div className="bg-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="h-48 md:h-64 bg-gray-200 rounded-2xl" />
-                </div>
-            </div>
+            <div className="h-48 md:h-64 bg-gray-200 rounded-2xl" />
 
             {/* 카테고리 */}
-            <div className="bg-gray-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="h-6 w-24 bg-gray-200 rounded mb-4" />
-                    <div className="flex gap-4">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="flex flex-col items-center gap-2">
-                                <div className="w-16 h-16 bg-gray-200 rounded-full" />
-                                <div className="w-12 h-3 bg-gray-200 rounded" />
-                            </div>
-                        ))}
-                    </div>
+            <div className="space-y-4">
+                <div className="h-6 w-24 bg-gray-200 rounded" />
+                <div className="flex gap-4">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                        <div key={i} className="flex flex-col items-center gap-2">
+                            <div className="w-16 h-16 bg-gray-200 rounded-full" />
+                            <div className="w-12 h-3 bg-gray-200 rounded" />
+                            <div className="w-8 h-2 bg-gray-200 rounded" />
+                        </div>
+                    ))}
                 </div>
             </div>
 
             {/* 신뢰 구간 */}
-            <div className="bg-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="h-36 md:h-44 bg-gray-200 rounded-2xl" />
-                </div>
+            <div className="h-36 md:h-44 bg-gray-200 rounded-2xl" />
+
+            {/* 특징 카드 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="h-32 bg-gray-200 rounded-xl" />
+                ))}
             </div>
 
             {/* 업체 섹션 x2 */}
             {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                        <div className="h-6 w-32 bg-gray-200 rounded mb-4" />
-                        <div className="flex gap-4 overflow-hidden">
-                            {Array.from({ length: 4 }).map((_, j) => (
-                                <div key={j} className="flex-shrink-0 w-[220px] md:w-[260px]">
-                                    <div className="aspect-[4/3] bg-gray-200 rounded-t-xl" />
-                                    <div className="p-3 space-y-2 bg-gray-100 rounded-b-xl">
-                                        <div className="h-4 w-3/4 bg-gray-200 rounded" />
-                                        <div className="h-3 w-full bg-gray-200 rounded" />
-                                        <div className="h-3 w-1/2 bg-gray-200 rounded" />
-                                    </div>
+                <div key={i} className="space-y-4">
+                    <div className="h-6 w-32 bg-gray-200 rounded" />
+                    <div className="flex gap-4 overflow-hidden">
+                        {Array.from({ length: 4 }).map((_, j) => (
+                            <div key={j} className="flex-shrink-0 w-[220px] md:w-[260px]">
+                                <div className="aspect-[4/3] bg-gray-200 rounded-t-xl" />
+                                <div className="p-3 space-y-2 bg-gray-100 rounded-b-xl">
+                                    <div className="h-4 w-3/4 bg-gray-200 rounded" />
+                                    <div className="h-3 w-full bg-gray-200 rounded" />
+                                    <div className="h-3 w-1/2 bg-gray-200 rounded" />
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             ))}
 
             {/* 추천사 */}
-            <div className="bg-gray-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="h-6 w-48 bg-gray-200 rounded mx-auto mb-6" />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {Array.from({ length: 3 }).map((_, i) => (
-                            <div key={i} className="h-40 bg-gray-200 rounded-xl" />
-                        ))}
-                    </div>
+            <div className="space-y-4">
+                <div className="h-6 w-48 bg-gray-200 rounded mx-auto" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="h-40 bg-gray-200 rounded-xl" />
+                    ))}
                 </div>
             </div>
         </div>
