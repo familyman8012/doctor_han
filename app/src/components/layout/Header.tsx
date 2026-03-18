@@ -6,8 +6,10 @@ import { useState } from "react";
 import { Search, Menu, X, User, Heart, FileText, LogOut, Hammer } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
+import { SearchDropdown } from "@/components/widgets/SearchDropdown";
 import { useAuthStore, useIsAuthenticated, useUserRole } from "@/stores/auth";
 import { signOut } from "@/server/auth/client";
+import { addRecentSearch } from "@/lib/utils/recent-searches";
 
 interface HeaderProps {
     onMenuToggle?: () => void;
@@ -18,6 +20,7 @@ export function Header({ onMenuToggle, isMobileMenuOpen }: HeaderProps) {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
 
     const isAuthenticated = useIsAuthenticated();
     const role = useUserRole();
@@ -26,6 +29,8 @@ export function Header({ onMenuToggle, isMobileMenuOpen }: HeaderProps) {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (searchQuery.trim()) {
+            addRecentSearch(searchQuery.trim());
+            setIsSearchDropdownOpen(false);
             router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
         }
     };
@@ -100,6 +105,8 @@ export function Header({ onMenuToggle, isMobileMenuOpen }: HeaderProps) {
                                 placeholder="업체명, 서비스로 검색"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                onFocus={() => setIsSearchDropdownOpen(true)}
+                                autoComplete="off"
                                 size="sm"
                                 className="pr-12"
                             />
@@ -109,6 +116,17 @@ export function Header({ onMenuToggle, isMobileMenuOpen }: HeaderProps) {
                             >
                                 <Search className="w-5 h-5" />
                             </button>
+                            <SearchDropdown
+                                query={searchQuery}
+                                isOpen={isSearchDropdownOpen}
+                                onClose={() => setIsSearchDropdownOpen(false)}
+                                onSelect={(term) => {
+                                    addRecentSearch(term);
+                                    setSearchQuery(term);
+                                    setIsSearchDropdownOpen(false);
+                                    router.push(`/search?q=${encodeURIComponent(term)}`);
+                                }}
+                            />
                         </div>
                     </form>
 

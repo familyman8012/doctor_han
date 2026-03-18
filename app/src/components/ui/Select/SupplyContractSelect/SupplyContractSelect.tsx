@@ -7,7 +7,7 @@ import { Handshake } from "lucide-react";
 import { supplyContractApi } from "@/api-client/supply-contract";
 import { Select, type IOption } from "@/components/ui/Select/Select";
 import type { SupplyContractDetailView, SupplyContractListQuery, SupplyContractSummary } from "@/lib/schema/supply-contract";
-import { useDebounce } from "@/hooks/agent-ncos/use-debounce";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface SupplyContractSelectProps {
     value?: string | null;

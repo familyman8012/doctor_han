@@ -10,13 +10,21 @@ import { Button } from "@/components/ui/Button/button";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
 import { Tabs } from "@/components/ui/Tab/Tab";
+import { SearchDropdown } from "@/components/widgets/SearchDropdown";
 import { useIsAuthenticated, useUserRole } from "@/stores/auth";
 import { VendorCard } from "../categories/[slug]/components/VendorCard";
 import { VendorFilter } from "../categories/[slug]/components/VendorFilter";
 import { SimplePagination } from "../categories/[slug]/components/SimplePagination";
 import { ProductCard } from "@/components/widgets/ProductCard";
+import {
+    addRecentSearch,
+    getRecentSearches,
+    removeRecentSearch,
+    clearRecentSearches,
+} from "@/lib/utils/recent-searches";
 import type { VendorListItem } from "@/lib/schema/vendor";
 import type { ProductListItem } from "@/lib/schema/product";
+
 const PAGE_SIZE = 12;
 const PREVIEW_COUNT = 4;
 
@@ -28,6 +36,11 @@ const TAB_OPTIONS = [
 
 type SearchTab = "all" | "product" | "vendor";
 const TAB_INDEX_MAP: SearchTab[] = ["all", "product", "vendor"];
+
+interface PopularTerm {
+    term: string;
+    count: number;
+}
 
 function SearchContent() {
     // URL 상태 관리
@@ -42,10 +55,17 @@ function SearchContent() {
     const activeTabIndex = TAB_INDEX_MAP.indexOf(tab);
 
     const [searchText, setSearchText] = useState(q);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
     useEffect(() => {
         setSearchText(q);
     }, [q]);
+
+    // SSR 안전하게 최근 검색어 로드
+    useEffect(() => {
+        setRecentSearches(getRecentSearches());
+    }, []);
 
     const isAuthenticated = useIsAuthenticated();
     const role = useUserRole();
@@ -75,6 +95,16 @@ function SearchContent() {
         },
         staleTime: 60 * 1000,
         enabled: canFetchFavorites && tab !== "vendor",
+    });
+
+    // 인기 검색어 API
+    const { data: popularTerms, isLoading: popularLoading } = useQuery({
+        queryKey: ["search", "popular"],
+        queryFn: async (): Promise<PopularTerm[]> => {
+            const res = await api.get<{ data: { items: PopularTerm[] } }>("/api/search/popular?days=30&limit=10");
+            return res.data.data.items;
+        },
+        staleTime: 5 * 60 * 1000,
     });
 
     // 업체 검색
@@ -119,10 +149,35 @@ function SearchContent() {
 
     const isLoading = (tab === "vendor" ? vendorsLoading : tab === "product" ? productsLoading : vendorsLoading || productsLoading);
 
+    const totalCount = (tab === "all"
+        ? (productData?.total ?? 0) + (vendorData?.total ?? 0)
+        : tab === "product"
+            ? productData?.total ?? 0
+            : vendorData?.total ?? 0);
+
+    // 결과 없음 → 추천 업체
+    const { data: recommendedVendors } = useQuery({
+        queryKey: ["vendors", "recommendations"],
+        queryFn: async () => {
+            const res = await api.get<{
+                data: { items: VendorListItem[]; total: number };
+            }>("/api/vendors?sort=popular&pageSize=4");
+            return res.data.data.items;
+        },
+        enabled: q.length > 0 && totalCount === 0 && !isLoading,
+        staleTime: 5 * 60 * 1000,
+    });
+
     const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setQ(searchText.trim());
+        const trimmed = searchText.trim();
+        if (trimmed) {
+            addRecentSearch(trimmed);
+            setRecentSearches(getRecentSearches());
+        }
+        setQ(trimmed);
         setPage(1);
+        setIsDropdownOpen(false);
     };
 
     const handleReset = () => {
@@ -137,13 +192,26 @@ function SearchContent() {
         setPage(1);
     };
 
-    const isFiltered = priceMin !== null || priceMax !== null || sort !== "newest";
+    const handleSelectTerm = (term: string) => {
+        addRecentSearch(term);
+        setRecentSearches(getRecentSearches());
+        setSearchText(term);
+        setQ(term);
+        setPage(1);
+        setIsDropdownOpen(false);
+    };
 
-    const totalCount = (tab === "all"
-        ? (productData?.total ?? 0) + (vendorData?.total ?? 0)
-        : tab === "product"
-            ? productData?.total ?? 0
-            : vendorData?.total ?? 0);
+    const handleRemoveRecent = (term: string) => {
+        removeRecentSearch(term);
+        setRecentSearches((prev) => prev.filter((s) => s !== term));
+    };
+
+    const handleClearRecent = () => {
+        clearRecentSearches();
+        setRecentSearches([]);
+    };
+
+    const isFiltered = priceMin !== null || priceMax !== null || sort !== "newest";
 
     return (
         <div className="space-y-6">
@@ -156,9 +224,17 @@ function SearchContent() {
                             name="search"
                             value={searchText}
                             onChange={(e) => setSearchText(e.target.value)}
+                            onFocus={() => setIsDropdownOpen(true)}
+                            autoComplete="off"
                             placeholder="상품명, 업체명, 서비스로 검색"
                             size="lg"
                             LeadingIcon={<Search className="w-5 h-5 text-gray-400" />}
+                        />
+                        <SearchDropdown
+                            query={searchText}
+                            isOpen={isDropdownOpen}
+                            onClose={() => setIsDropdownOpen(false)}
+                            onSelect={handleSelectTerm}
                         />
                     </div>
                     <Button type="submit" variant="primary" size="lg">
@@ -166,19 +242,24 @@ function SearchContent() {
                     </Button>
                 </form>
 
-                {/* 인기 검색어 */}
+                {/* 인기 검색어 (API 연동) */}
                 <div className="mt-4 flex flex-wrap gap-2">
-                    <span className="text-sm text-gray-500">추천:</span>
-                    {["원외탕전", "의료기기", "인테리어", "전자차트", "마케팅"].map((keyword) => (
-                        <button
-                            key={keyword}
-                            type="button"
-                            onClick={() => { setSearchText(keyword); setQ(keyword); setPage(1); }}
-                            className="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-600 hover:bg-primary-100 hover:text-content-primary transition-colors"
-                        >
-                            {keyword}
-                        </button>
-                    ))}
+                    <span className="text-sm text-gray-500">인기:</span>
+                    {popularLoading
+                        ? Array.from({ length: 5 }).map((_, i) => (
+                            <div key={i} className="h-7 w-16 bg-gray-200 rounded-full animate-pulse" />
+                        ))
+                        : popularTerms?.slice(0, 8).map((item) => (
+                            <button
+                                key={item.term}
+                                type="button"
+                                onClick={() => handleSelectTerm(item.term)}
+                                className="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-600 hover:bg-primary-100 hover:text-content-primary transition-colors"
+                            >
+                                {item.term}
+                            </button>
+                        ))
+                    }
                 </div>
             </div>
 
@@ -234,11 +315,30 @@ function SearchContent() {
                             <Spinner size="lg" />
                         </div>
                     ) : totalCount === 0 ? (
-                        <Empty
-                            illustration="/images/empty/empty-search.svg"
-                            title="검색 결과가 없습니다"
-                            description="다른 키워드로 검색하거나 필터를 변경해 보세요"
-                        />
+                        /* 결과 없음 → 추천 */
+                        <div className="space-y-8">
+                            <Empty
+                                illustration="/images/empty/empty-search.svg"
+                                title="검색 결과가 없습니다"
+                                description="다른 키워드로 검색하거나 필터를 변경해 보세요"
+                            />
+                            {recommendedVendors && recommendedVendors.length > 0 && (
+                                <section className="bg-white rounded-xl border border-gray-100 p-6">
+                                    <h2 className="text-lg font-bold text-gray-900 mb-4">
+                                        이런 업체는 어떠세요?
+                                    </h2>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                        {recommendedVendors.map((vendor) => (
+                                            <VendorCard
+                                                key={vendor.id}
+                                                vendor={vendor}
+                                                isFavorited={vendorFavorites.includes(vendor.id)}
+                                            />
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+                        </div>
                     ) : (
                         <>
                             {/* === 전체 탭 === */}
@@ -366,16 +466,58 @@ function SearchContent() {
 
             {/* 검색어 없을 때 */}
             {!q && (
-                <div className="text-center py-16">
-                    <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                        <Search className="w-10 h-10 text-gray-400" />
+                <div className="space-y-6">
+                    {/* 최근 검색어 */}
+                    {recentSearches.length > 0 && (
+                        <div className="bg-white rounded-xl border border-gray-100 p-6">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-sm font-medium text-gray-700">최근 검색어</h3>
+                                <button
+                                    type="button"
+                                    onClick={handleClearRecent}
+                                    className="text-xs text-gray-400 hover:text-gray-600"
+                                >
+                                    전체 삭제
+                                </button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {recentSearches.map((term) => (
+                                    <div
+                                        key={term}
+                                        className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-gray-100 text-sm text-gray-600"
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSelectTerm(term)}
+                                            className="hover:text-content-primary transition-colors"
+                                        >
+                                            {term}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveRecent(term)}
+                                            className="text-gray-400 hover:text-gray-600 ml-0.5"
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 빈 상태 */}
+                    <div className="text-center py-16">
+                        <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                            <Search className="w-10 h-10 text-gray-400" />
+                        </div>
+                        <h2 className="text-lg font-medium text-gray-700 mb-2">
+                            원하는 상품이나 업체를 검색해 보세요
+                        </h2>
+                        <p className="text-gray-500">
+                            상품명, 업체명, 서비스명으로 검색할 수 있습니다
+                        </p>
                     </div>
-                    <h2 className="text-lg font-medium text-gray-700 mb-2">
-                        원하는 상품이나 업체를 검색해 보세요
-                    </h2>
-                    <p className="text-gray-500">
-                        상품명, 업체명, 서비스명으로 검색할 수 있습니다
-                    </p>
                 </div>
             )}
         </div>

@@ -7,7 +7,7 @@ import { format } from "date-fns";
 
 import { salesOrderApi } from "@/api-client/sales-order";
 import { Select, type IOption } from "@/components/ui/Select/Select";
-import { useDebounce } from "@/hooks/agent-ncos/use-debounce";
+import { useDebounce } from "@/hooks/useDebounce";
 import type { SalesOrderListQuery } from "@/lib/schema/sales-order";
 
 interface SalesOrderSelectProps {
