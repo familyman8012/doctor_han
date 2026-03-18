@@ -1,6 +1,6 @@
 import type { Database, Tables } from "@/lib/database.types";
 import type { ProductListItem } from "@/lib/schema/product";
-import type { HomeScreen, HomeSection, HomeVendorCard } from "@/lib/schema/home";
+import type { HomeCategoryItem, HomeScreen, HomeSection, HomeStats, HomeVendorCard } from "@/lib/schema/home";
 import { internalServerError } from "@/server/api/errors";
 import { mapCategoryRow } from "@/server/category/mapper";
 import { mapProductListItem } from "@/server/product/mapper";
@@ -136,6 +136,32 @@ async function fetchCategorySlugsByIdsForHome(
     return result;
 }
 
+async function fetchVendorCountsByCategory(supabase: SupabaseClient<Database>): Promise<Map<string, number>> {
+    const result = new Map<string, number>();
+    const { data } = await supabase
+        .from("vendor_categories")
+        .select("category_id");
+    if (data) {
+        for (const row of data) {
+            result.set(row.category_id, (result.get(row.category_id) ?? 0) + 1);
+        }
+    }
+    return result;
+}
+
+export async function getHomeStats(supabase: SupabaseClient<Database>): Promise<HomeStats> {
+    const [vendorResult, reviewResult] = await Promise.all([
+        supabase.from("vendors").select("id", { count: "exact", head: true }),
+        supabase.from("reviews").select("id", { count: "exact", head: true }),
+    ]);
+
+    return {
+        vendorCount: vendorResult.count ?? 0,
+        reviewCount: reviewResult.count ?? 0,
+        avgResponseHours: 24, // TODO: calculate from actual lead response data
+    };
+}
+
 export async function buildHomeScreen(supabase: SupabaseClient<Database>): Promise<HomeScreen> {
     const { data: categoryRows, error: categoryError } = await supabase
         .from("categories")
@@ -154,6 +180,13 @@ export async function buildHomeScreen(supabase: SupabaseClient<Database>): Promi
     const categories = (categoryRows ?? []).map(mapCategoryRow);
     const mainCategories = categories.filter((c) => c.depth === 1);
     const gridCategories = mainCategories.slice(0, HOME_CATEGORY_GRID_SIZE);
+
+    // Fetch vendor counts per category for grid display
+    const vendorCountMap = await fetchVendorCountsByCategory(supabase);
+    const gridCategoryItems: HomeCategoryItem[] = gridCategories.map((c) => ({
+        ...c,
+        vendorCount: vendorCountMap.get(c.id) ?? 0,
+    }));
 
     // Split categories by listing type for section generation
     const vendorSectionCategories = mainCategories.filter((c) => c.listingType !== "product").slice(0, HOME_CATEGORY_SECTION_COUNT);
@@ -294,7 +327,7 @@ export async function buildHomeScreen(supabase: SupabaseClient<Database>): Promi
             id: "categories",
             type: "category_grid",
             title: "카테고리",
-            items: gridCategories,
+            items: gridCategoryItems,
         },
     ];
 

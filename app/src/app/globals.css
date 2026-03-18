@@ -376,6 +376,16 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Progress bar fill animation (HeroBanner) */
+@keyframes progress-fill {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+.animate-progress-fill {
+  animation: progress-fill linear forwards;
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;

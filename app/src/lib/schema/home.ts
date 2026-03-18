@@ -19,14 +19,30 @@ export const HomeVendorCardSchema = VendorListItemSchema.extend({
 
 export type HomeVendorCard = z.infer<typeof HomeVendorCardSchema>;
 
+// 카테고리 + 업체 수 (메인 페이지 카테고리 그리드용)
+export const HomeCategoryItemSchema = CategoryViewSchema.extend({
+    vendorCount: z.number().int(),
+});
+
+export type HomeCategoryItem = z.infer<typeof HomeCategoryItemSchema>;
+
 export const HomeCategoryGridSectionSchema = z.object({
     id: z.string(),
     type: z.literal("category_grid"),
     title: z.string().optional(),
-    items: z.array(CategoryViewSchema),
+    items: z.array(HomeCategoryItemSchema),
 });
 
 export type HomeCategoryGridSection = z.infer<typeof HomeCategoryGridSectionSchema>;
+
+// 홈 통계 (신뢰 구간 섹션)
+export const HomeStatsSchema = z.object({
+    vendorCount: z.number().int(),
+    reviewCount: z.number().int(),
+    avgResponseHours: z.number(),
+});
+
+export type HomeStats = z.infer<typeof HomeStatsSchema>;
 
 export const HomeVendorCarouselSectionSchema = z.object({
     id: z.string(),
