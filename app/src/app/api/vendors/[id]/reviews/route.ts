@@ -64,7 +64,7 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
     const [{ data: rows, error, count }, subRatingSummary, ratingDistribution] = await Promise.all([
         sortedQuery.range(from, to),
         getVendorSubRatingSummary(supabase, vendorId),
-        getVendorRatingDistribution(supabase, vendorId),
+        getVendorRatingDistribution(supabase, vendorId).catch(() => []),
     ]);
 
     if (error) {
