@@ -4,7 +4,8 @@ import { internalServerError, notFound } from "@/server/api/errors";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { mapReviewRow, mapReviewReplyRow } from "@/server/review/mapper";
-import { getRepliesByReviewIds, getVendorSubRatingSummary } from "@/server/review/repository";
+import { getRepliesByReviewIds, getVendorRatingDistribution, getVendorSubRatingSummary } from "@/server/review/repository";
+import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import type { NextRequest } from "next/server";
 
@@ -60,9 +61,10 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
               .order("created_at", { ascending: false })
               .order("id", { ascending: false });
 
-    const [{ data: rows, error, count }, subRatingSummary] = await Promise.all([
+    const [{ data: rows, error, count }, subRatingSummary, ratingDistribution] = await Promise.all([
         sortedQuery.range(from, to),
         getVendorSubRatingSummary(supabase, vendorId),
+        getVendorRatingDistribution(supabase, vendorId),
     ]);
 
     if (error) {
@@ -84,11 +86,43 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
         };
     });
 
+    // Resolve review photo URLs
+    const allPhotoFileIds = reviewRows.flatMap((r) => (r.photo_file_ids as string[]) ?? []);
+    const photoUrlMap = new Map<string, string>();
+
+    if (allPhotoFileIds.length > 0) {
+        const admin = createSupabaseAdminClient();
+        const { data: fileRows } = await admin
+            .from("files")
+            .select("id, bucket, path")
+            .in("id", allPhotoFileIds);
+
+        if (fileRows) {
+            const signPromises = fileRows.map(async (file) => {
+                const { data: signed } = await admin.storage
+                    .from(file.bucket)
+                    .createSignedUrl(file.path, 600); // 10 min
+                if (signed?.signedUrl) {
+                    photoUrlMap.set(file.id, signed.signedUrl);
+                }
+            });
+            await Promise.all(signPromises);
+        }
+    }
+
+    const itemsWithPhotos = items.map((item) => ({
+        ...item,
+        photoUrls: (item.photoFileIds ?? [])
+            .map((id: string) => photoUrlMap.get(id))
+            .filter((url): url is string => Boolean(url)),
+    }));
+
     return ok({
-        items,
+        items: itemsWithPhotos,
         page: query.page,
         pageSize: query.pageSize,
         total: count ?? 0,
         subRatingSummary,
+        ratingDistribution,
     });
 });
