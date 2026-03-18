@@ -1,7 +1,7 @@
 import type { VendorBadge } from "@/lib/schema/badge";
 import type { CategoryView } from "@/lib/schema/category";
 
-export type VendorCardVariant = "grid" | "carousel";
+export type VendorCardVariant = "grid" | "carousel" | "list";
 
 export interface VendorCardData {
     id: string;

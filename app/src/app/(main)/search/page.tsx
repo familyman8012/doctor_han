@@ -219,12 +219,20 @@ function SearchContent() {
                         <VendorFilter
                             priceMin={priceMin ?? undefined}
                             priceMax={priceMax ?? undefined}
-                            sort={sort}
                             onPriceMinChange={(v) => { setPriceMin(v ?? null); setPage(1); }}
                             onPriceMaxChange={(v) => { setPriceMax(v ?? null); setPage(1); }}
+                            onRegionPrimaryChange={() => {}}
+                            onRegionSecondaryChange={() => {}}
+                            onRatingMinChange={() => {}}
+                            onHasReviewsChange={() => {}}
+                            onBadgeTypesChange={() => {}}
+                            sort={sort}
                             onSortChange={(v) => { setSort(v); setPage(1); }}
+                            viewMode="grid"
+                            onViewModeChange={() => {}}
                             onReset={handleReset}
                             isFiltered={isFiltered}
+                            listingType={tab === "product" ? "product" : "vendor"}
                         />
                     )}
 

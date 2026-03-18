@@ -53,6 +53,13 @@ function applyFiltersAndSort<T>(qb: T, query: ParsedQuery): T {
         result = result.eq("review_count", 0);
     }
 
+    // 배지 필터
+    if (query.badgeTypes?.length) {
+        for (const bt of query.badgeTypes) {
+            result = result.contains("badges", JSON.stringify([{ type: bt }]));
+        }
+    }
+
     // 정렬
     switch (query.sort) {
         case "rating":
@@ -86,6 +93,7 @@ export const GET = withApi(async (req: NextRequest) => {
         regionSecondary: searchParams.get("regionSecondary") ?? undefined,
         ratingMin: searchParams.get("ratingMin") ?? undefined,
         hasReviews: searchParams.get("hasReviews") ?? undefined,
+        badgeTypes: searchParams.get("badgeTypes") ?? undefined,
         sort: searchParams.get("sort") ?? undefined,
         page: searchParams.get("page") ?? undefined,
         pageSize: searchParams.get("pageSize") ?? undefined,

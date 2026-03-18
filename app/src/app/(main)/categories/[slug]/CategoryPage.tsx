@@ -8,6 +8,8 @@ import { ChevronRight } from "lucide-react";
 import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
+import { Skeleton } from "@/components/ui/Skeleton/Skeleton";
+import { Button } from "@/components/ui/Button/button";
 import { CATEGORY_BG_PATHS } from "@/lib/constants/assets";
 import { VendorCard } from "./components/VendorCard";
 import { VendorFilter } from "./components/VendorFilter";
@@ -32,6 +34,12 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
     const [priceMin, setPriceMin] = useQueryState("priceMin", parseAsInteger);
     const [priceMax, setPriceMax] = useQueryState("priceMax", parseAsInteger);
     const [sort, setSort] = useQueryState("sort", parseAsString.withDefault("newest"));
+    const [regionPrimary, setRegionPrimary] = useQueryState("region", parseAsString);
+    const [regionSecondary, setRegionSecondary] = useQueryState("region2", parseAsString);
+    const [ratingMin, setRatingMin] = useQueryState("ratingMin", parseAsInteger);
+    const [hasReviews, setHasReviews] = useQueryState("hasReviews", parseAsString);
+    const [badgeTypes, setBadgeTypes] = useQueryState("badges", parseAsString);
+    const [viewMode, setViewMode] = useQueryState("view", parseAsString.withDefault("grid"));
 
     // 카테고리 조회
     const { data: categories = [], isLoading: isLoadingCategories } = useQuery({
@@ -66,7 +74,7 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
 
     // 업체 리스트 조회 (vendor-centric categories)
     const { data: vendorData, isLoading: isLoadingVendors } = useQuery({
-        queryKey: ["vendors", currentCategory?.id, page, priceMin, priceMax, sort],
+        queryKey: ["vendors", currentCategory?.id, page, priceMin, priceMax, sort, regionPrimary, regionSecondary, ratingMin, hasReviews, badgeTypes],
         queryFn: async () => {
             const params = new URLSearchParams();
             if (currentCategory?.id) params.set("categoryId", currentCategory.id);
@@ -75,6 +83,11 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
             if (priceMin !== null) params.set("priceMin", String(priceMin));
             if (priceMax !== null) params.set("priceMax", String(priceMax));
             if (sort) params.set("sort", sort);
+            if (regionPrimary) params.set("regionPrimary", regionPrimary);
+            if (regionSecondary) params.set("regionSecondary", regionSecondary);
+            if (ratingMin !== null) params.set("ratingMin", String(ratingMin));
+            if (hasReviews) params.set("hasReviews", hasReviews);
+            if (badgeTypes) params.set("badgeTypes", badgeTypes);
 
             const response = await api.get<{
                 data: { items: VendorListItem[]; page: number; pageSize: number; total: number };
@@ -111,11 +124,23 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
     const handleReset = () => {
         setPriceMin(null);
         setPriceMax(null);
+        setRegionPrimary(null);
+        setRegionSecondary(null);
+        setRatingMin(null);
+        setHasReviews(null);
+        setBadgeTypes(null);
         setSort("newest");
         setPage(1);
     };
 
-    const isFiltered = priceMin !== null || priceMax !== null || sort !== "newest";
+    const isFiltered =
+        priceMin !== null ||
+        priceMax !== null ||
+        sort !== "newest" ||
+        regionPrimary !== null ||
+        ratingMin !== null ||
+        hasReviews !== null ||
+        badgeTypes !== null;
 
     if (isLoadingCategories) {
         return (
@@ -132,6 +157,11 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
             </div>
         );
     }
+
+    // 히어로 설명 문구
+    const heroDescription = isProductListing
+        ? `${currentCategory.name} 분야 ${listData?.total ?? 0}개 상품을 비교해보세요`
+        : `${currentCategory.name} 분야 검증된 업체 ${listData?.total ?? 0}곳을 비교해보세요`;
 
     return (
         <div className="space-y-6">
@@ -157,38 +187,36 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
                     <div className="absolute inset-0 bg-gradient-to-r from-primary-900/80 to-primary-900/40" />
                     <div className="absolute inset-0 flex flex-col justify-center px-6">
                         <h1 className="text-2xl font-bold text-white mb-2">{currentCategory.name}</h1>
-                        <p className="text-primary-200">
-                            {listData?.total ?? 0}개의 {listLabel}가 있습니다
-                        </p>
+                        <p className="text-primary-200">{heroDescription}</p>
                     </div>
                 </div>
             ) : (
                 <div>
                     <h1 className="text-2xl font-bold text-content-primary mb-2">{currentCategory.name}</h1>
-                    <p className="text-gray-500">
-                        {listData?.total ?? 0}개의 {listLabel}가 있습니다
-                    </p>
+                    <p className="text-gray-500">{heroDescription}</p>
                 </div>
             )}
 
-            {/* 하위 카테고리 */}
+            {/* 하위 카테고리 — 모바일 가로 스크롤 */}
             {subCategories.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                    <Link
-                        href={`/categories/${slug}`}
-                        className="px-4 py-2 text-sm font-medium rounded-full bg-primary-900 text-white"
-                    >
-                        전체
-                    </Link>
-                    {subCategories.map((sub) => (
+                <div className="overflow-x-auto scrollbar-hide -mx-1 px-1">
+                    <div className="flex gap-2 min-w-max md:flex-wrap md:min-w-0">
                         <Link
-                            key={sub.id}
-                            href={`/categories/${slug}/${sub.slug}`}
-                            className="px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-primary-100 hover:text-content-primary transition-colors"
+                            href={`/categories/${slug}`}
+                            className="px-4 py-2 text-sm font-medium rounded-full bg-primary-900 text-white shrink-0"
                         >
-                            {sub.name}
+                            전체
                         </Link>
-                    ))}
+                        {subCategories.map((sub) => (
+                            <Link
+                                key={sub.id}
+                                href={`/categories/${slug}/${sub.slug}`}
+                                className="px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-primary-100 hover:text-content-primary transition-colors shrink-0"
+                            >
+                                {sub.name}
+                            </Link>
+                        ))}
+                    </div>
                 </div>
             )}
 
@@ -196,12 +224,26 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
             <VendorFilter
                 priceMin={priceMin ?? undefined}
                 priceMax={priceMax ?? undefined}
-                sort={sort}
                 onPriceMinChange={(v) => { setPriceMin(v ?? null); setPage(1); }}
                 onPriceMaxChange={(v) => { setPriceMax(v ?? null); setPage(1); }}
+                regionPrimary={regionPrimary ?? undefined}
+                regionSecondary={regionSecondary ?? undefined}
+                onRegionPrimaryChange={(v) => { setRegionPrimary(v ?? null); setPage(1); }}
+                onRegionSecondaryChange={(v) => { setRegionSecondary(v ?? null); setPage(1); }}
+                ratingMin={ratingMin ?? undefined}
+                onRatingMinChange={(v) => { setRatingMin(v ?? null); setPage(1); }}
+                hasReviews={hasReviews ?? undefined}
+                onHasReviewsChange={(v) => { setHasReviews(v ?? null); setPage(1); }}
+                badgeTypes={badgeTypes ?? undefined}
+                onBadgeTypesChange={(v) => { setBadgeTypes(v ?? null); setPage(1); }}
+                sort={sort}
                 onSortChange={(v) => { setSort(v); setPage(1); }}
+                viewMode={viewMode}
+                onViewModeChange={(v) => { setViewMode(v); }}
+                totalCount={listData?.total}
                 onReset={handleReset}
                 isFiltered={isFiltered}
+                listingType={currentCategory.listingType}
             />
 
             {/* 우선순위 광고 업체 (vendor-centric만) */}
@@ -209,35 +251,90 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
 
             {/* 리스트 */}
             {isLoadingList ? (
-                <div className="flex justify-center items-center py-20">
-                    <Spinner size="lg" />
+                <div className={viewMode === "list" ? "space-y-4" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"}>
+                    {Array.from({ length: 8 }).map((_, i) => (
+                        <div
+                            key={i}
+                            className={
+                                viewMode === "list"
+                                    ? "flex gap-4 bg-white rounded-xl border border-gray-100 p-4"
+                                    : "bg-white rounded-xl border border-gray-100 overflow-hidden"
+                            }
+                        >
+                            <Skeleton
+                                variant="rounded"
+                                className={viewMode === "list" ? "w-48 h-32 shrink-0" : "w-full aspect-[4/3]"}
+                            />
+                            <div className={viewMode === "list" ? "flex-1 space-y-2" : "p-4 space-y-2"}>
+                                <Skeleton variant="text" className="w-16 h-4" />
+                                <Skeleton variant="text" className="w-3/4 h-5" />
+                                <Skeleton variant="text" className="w-full h-4" />
+                                <Skeleton variant="text" className="w-1/2 h-4" />
+                            </div>
+                        </div>
+                    ))}
                 </div>
             ) : listData?.items.length === 0 ? (
-                <Empty
-                    illustration="/images/empty/empty-search.svg"
-                    title={`등록된 ${listLabel}가 없습니다`}
-                    description="다른 카테고리를 선택하거나 필터를 변경해 보세요"
-                />
+                <div className="py-12">
+                    <Empty
+                        illustration="/images/empty/empty-search.svg"
+                        title={isFiltered ? `필터 조건에 맞는 ${listLabel}가 없습니다` : `등록된 ${listLabel}가 없습니다`}
+                        description={isFiltered ? "필터를 변경하거나 초기화해 보세요" : "다른 카테고리를 선택해 주세요"}
+                    >
+                        {isFiltered ? (
+                            <Button variant="ghostSecondary" size="sm" onClick={handleReset} className="mt-3">
+                                필터 초기화
+                            </Button>
+                        ) : (
+                            <Link href="/categories" className="mt-3 inline-block text-sm text-primary hover:underline">
+                                다른 카테고리 둘러보기
+                            </Link>
+                        )}
+                    </Empty>
+                </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {isProductListing
-                            ? productData?.items.map((product) => (
-                                  <ProductCard
-                                      key={product.id}
-                                      product={product}
-                                      isFavorited={productFavorites.includes(product.id)}
-                                  />
-                              ))
-                            : vendorData?.items.map((vendor) => (
-                                  <VendorCard
-                                      key={vendor.id}
-                                      vendor={vendor}
-                                      categorySlug={slug}
-                                      isFavorited={favorites.includes(vendor.id)}
-                                  />
-                              ))}
-                    </div>
+                    {/* 뷰 모드에 따른 렌더링 */}
+                    {viewMode === "list" ? (
+                        <div className="space-y-4">
+                            {isProductListing
+                                ? productData?.items.map((product) => (
+                                      <ProductCard
+                                          key={product.id}
+                                          product={product}
+                                          isFavorited={productFavorites.includes(product.id)}
+                                      />
+                                  ))
+                                : vendorData?.items.map((vendor) => (
+                                      <VendorCard
+                                          key={vendor.id}
+                                          vendor={vendor}
+                                          variant="list"
+                                          categorySlug={slug}
+                                          isFavorited={favorites.includes(vendor.id)}
+                                      />
+                                  ))}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {isProductListing
+                                ? productData?.items.map((product) => (
+                                      <ProductCard
+                                          key={product.id}
+                                          product={product}
+                                          isFavorited={productFavorites.includes(product.id)}
+                                      />
+                                  ))
+                                : vendorData?.items.map((vendor) => (
+                                      <VendorCard
+                                          key={vendor.id}
+                                          vendor={vendor}
+                                          categorySlug={slug}
+                                          isFavorited={favorites.includes(vendor.id)}
+                                      />
+                                  ))}
+                        </div>
+                    )}
 
                     {/* 페이지네이션 */}
                     {listData && listData.total > PAGE_SIZE && (
