@@ -181,33 +181,52 @@ function StatsBanner() {
     return (
         <section
             ref={ref}
-            className="bg-primary-900 text-white rounded-2xl p-8 md:p-10"
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-50/80 via-white to-primary-25 p-8 md:p-12"
         >
-            <h2 className="text-center text-lg md:text-xl font-bold mb-8">
-                메디허브가 연결하는 신뢰
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-                <StatItem
-                    icon={<Building2 className="w-6 h-6" />}
-                    value={stats?.vendorCount ?? 0}
-                    label="등록 업체"
-                    suffix="개"
-                    isVisible={isVisible}
-                />
-                <StatItem
-                    icon={<MessageSquare className="w-6 h-6" />}
-                    value={stats?.reviewCount ?? 0}
-                    label="누적 리뷰"
-                    suffix="건"
-                    isVisible={isVisible}
-                />
-                <StatItem
-                    icon={<Clock className="w-6 h-6" />}
-                    value={stats?.avgResponseHours ?? 0}
-                    label="평균 응답"
-                    suffix="시간"
-                    isVisible={isVisible}
-                />
+            {/* Decorative blobs */}
+            <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary-100/40 blur-3xl" />
+            <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-primary-100/30 blur-3xl" />
+
+            <div className="relative">
+                <div className="text-center mb-8 md:mb-10">
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
+                        메디허브가 연결하는 신뢰
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                        검증된 파트너사와 의료인을 연결합니다
+                    </p>
+                    <div className="w-12 h-1 bg-primary-500 rounded-full mx-auto mt-3" />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                    <StatItem
+                        icon={<Building2 className="w-6 h-6" />}
+                        value={stats?.vendorCount ?? 0}
+                        label="등록 업체"
+                        suffix="개"
+                        isVisible={isVisible}
+                        iconBg="bg-blue-50"
+                        iconColor="text-blue-600"
+                    />
+                    <StatItem
+                        icon={<MessageSquare className="w-6 h-6" />}
+                        value={stats?.reviewCount ?? 0}
+                        label="누적 리뷰"
+                        suffix="건"
+                        isVisible={isVisible}
+                        iconBg="bg-green-50"
+                        iconColor="text-green-600"
+                    />
+                    <StatItem
+                        icon={<Clock className="w-6 h-6" />}
+                        value={stats?.avgResponseHours ?? 0}
+                        label="평균 응답"
+                        suffix="시간"
+                        isVisible={isVisible}
+                        iconBg="bg-amber-50"
+                        iconColor="text-amber-600"
+                    />
+                </div>
             </div>
         </section>
     );
@@ -219,12 +238,16 @@ function StatItem({
     label,
     suffix,
     isVisible,
+    iconBg,
+    iconColor,
 }: {
     icon: React.ReactNode;
     value: number;
     label: string;
     suffix: string;
     isVisible: boolean;
+    iconBg: string;
+    iconColor: string;
 }) {
     const [displayed, setDisplayed] = useState(0);
     const hasFraction = !Number.isInteger(value);
@@ -259,17 +282,17 @@ function StatItem({
     );
 
     return (
-        <div className="flex flex-col items-center text-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+        <div className="flex flex-col items-center text-center gap-3 bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+            <div className={`w-12 h-12 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center`}>
                 {icon}
             </div>
             <div>
-                <span className="text-3xl md:text-4xl font-bold tabular-nums">
+                <span className="text-3xl md:text-4xl font-bold text-gray-900 tabular-nums">
                     {formattedValue}
                 </span>
-                <span className="text-lg ml-1 text-white/80">{suffix}</span>
+                <span className="text-lg ml-1 text-gray-400">{suffix}</span>
             </div>
-            <span className="text-sm text-white/60">{label}</span>
+            <span className="text-sm text-gray-500">{label}</span>
         </div>
     );
 }

@@ -116,7 +116,7 @@ function HomePageSkeleton() {
     return (
         <div className="space-y-8 md:space-y-10 animate-pulse">
             {/* 배너 */}
-            <div className="h-48 md:h-64 bg-gray-200 rounded-2xl" />
+            <div className="min-h-[280px] md:min-h-[380px] lg:min-h-[440px] bg-gray-200 rounded-2xl" />
 
             {/* 카테고리 */}
             <div className="space-y-4">

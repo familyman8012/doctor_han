@@ -3,3 +3,5 @@
 
 # IDE
 .vscode/
+.vercel
+.env*.local

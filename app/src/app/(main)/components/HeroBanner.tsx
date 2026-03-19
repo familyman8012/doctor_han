@@ -16,6 +16,7 @@ interface BannerSlide {
     textColor: string;
     accentColor: string;
     imageUrl?: string;
+    overlayClass?: string;
 }
 
 const defaultSlides: BannerSlide[] = [
@@ -27,8 +28,10 @@ const defaultSlides: BannerSlide[] = [
         buttonHref: "/categories",
         bgColor: "from-primary-900 to-primary-800",
         textColor: "text-white",
-        accentColor: "text-primary",
+        accentColor: "text-white/70",
         imageUrl: HERO_BANNER_IMAGES[0],
+        overlayClass:
+            "bg-gradient-to-r from-black/50 via-black/25 to-transparent",
     },
     {
         id: "2",
@@ -38,8 +41,10 @@ const defaultSlides: BannerSlide[] = [
         buttonHref: "/categories/external-decoction",
         bgColor: "from-primary-800 to-primary-800",
         textColor: "text-white",
-        accentColor: "text-primary-300",
+        accentColor: "text-white/70",
         imageUrl: HERO_BANNER_IMAGES[1],
+        overlayClass:
+            "bg-gradient-to-r from-black/55 via-black/30 to-transparent",
     },
     {
         id: "3",
@@ -49,8 +54,10 @@ const defaultSlides: BannerSlide[] = [
         buttonHref: "/categories/medical-devices",
         bgColor: "from-primary-900 to-primary-900",
         textColor: "text-white",
-        accentColor: "text-primary-300",
+        accentColor: "text-white/70",
         imageUrl: HERO_BANNER_IMAGES[2],
+        overlayClass:
+            "bg-gradient-to-r from-black/50 via-black/25 to-transparent",
     },
 ];
 
@@ -95,7 +102,7 @@ export function HeroBanner({ slides = defaultSlides, autoPlayInterval = 5000 }: 
 
     return (
         <section
-            className="relative overflow-hidden rounded-2xl"
+            className="relative overflow-hidden rounded-2xl min-h-[280px] md:min-h-[380px] lg:min-h-[440px]"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
         >
@@ -118,7 +125,7 @@ export function HeroBanner({ slides = defaultSlides, autoPlayInterval = 5000 }: 
                                 className="object-cover"
                                 priority={index === 0}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
+                            <div className={`absolute inset-0 ${slide.overlayClass ?? "bg-gradient-to-r from-black/50 via-black/25 to-transparent"}`} />
                         </>
                     ) : (
                         <div
@@ -128,7 +135,7 @@ export function HeroBanner({ slides = defaultSlides, autoPlayInterval = 5000 }: 
                     <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
 
                     {/* Content */}
-                    <div className="relative px-6 py-12 md:px-12 md:py-20 lg:py-24">
+                    <div className="relative flex items-center min-h-[280px] md:min-h-[380px] lg:min-h-[440px] px-6 py-8 md:px-12 md:py-12 lg:px-16 lg:py-16">
                         <div className="max-w-3xl">
                             <h1
                                 className={`text-2xl md:text-3xl lg:text-4xl font-bold ${slide.textColor} mb-3`}

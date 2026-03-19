@@ -91,7 +91,12 @@ export function Header({ onMenuToggle, isMobileMenuOpen }: HeaderProps) {
                             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>
                         <Link href="/" className="flex items-center gap-2">
-                            <span className="text-xl font-bold text-content-primary">메디허브</span>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src="/images/logo-v1.png"
+                                alt="메디허브"
+                                className="h-8 w-auto"
+                            />
                         </Link>
                     </div>
 
