@@ -15,7 +15,12 @@ import { Button } from "@/components/ui/Button/button";
 import { Select } from "@/components/ui/Select/Select";
 import { Checkbox } from "@/components/ui/Checkbox/Checkbox";
 import { BADGE_DISPLAY_CONFIG, type VendorBadgeType } from "@/lib/schema/badge";
-import { REGIONS, SIDO_LIST } from "@/lib/constants/regions";
+import {
+    REGION_OPTIONS,
+    REGIONS,
+    getRegionLabel,
+    normalizeRegionPrimaryValue,
+} from "@/lib/constants/regions";
 
 /* ─────────────────────────── Types ──────────────────────────── */
 
@@ -45,6 +50,7 @@ export interface VendorFilterProps {
     // View mode
     viewMode: string;
     onViewModeChange: (v: string) => void;
+    showViewModeToggle?: boolean;
     // Meta
     totalCount?: number;
     onReset: () => void;
@@ -153,7 +159,8 @@ function RegionFilterPanel({
     onRegionPrimaryChange: (v: string | undefined) => void;
     onRegionSecondaryChange: (v: string | undefined) => void;
 }) {
-    const sigunguList = regionPrimary ? REGIONS[regionPrimary] ?? [] : [];
+    const normalizedPrimary = normalizeRegionPrimaryValue(regionPrimary);
+    const sigunguList = normalizedPrimary ? REGIONS[normalizedPrimary] ?? [] : [];
 
     return (
         <div className="flex gap-2 max-h-[280px]">
@@ -171,21 +178,21 @@ function RegionFilterPanel({
                 >
                     전체
                 </button>
-                {SIDO_LIST.map((sido) => (
+                {REGION_OPTIONS.map((region) => (
                     <button
-                        key={sido}
+                        key={region.value}
                         type="button"
                         onClick={() => {
-                            onRegionPrimaryChange(sido);
+                            onRegionPrimaryChange(region.value);
                             onRegionSecondaryChange(undefined);
                         }}
                         className={`w-full text-left px-2 py-1.5 text-xs rounded-md transition-colors ${
-                            regionPrimary === sido
+                            normalizedPrimary === region.value
                                 ? "bg-primary-50 text-content-primary font-medium"
                                 : "text-gray-600 hover:bg-gray-50"
                         }`}
                     >
-                        {sido}
+                        {region.label}
                     </button>
                 ))}
             </div>
@@ -242,6 +249,7 @@ export function VendorFilter({
     onSortChange,
     viewMode,
     onViewModeChange,
+    showViewModeToggle = true,
     totalCount,
     onReset,
     isFiltered,
@@ -266,10 +274,11 @@ export function VendorFilter({
     );
 
     // Region active label
-    const regionLabel = regionPrimary
+    const regionPrimaryLabel = getRegionLabel(regionPrimary);
+    const regionLabel = regionPrimaryLabel
         ? regionSecondary
-            ? `${regionPrimary} ${regionSecondary}`
-            : regionPrimary
+            ? `${regionPrimaryLabel} ${regionSecondary}`
+            : regionPrimaryLabel
         : undefined;
 
     // Rating active label
@@ -487,32 +496,34 @@ export function VendorFilter({
                     </div>
 
                     {/* View mode toggle */}
-                    <div className="inline-flex rounded-lg border border-gray-200 p-0.5">
-                        <button
-                            type="button"
-                            onClick={() => onViewModeChange("grid")}
-                            className={`p-1.5 rounded-md transition-colors ${
-                                viewMode === "grid"
-                                    ? "bg-white text-content-primary shadow-sm"
-                                    : "text-gray-400 hover:text-gray-600"
-                            }`}
-                            aria-label="그리드 뷰"
-                        >
-                            <LayoutGrid className="w-4 h-4" />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => onViewModeChange("list")}
-                            className={`p-1.5 rounded-md transition-colors ${
-                                viewMode === "list"
-                                    ? "bg-white text-content-primary shadow-sm"
-                                    : "text-gray-400 hover:text-gray-600"
-                            }`}
-                            aria-label="리스트 뷰"
-                        >
-                            <LayoutList className="w-4 h-4" />
-                        </button>
-                    </div>
+                    {showViewModeToggle && (
+                        <div className="inline-flex rounded-lg border border-gray-200 p-0.5">
+                            <button
+                                type="button"
+                                onClick={() => onViewModeChange("grid")}
+                                className={`p-1.5 rounded-md transition-colors ${
+                                    viewMode === "grid"
+                                        ? "bg-white text-content-primary shadow-sm"
+                                        : "text-gray-400 hover:text-gray-600"
+                                }`}
+                                aria-label="그리드 뷰"
+                            >
+                                <LayoutGrid className="w-4 h-4" />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onViewModeChange("list")}
+                                className={`p-1.5 rounded-md transition-colors ${
+                                    viewMode === "list"
+                                        ? "bg-white text-content-primary shadow-sm"
+                                        : "text-gray-400 hover:text-gray-600"
+                                }`}
+                                aria-label="리스트 뷰"
+                            >
+                                <LayoutList className="w-4 h-4" />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 

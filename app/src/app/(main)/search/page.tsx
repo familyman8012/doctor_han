@@ -37,6 +37,11 @@ function SearchContent() {
     const [priceMax, setPriceMax] = useQueryState("priceMax", parseAsInteger);
     const [sort, setSort] = useQueryState("sort", parseAsString.withDefault("newest"));
     const [tabParam, setTabParam] = useQueryState("tab", parseAsString.withDefault("all"));
+    const [regionPrimary, setRegionPrimary] = useQueryState("region", parseAsString);
+    const [regionSecondary, setRegionSecondary] = useQueryState("region2", parseAsString);
+    const [ratingMin, setRatingMin] = useQueryState("ratingMin", parseAsInteger);
+    const [hasReviews, setHasReviews] = useQueryState("hasReviews", parseAsString);
+    const [badgeTypes, setBadgeTypes] = useQueryState("badges", parseAsString);
 
     const tab = (TAB_INDEX_MAP.includes(tabParam as SearchTab) ? tabParam : "all") as SearchTab;
     const activeTabIndex = TAB_INDEX_MAP.indexOf(tab);
@@ -79,7 +84,20 @@ function SearchContent() {
 
     // 업체 검색
     const { data: vendorData, isLoading: vendorsLoading } = useQuery({
-        queryKey: ["vendors", "search", q, page, priceMin, priceMax, sort],
+        queryKey: [
+            "vendors",
+            "search",
+            q,
+            page,
+            priceMin,
+            priceMax,
+            sort,
+            regionPrimary,
+            regionSecondary,
+            ratingMin,
+            hasReviews,
+            badgeTypes,
+        ],
         queryFn: async () => {
             const params = new URLSearchParams();
             if (q) params.set("q", q);
@@ -88,6 +106,11 @@ function SearchContent() {
             if (priceMin !== null) params.set("priceMin", String(priceMin));
             if (priceMax !== null) params.set("priceMax", String(priceMax));
             if (sort) params.set("sort", sort);
+            if (tab === "vendor" && regionPrimary) params.set("regionPrimary", regionPrimary);
+            if (tab === "vendor" && regionSecondary) params.set("regionSecondary", regionSecondary);
+            if (tab === "vendor" && ratingMin !== null) params.set("ratingMin", String(ratingMin));
+            if (tab === "vendor" && hasReviews) params.set("hasReviews", hasReviews);
+            if (tab === "vendor" && badgeTypes) params.set("badgeTypes", badgeTypes);
 
             const response = await api.get<{
                 data: { items: VendorListItem[]; page: number; pageSize: number; total: number };
@@ -128,6 +151,11 @@ function SearchContent() {
     const handleReset = () => {
         setPriceMin(null);
         setPriceMax(null);
+        setRegionPrimary(null);
+        setRegionSecondary(null);
+        setRatingMin(null);
+        setHasReviews(null);
+        setBadgeTypes(null);
         setSort("newest");
         setPage(1);
     };
@@ -137,7 +165,16 @@ function SearchContent() {
         setPage(1);
     };
 
-    const isFiltered = priceMin !== null || priceMax !== null || sort !== "newest";
+    const isVendorTab = tab === "vendor";
+    const isFiltered = isVendorTab
+        ? priceMin !== null
+            || priceMax !== null
+            || sort !== "newest"
+            || regionPrimary !== null
+            || ratingMin !== null
+            || hasReviews !== null
+            || badgeTypes !== null
+        : priceMin !== null || priceMax !== null || sort !== "newest";
 
     const totalCount = (tab === "all"
         ? (productData?.total ?? 0) + (vendorData?.total ?? 0)
@@ -219,17 +256,24 @@ function SearchContent() {
                         <VendorFilter
                             priceMin={priceMin ?? undefined}
                             priceMax={priceMax ?? undefined}
+                            regionPrimary={tab === "vendor" ? regionPrimary ?? undefined : undefined}
+                            regionSecondary={tab === "vendor" ? regionSecondary ?? undefined : undefined}
                             onPriceMinChange={(v) => { setPriceMin(v ?? null); setPage(1); }}
                             onPriceMaxChange={(v) => { setPriceMax(v ?? null); setPage(1); }}
-                            onRegionPrimaryChange={() => {}}
-                            onRegionSecondaryChange={() => {}}
-                            onRatingMinChange={() => {}}
-                            onHasReviewsChange={() => {}}
-                            onBadgeTypesChange={() => {}}
+                            onRegionPrimaryChange={(v) => { setRegionPrimary(v ?? null); setPage(1); }}
+                            onRegionSecondaryChange={(v) => { setRegionSecondary(v ?? null); setPage(1); }}
+                            ratingMin={tab === "vendor" ? ratingMin ?? undefined : undefined}
+                            onRatingMinChange={(v) => { setRatingMin(v ?? null); setPage(1); }}
+                            hasReviews={tab === "vendor" ? hasReviews ?? undefined : undefined}
+                            onHasReviewsChange={(v) => { setHasReviews(v ?? null); setPage(1); }}
+                            badgeTypes={tab === "vendor" ? badgeTypes ?? undefined : undefined}
+                            onBadgeTypesChange={(v) => { setBadgeTypes(v ?? null); setPage(1); }}
                             sort={sort}
                             onSortChange={(v) => { setSort(v); setPage(1); }}
                             viewMode="grid"
                             onViewModeChange={() => {}}
+                            showViewModeToggle={false}
+                            totalCount={tab === "product" ? productData?.total : vendorData?.total}
                             onReset={handleReset}
                             isFiltered={isFiltered}
                             listingType={tab === "product" ? "product" : "vendor"}

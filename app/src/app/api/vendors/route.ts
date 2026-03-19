@@ -1,5 +1,6 @@
 import type { Tables } from "@/lib/database.types";
 import type { z } from "zod";
+import { getRegionFilterValues } from "@/lib/constants/regions";
 import { VendorListQuerySchema, type VendorListItem } from "@/lib/schema/vendor";
 import { internalServerError } from "@/server/api/errors";
 import { buildOrIlikeFilter } from "@/server/api/postgrest";
@@ -35,7 +36,12 @@ function applyFiltersAndSort<T>(qb: T, query: ParsedQuery): T {
 
     // 지역 필터
     if (query.regionPrimary) {
-        result = result.eq("region_primary", query.regionPrimary);
+        const regionFilterValues = getRegionFilterValues(query.regionPrimary);
+        if (regionFilterValues.length === 1) {
+            result = result.eq("region_primary", regionFilterValues[0]);
+        } else if (regionFilterValues.length > 1) {
+            result = result.in("region_primary", regionFilterValues);
+        }
     }
     if (query.regionSecondary) {
         result = result.eq("region_secondary", query.regionSecondary);
