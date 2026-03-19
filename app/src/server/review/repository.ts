@@ -164,6 +164,29 @@ export async function getVendorSubRatingSummary(
     };
 }
 
+// ─── Rating Distribution ───
+
+export async function getVendorRatingDistribution(
+    supabase: SupabaseClient<Database>,
+    vendorId: string,
+): Promise<Array<{ rating: number; count: number }>> {
+    const { data, error } = await supabase.rpc("get_vendor_rating_distribution", {
+        target_vendor_id: vendorId,
+    });
+
+    if (error) {
+        throw internalServerError("평점 분포를 조회할 수 없습니다.", {
+            message: error.message,
+            code: error.code,
+        });
+    }
+
+    return (data ?? []).map((row: { rating: number; count: number }) => ({
+        rating: Number(row.rating),
+        count: Number(row.count),
+    }));
+}
+
 // ─── Review Replies ───
 
 export async function getReplyByReviewId(

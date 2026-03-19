@@ -3551,6 +3551,13 @@ export type Database = {
           term: string
         }[]
       }
+      get_vendor_rating_distribution: {
+        Args: { target_vendor_id: string }
+        Returns: {
+          rating: number
+          count: number
+        }[]
+      }
       get_vendor_sub_rating_summary: {
         Args: { target_vendor_id: string }
         Returns: {

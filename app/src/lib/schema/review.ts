@@ -59,6 +59,11 @@ export type ReviewSort = z.infer<typeof ReviewSortSchema>;
 export const ReviewListQuerySchema = z
     .object({
         sort: ReviewSortSchema.default("recent"),
+        photoOnly: z.preprocess((value) => {
+            if (value === "true") return true;
+            if (value === "false") return false;
+            return value;
+        }, z.boolean().default(false)),
     })
     .merge(zPaginationQuery)
     .strict();
@@ -186,6 +191,7 @@ export type ReviewReplyPatchBody = z.infer<typeof ReviewReplyPatchBodySchema>;
 
 export const VendorReviewListItemSchema = ReviewViewSchema.extend({
     reply: ReviewReplyViewSchema.nullable(),
+    photoUrls: z.array(z.string()).optional(),
 });
 
 export type VendorReviewListItem = z.infer<typeof VendorReviewListItemSchema>;
@@ -197,6 +203,12 @@ export const SubRatingSummarySchema = z.object({
 });
 
 export type SubRatingSummary = z.infer<typeof SubRatingSummarySchema>;
+
+export const RatingDistributionItemSchema = z.object({
+    rating: z.number().int().min(1).max(5),
+    count: z.number().int().min(0),
+});
+export type RatingDistributionItem = z.infer<typeof RatingDistributionItemSchema>;
 
 // --- 응답 스키마 ---
 
@@ -242,7 +254,9 @@ export const VendorReviewListResponseSchema = z.object({
         page: z.number().int(),
         pageSize: z.number().int(),
         total: z.number().int(),
+        photoReviewCount: z.number().int(),
         subRatingSummary: SubRatingSummarySchema,
+        ratingDistribution: z.array(RatingDistributionItemSchema),
     }),
     message: z.string().optional(),
 });
