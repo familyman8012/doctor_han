@@ -59,6 +59,11 @@ export type ReviewSort = z.infer<typeof ReviewSortSchema>;
 export const ReviewListQuerySchema = z
     .object({
         sort: ReviewSortSchema.default("recent"),
+        photoOnly: z.preprocess((value) => {
+            if (value === "true") return true;
+            if (value === "false") return false;
+            return value;
+        }, z.boolean().default(false)),
     })
     .merge(zPaginationQuery)
     .strict();
@@ -249,6 +254,7 @@ export const VendorReviewListResponseSchema = z.object({
         page: z.number().int(),
         pageSize: z.number().int(),
         total: z.number().int(),
+        photoReviewCount: z.number().int(),
         subRatingSummary: SubRatingSummarySchema,
         ratingDistribution: z.array(RatingDistributionItemSchema),
     }),

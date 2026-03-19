@@ -17,6 +17,7 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
         sort: searchParams.get("sort") ?? undefined,
         page: searchParams.get("page") ?? undefined,
         pageSize: searchParams.get("pageSize") ?? undefined,
+        photoOnly: searchParams.get("photoOnly") ?? undefined,
     });
 
     const supabase = await createSupabaseServerClient();
@@ -51,26 +52,50 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
         .eq("vendor_id", vendorId)
         .eq("status", "published");
 
+    const filteredBaseQuery = query.photoOnly
+        ? baseQuery.not("photo_file_ids", "eq", "{}")
+        : baseQuery;
+
+    const photoReviewCountQuery = supabase
+        .from("reviews")
+        .select("id", { count: "exact", head: true })
+        .eq("vendor_id", vendorId)
+        .eq("status", "published")
+        .not("photo_file_ids", "eq", "{}");
+
     // 정렬 적용 (tie-breaker로 id 추가)
     const sortedQuery = useRatingSort
-        ? baseQuery
+        ? filteredBaseQuery
               .order("rating", { ascending: ratingAsc })
               .order("created_at", { ascending: false })
               .order("id", { ascending: false })
-        : baseQuery
+        : filteredBaseQuery
               .order("created_at", { ascending: false })
               .order("id", { ascending: false });
 
-    const [{ data: rows, error, count }, subRatingSummary, ratingDistribution] = await Promise.all([
+    const [
+        { data: rows, error, count },
+        subRatingSummary,
+        ratingDistribution,
+        { count: photoReviewCount, error: photoReviewCountError },
+    ] = await Promise.all([
         sortedQuery.range(from, to),
         getVendorSubRatingSummary(supabase, vendorId),
         getVendorRatingDistribution(supabase, vendorId).catch(() => []),
+        photoReviewCountQuery,
     ]);
 
     if (error) {
         throw internalServerError("리뷰를 조회할 수 없습니다.", {
             message: error.message,
             code: error.code,
+        });
+    }
+
+    if (photoReviewCountError) {
+        throw internalServerError("사진 리뷰 수를 조회할 수 없습니다.", {
+            message: photoReviewCountError.message,
+            code: photoReviewCountError.code,
         });
     }
 
@@ -122,6 +147,7 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
         page: query.page,
         pageSize: query.pageSize,
         total: count ?? 0,
+        photoReviewCount: photoReviewCount ?? 0,
         subRatingSummary,
         ratingDistribution,
     });

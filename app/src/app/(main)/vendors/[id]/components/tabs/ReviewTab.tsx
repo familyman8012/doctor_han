@@ -37,18 +37,26 @@ export function ReviewTab({ vendorId, ratingAvg, reviewCount, currentUserId }: R
     }, [vendorId]);
 
     const { data: reviewData, isLoading, isError } = useQuery({
-        queryKey: ["reviews", vendorId, page, sort],
+        queryKey: ["reviews", vendorId, page, sort, photoOnly],
         queryFn: async () => {
+            const params = new URLSearchParams({
+                page: String(page),
+                pageSize: String(PAGE_SIZE),
+                sort,
+                photoOnly: String(photoOnly),
+            });
+
             const response = await api.get<{
                 data: {
                     items: VendorReviewListItem[];
                     page: number;
                     pageSize: number;
                     total: number;
+                    photoReviewCount: number;
                     subRatingSummary: SubRatingSummary;
                     ratingDistribution: RatingDistributionItem[];
                 };
-            }>(`/api/vendors/${vendorId}/reviews?page=${page}&pageSize=${PAGE_SIZE}&sort=${sort}`);
+            }>(`/api/vendors/${vendorId}/reviews?${params.toString()}`);
             return response.data.data;
         },
     });
@@ -58,12 +66,13 @@ export function ReviewTab({ vendorId, ratingAvg, reviewCount, currentUserId }: R
         setPage(1);
     };
 
-    // Client-side photo filter
+    const handlePhotoOnlyChange = (value: boolean) => {
+        setPhotoOnly(value);
+        setPage(1);
+    };
+
     const items = reviewData?.items ?? [];
-    const filteredItems = photoOnly
-        ? items.filter((r) => r.photoFileIds.length > 0)
-        : items;
-    const hasPhotoReviews = items.some((r) => r.photoFileIds.length > 0);
+    const hasPhotoReviews = (reviewData?.photoReviewCount ?? 0) > 0;
 
     return (
         <div>
@@ -119,7 +128,7 @@ export function ReviewTab({ vendorId, ratingAvg, reviewCount, currentUserId }: R
                         sort={sort}
                         onSortChange={handleSortChange}
                         photoOnly={photoOnly}
-                        onPhotoOnlyChange={setPhotoOnly}
+                        onPhotoOnlyChange={handlePhotoOnlyChange}
                         hasPhotoReviews={hasPhotoReviews}
                     />
                 </div>
@@ -132,7 +141,7 @@ export function ReviewTab({ vendorId, ratingAvg, reviewCount, currentUserId }: R
                 </div>
             ) : isError ? (
                 <Empty title="리뷰를 불러올 수 없습니다" />
-            ) : filteredItems.length === 0 ? (
+            ) : items.length === 0 ? (
                 <Empty
                     illustration={EMPTY_ILLUSTRATIONS.review}
                     title={photoOnly ? "사진 리뷰가 없습니다" : "아직 리뷰가 없습니다"}
@@ -140,7 +149,7 @@ export function ReviewTab({ vendorId, ratingAvg, reviewCount, currentUserId }: R
                 />
             ) : (
                 <div className="space-y-6">
-                    {filteredItems.map((review) => (
+                    {items.map((review) => (
                         <ReviewCard
                             key={review.id}
                             review={review}
@@ -149,7 +158,7 @@ export function ReviewTab({ vendorId, ratingAvg, reviewCount, currentUserId }: R
                         />
                     ))}
 
-                    {reviewData && reviewData.total > PAGE_SIZE && !photoOnly && (
+                    {reviewData && reviewData.total > PAGE_SIZE && (
                         <div className="flex justify-center pt-2">
                             <SimplePagination
                                 currentPage={page}

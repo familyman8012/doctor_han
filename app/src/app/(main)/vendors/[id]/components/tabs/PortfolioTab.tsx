@@ -11,6 +11,15 @@ interface PortfolioTabProps {
     portfolios: VendorPortfolio[];
 }
 
+function getPortfolioLightboxImages(portfolio: VendorPortfolio) {
+    return portfolio.assets
+        .filter((asset): asset is typeof asset & { url: string } => Boolean(asset.url))
+        .map((asset) => ({
+            url: asset.url,
+            alt: portfolio.title ?? "포트폴리오",
+        }));
+}
+
 export function PortfolioTab({ portfolios }: PortfolioTabProps) {
     const [activeTag, setActiveTag] = useState<string | null>(null);
     const [selectedPortfolio, setSelectedPortfolio] = useState<VendorPortfolio | null>(null);
@@ -43,10 +52,7 @@ export function PortfolioTab({ portfolios }: PortfolioTabProps) {
     }
 
     const lightboxImages = selectedPortfolio
-        ? selectedPortfolio.assets.map((a) => ({
-              url: a.url ?? "",
-              alt: selectedPortfolio.title ?? "포트폴리오",
-          }))
+        ? getPortfolioLightboxImages(selectedPortfolio)
         : [];
 
     return (
@@ -80,54 +86,59 @@ export function PortfolioTab({ portfolios }: PortfolioTabProps) {
 
             {/* Portfolio grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {filtered.map((portfolio) => (
-                    <button
-                        key={portfolio.id}
-                        type="button"
-                        onClick={() => {
-                            setSelectedPortfolio(portfolio);
-                            setCurrentAssetIndex(0);
-                        }}
-                        className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative group cursor-pointer"
-                    >
-                        {/* Cover image */}
-                        {portfolio.assets[0]?.url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                                src={portfolio.assets[0].url}
-                                alt={portfolio.title || "포트폴리오"}
-                                className="w-full h-full object-cover"
-                            />
-                        ) : (
-                            <div className="flex items-center justify-center h-full">
-                                <ImageIcon className="w-8 h-8 text-gray-300" />
-                            </div>
-                        )}
+                {filtered.map((portfolio) => {
+                    const openableImages = getPortfolioLightboxImages(portfolio);
 
-                        {/* Featured badge */}
-                        {portfolio.isFeatured && (
-                            <div className="absolute top-2 left-2">
-                                <Badge color="amber" size="xs">
-                                    대표 사례
-                                </Badge>
-                            </div>
-                        )}
+                    return (
+                        <button
+                            key={portfolio.id}
+                            type="button"
+                            onClick={() => {
+                                if (openableImages.length === 0) return;
+                                setSelectedPortfolio(portfolio);
+                                setCurrentAssetIndex(0);
+                            }}
+                            className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative group cursor-pointer"
+                        >
+                            {/* Cover image */}
+                            {portfolio.assets[0]?.url ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                    src={portfolio.assets[0].url}
+                                    alt={portfolio.title || "포트폴리오"}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="flex items-center justify-center h-full">
+                                    <ImageIcon className="w-8 h-8 text-gray-300" />
+                                </div>
+                            )}
 
-                        {/* Hover overlay */}
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
-                            <div className="w-full p-3">
-                                <p className="text-sm font-medium text-white truncate">
-                                    {portfolio.title || "포트폴리오"}
-                                </p>
-                                {portfolio.assets.length > 1 && (
-                                    <p className="text-xs text-white/80">
-                                        {portfolio.assets.length}장
+                            {/* Featured badge */}
+                            {portfolio.isFeatured && (
+                                <div className="absolute top-2 left-2">
+                                    <Badge color="amber" size="xs">
+                                        대표 사례
+                                    </Badge>
+                                </div>
+                            )}
+
+                            {/* Hover overlay */}
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
+                                <div className="w-full p-3">
+                                    <p className="text-sm font-medium text-white truncate">
+                                        {portfolio.title || "포트폴리오"}
                                     </p>
-                                )}
+                                    {openableImages.length > 1 && (
+                                        <p className="text-xs text-white/80">
+                                            {openableImages.length}장
+                                        </p>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    </button>
-                ))}
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Lightbox */}
