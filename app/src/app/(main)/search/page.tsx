@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { Search, X, ChevronRight } from "lucide-react";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import api from "@/api-client/client";
 import { Input } from "@/components/ui/Input/Input";
 import { Button } from "@/components/ui/Button/button";
@@ -43,6 +43,8 @@ interface PopularTerm {
 }
 
 function SearchContent() {
+    const searchFormRef = useRef<HTMLFormElement>(null);
+
     // URL 상태 관리
     const [q, setQ] = useQueryState("q", parseAsString.withDefault(""));
     const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
@@ -218,7 +220,7 @@ function SearchContent() {
             {/* 검색 헤더 */}
             <div className="bg-white rounded-xl border border-gray-100 p-6">
                 <h1 className="text-2xl font-bold text-content-primary mb-4">통합 검색</h1>
-                <form onSubmit={handleSearch} className="flex gap-3">
+                <form ref={searchFormRef} onSubmit={handleSearch} className="flex gap-3">
                     <div className="flex-1 relative">
                         <Input
                             name="search"
@@ -231,6 +233,7 @@ function SearchContent() {
                             LeadingIcon={<Search className="w-5 h-5 text-gray-400" />}
                         />
                         <SearchDropdown
+                            containerRef={searchFormRef}
                             query={searchText}
                             isOpen={isDropdownOpen}
                             onClose={() => setIsDropdownOpen(false)}

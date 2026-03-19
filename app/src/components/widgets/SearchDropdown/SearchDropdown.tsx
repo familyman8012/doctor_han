@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Clock, TrendingUp, X, Building2, Tag, Package } from "lucide-react";
 import api from "@/api-client/client";
@@ -13,6 +13,7 @@ import {
 } from "@/lib/utils/recent-searches";
 
 interface SearchDropdownProps {
+    containerRef: RefObject<HTMLElement | null>;
     query: string;
     isOpen: boolean;
     onClose: () => void;
@@ -30,13 +31,15 @@ interface PopularTerm {
     count: number;
 }
 
+const RESULT_TYPES = ["vendor", "category", "product"] as const;
+
 const TYPE_CONFIG = {
     vendor: { label: "업체", icon: Building2 },
     category: { label: "카테고리", icon: Tag },
     product: { label: "상품", icon: Package },
 } as const;
 
-export function SearchDropdown({ query, isOpen, onClose, onSelect }: SearchDropdownProps) {
+export function SearchDropdown({ containerRef, query, isOpen, onClose, onSelect }: SearchDropdownProps) {
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const [recentSearches, setRecentSearches] = useState<string[]>([]);
     const listRef = useRef<HTMLDivElement>(null);
@@ -79,28 +82,32 @@ export function SearchDropdown({ query, isOpen, onClose, onSelect }: SearchDropd
 
     // 자동완성 결과를 type별로 그룹핑
     const groupedResults = useMemo(() => {
-        if (!autocompleteItems?.length) return null;
-        const groups: Record<string, AutocompleteItem[]> = {};
-        for (const item of autocompleteItems) {
-            if (!groups[item.type]) groups[item.type] = [];
-            groups[item.type].push(item);
-        }
-        return groups;
+        return {
+            vendor: autocompleteItems?.filter((item) => item.type === "vendor") ?? [],
+            category: autocompleteItems?.filter((item) => item.type === "category") ?? [],
+            product: autocompleteItems?.filter((item) => item.type === "product") ?? [],
+        };
     }, [autocompleteItems]);
+
+    const visibleRecentSearches = useMemo(() => recentSearches.slice(0, 5), [recentSearches]);
+
+    const visiblePopularTerms = useMemo(() => popularTerms?.slice(0, 8) ?? [], [popularTerms]);
+
+    const orderedAutocompleteItems = useMemo(
+        () => RESULT_TYPES.flatMap((type) => groupedResults[type]),
+        [groupedResults],
+    );
 
     // 플랫 아이템 리스트 (키보드 네비게이션용)
     const flatItems = useMemo(() => {
-        if (hasQuery && autocompleteItems?.length) {
-            return autocompleteItems.map((item) => item.label);
+        if (hasQuery) {
+            return orderedAutocompleteItems.map((item) => item.label);
         }
-        if (!hasQuery) {
-            return [
-                ...recentSearches.slice(0, 5),
-                ...(popularTerms?.map((t) => t.term) ?? []),
-            ];
-        }
-        return [];
-    }, [hasQuery, autocompleteItems, recentSearches, popularTerms]);
+        return [
+            ...visibleRecentSearches,
+            ...visiblePopularTerms.map((item) => item.term),
+        ];
+    }, [hasQuery, orderedAutocompleteItems, visibleRecentSearches, visiblePopularTerms]);
 
     // 하이라이트 인덱스 리셋
     useEffect(() => {
@@ -137,6 +144,20 @@ export function SearchDropdown({ query, isOpen, onClose, onSelect }: SearchDropd
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [handleKeyDown]);
 
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handlePointerDown = (e: PointerEvent) => {
+            const target = e.target;
+            if (!(target instanceof Node)) return;
+            if (containerRef.current?.contains(target)) return;
+            onClose();
+        };
+
+        document.addEventListener("pointerdown", handlePointerDown);
+        return () => document.removeEventListener("pointerdown", handlePointerDown);
+    }, [containerRef, isOpen, onClose]);
+
     // 하이라이트된 아이템 스크롤
     useEffect(() => {
         if (highlightedIndex >= 0 && listRef.current) {
@@ -160,20 +181,16 @@ export function SearchDropdown({ query, isOpen, onClose, onSelect }: SearchDropd
     let flatIndex = -1;
 
     return (
-        <>
-            {/* 클릭 바깥 닫기 오버레이 */}
-            <div className="fixed inset-0 z-20" onClick={onClose} />
-
-            <div
-                ref={listRef}
-                role="listbox"
-                className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-gray-200 z-30 max-h-[400px] overflow-y-auto"
-            >
+        <div
+            ref={listRef}
+            role="listbox"
+            className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-gray-200 z-30 max-h-[400px] overflow-y-auto"
+        >
                 {/* === 검색어 없을 때: 최근 + 인기 === */}
                 {!hasQuery && (
                     <>
                         {/* 최근 검색어 */}
-                        {recentSearches.length > 0 && (
+                        {visibleRecentSearches.length > 0 && (
                             <div className="p-3">
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
@@ -189,7 +206,7 @@ export function SearchDropdown({ query, isOpen, onClose, onSelect }: SearchDropd
                                     </button>
                                 </div>
                                 <div className="flex flex-wrap gap-1.5">
-                                    {recentSearches.slice(0, 5).map((term) => {
+                                    {visibleRecentSearches.map((term) => {
                                         flatIndex++;
                                         const idx = flatIndex;
                                         return (
@@ -229,14 +246,14 @@ export function SearchDropdown({ query, isOpen, onClose, onSelect }: SearchDropd
                         )}
 
                         {/* 인기 검색어 */}
-                        {popularTerms && popularTerms.length > 0 && (
-                            <div className={`p-3 ${recentSearches.length > 0 ? "border-t border-gray-100" : ""}`}>
+                        {visiblePopularTerms.length > 0 && (
+                            <div className={`p-3 ${visibleRecentSearches.length > 0 ? "border-t border-gray-100" : ""}`}>
                                 <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-2">
                                     <TrendingUp className="w-3.5 h-3.5" />
                                     인기 검색어
                                 </div>
                                 <div className="space-y-0.5">
-                                    {popularTerms.slice(0, 8).map((item, i) => {
+                                    {visiblePopularTerms.map((item, i) => {
                                         flatIndex++;
                                         const idx = flatIndex;
                                         return (
@@ -267,7 +284,7 @@ export function SearchDropdown({ query, isOpen, onClose, onSelect }: SearchDropd
                         )}
 
                         {/* 둘 다 없을 때 */}
-                        {recentSearches.length === 0 && (!popularTerms || popularTerms.length === 0) && (
+                        {visibleRecentSearches.length === 0 && visiblePopularTerms.length === 0 && (
                             <div className="p-6 text-center text-sm text-gray-400">
                                 <Search className="w-5 h-5 mx-auto mb-2 text-gray-300" />
                                 검색어를 입력해 보세요
@@ -285,9 +302,9 @@ export function SearchDropdown({ query, isOpen, onClose, onSelect }: SearchDropd
                             </div>
                         )}
 
-                        {!autocompleteLoading && groupedResults && (
+                        {!autocompleteLoading && orderedAutocompleteItems.length > 0 && (
                             <>
-                                {(["vendor", "category", "product"] as const).map((type) => {
+                                {RESULT_TYPES.map((type) => {
                                     const items = groupedResults[type];
                                     if (!items?.length) return null;
                                     const config = TYPE_CONFIG[type];
@@ -334,7 +351,6 @@ export function SearchDropdown({ query, isOpen, onClose, onSelect }: SearchDropd
                         )}
                     </>
                 )}
-            </div>
-        </>
+        </div>
     );
 }

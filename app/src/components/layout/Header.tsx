@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Search, Menu, X, User, Heart, FileText, LogOut, Hammer } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
@@ -18,6 +18,7 @@ interface HeaderProps {
 
 export function Header({ onMenuToggle, isMobileMenuOpen }: HeaderProps) {
     const router = useRouter();
+    const searchFormRef = useRef<HTMLFormElement>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
@@ -96,6 +97,7 @@ export function Header({ onMenuToggle, isMobileMenuOpen }: HeaderProps) {
 
                     {/* 검색창 - 데스크톱 */}
                     <form
+                        ref={searchFormRef}
                         onSubmit={handleSearch}
                         className="hidden md:flex flex-1 max-w-xl mx-8"
                     >
@@ -117,6 +119,7 @@ export function Header({ onMenuToggle, isMobileMenuOpen }: HeaderProps) {
                                 <Search className="w-5 h-5" />
                             </button>
                             <SearchDropdown
+                                containerRef={searchFormRef}
                                 query={searchQuery}
                                 isOpen={isSearchDropdownOpen}
                                 onClose={() => setIsSearchDropdownOpen(false)}
