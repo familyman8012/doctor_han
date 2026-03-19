@@ -60,6 +60,44 @@ export async function fetchAvgResponseTimes(
     since: string,
     vendorOwnerMap: Map<string, string>,
 ): Promise<Map<string, number>> {
+    const vendorTimes = await fetchResponseHoursByVendor(admin, vendorIds, since, vendorOwnerMap);
+
+    const result = new Map<string, number>();
+    for (const [vendorId, times] of vendorTimes) {
+        if (times.length >= 3) {
+            const avg = times.reduce((sum, t) => sum + t, 0) / times.length;
+            result.set(vendorId, Math.round(avg * 10) / 10);
+        }
+    }
+
+    return result;
+}
+
+export async function fetchOverallAvgResponseHours(
+    admin: SupabaseClient<Database>,
+    vendorIds: string[],
+    since: string,
+    vendorOwnerMap: Map<string, string>,
+): Promise<number> {
+    const vendorTimes = await fetchResponseHoursByVendor(admin, vendorIds, since, vendorOwnerMap);
+    const allHours = [...vendorTimes.values()].flat();
+
+    if (allHours.length === 0) {
+        return 0;
+    }
+
+    const avg = allHours.reduce((sum, hours) => sum + hours, 0) / allHours.length;
+    return Math.round(avg * 10) / 10;
+}
+
+async function fetchResponseHoursByVendor(
+    admin: SupabaseClient<Database>,
+    vendorIds: string[],
+    since: string,
+    vendorOwnerMap: Map<string, string>,
+): Promise<Map<string, number[]>> {
+    if (vendorIds.length === 0) return new Map();
+
     // Fetch leads for these vendors created in the last 90 days
     const { data: leads, error: leadsError } = await admin
         .from("leads")
@@ -122,14 +160,7 @@ export async function fetchAvgResponseTimes(
         vendorTimes.set(lead.vendor_id, times);
     }
 
-    const result = new Map<string, number>();
-    for (const [vendorId, times] of vendorTimes) {
-        if (times.length >= 3) {
-            const avg = times.reduce((sum, t) => sum + t, 0) / times.length;
-            result.set(vendorId, Math.round(avg * 10) / 10);
-        }
-    }
-    return result;
+    return vendorTimes;
 }
 
 export interface CategoryRanking {

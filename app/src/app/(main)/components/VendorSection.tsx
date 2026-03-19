@@ -20,9 +20,9 @@ export function VendorSection({ section, variant = "carousel" }: VendorSectionPr
                 <h2 className="text-lg font-bold text-gray-900">{section.title}</h2>
                 <Link
                     href={viewAllHref}
-                    className="text-sm text-gray-500 hover:text-content-primary flex items-center gap-1"
+                    className="inline-flex items-center gap-1 border border-gray-300 rounded-full px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-colors"
                 >
-                    더보기 <ChevronRight className="w-4 h-4" />
+                    더보기 <ChevronRight className="w-3.5 h-3.5" />
                 </Link>
             </div>
 

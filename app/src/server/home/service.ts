@@ -1,10 +1,16 @@
 import type { Database, Tables } from "@/lib/database.types";
 import type { ProductListItem } from "@/lib/schema/product";
-import type { HomeScreen, HomeSection, HomeVendorCard } from "@/lib/schema/home";
+import type { HomeCategoryItem, HomeScreen, HomeSection, HomeStats, HomeVendorCard } from "@/lib/schema/home";
+import {
+    fetchAllActiveVendors,
+    fetchOverallAvgResponseHours,
+    fetchVerificationStatuses,
+} from "@/server/badge/repository";
 import { internalServerError } from "@/server/api/errors";
 import { mapCategoryRow } from "@/server/category/mapper";
 import { mapProductListItem } from "@/server/product/mapper";
 import { fetchProductThumbnailsByProductIds } from "@/server/product/repository";
+import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import { mapVendorListItem } from "@/server/vendor/mapper";
 import {
     fetchVendorCategoriesByVendorIds,
@@ -136,6 +142,62 @@ async function fetchCategorySlugsByIdsForHome(
     return result;
 }
 
+async function fetchVendorCountsByCategory(supabase: SupabaseClient<Database>): Promise<Map<string, number>> {
+    const result = new Map<string, number>();
+    const { data } = await supabase
+        .from("vendor_categories")
+        .select("category_id");
+    if (data) {
+        for (const row of data) {
+            result.set(row.category_id, (result.get(row.category_id) ?? 0) + 1);
+        }
+    }
+    return result;
+}
+
+async function fetchPublicAvgResponseHours(): Promise<number> {
+    const admin = createSupabaseAdminClient();
+    const activeVendors = await fetchAllActiveVendors(admin);
+
+    if (activeVendors.length === 0) {
+        return 0;
+    }
+
+    const ownerUserIds = [...new Set(activeVendors.map((vendor) => vendor.owner_user_id))];
+    const verificationMap = await fetchVerificationStatuses(admin, ownerUserIds);
+    const publicVendors = activeVendors.filter(
+        (vendor) => verificationMap.get(vendor.owner_user_id) === "approved",
+    );
+
+    if (publicVendors.length === 0) {
+        return 0;
+    }
+
+    const vendorOwnerMap = new Map(publicVendors.map((vendor) => [vendor.id, vendor.owner_user_id]));
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+
+    return fetchOverallAvgResponseHours(
+        admin,
+        publicVendors.map((vendor) => vendor.id),
+        ninetyDaysAgo,
+        vendorOwnerMap,
+    );
+}
+
+export async function getHomeStats(supabase: SupabaseClient<Database>): Promise<HomeStats> {
+    const [vendorResult, reviewResult, avgResponseHours] = await Promise.all([
+        supabase.from("vendors").select("id", { count: "exact", head: true }),
+        supabase.from("reviews").select("id", { count: "exact", head: true }),
+        fetchPublicAvgResponseHours(),
+    ]);
+
+    return {
+        vendorCount: vendorResult.count ?? 0,
+        reviewCount: reviewResult.count ?? 0,
+        avgResponseHours,
+    };
+}
+
 export async function buildHomeScreen(supabase: SupabaseClient<Database>): Promise<HomeScreen> {
     const { data: categoryRows, error: categoryError } = await supabase
         .from("categories")
@@ -154,6 +216,13 @@ export async function buildHomeScreen(supabase: SupabaseClient<Database>): Promi
     const categories = (categoryRows ?? []).map(mapCategoryRow);
     const mainCategories = categories.filter((c) => c.depth === 1);
     const gridCategories = mainCategories.slice(0, HOME_CATEGORY_GRID_SIZE);
+
+    // Fetch vendor counts per category for grid display
+    const vendorCountMap = await fetchVendorCountsByCategory(supabase);
+    const gridCategoryItems: HomeCategoryItem[] = gridCategories.map((c) => ({
+        ...c,
+        vendorCount: vendorCountMap.get(c.id) ?? 0,
+    }));
 
     // Split categories by listing type for section generation
     const vendorSectionCategories = mainCategories.filter((c) => c.listingType !== "product").slice(0, HOME_CATEGORY_SECTION_COUNT);
@@ -294,7 +363,7 @@ export async function buildHomeScreen(supabase: SupabaseClient<Database>): Promi
             id: "categories",
             type: "category_grid",
             title: "카테고리",
-            items: gridCategories,
+            items: gridCategoryItems,
         },
     ];
 
@@ -421,4 +490,3 @@ export async function buildHomeScreen(supabase: SupabaseClient<Database>): Promi
         sections,
     };
 }
-

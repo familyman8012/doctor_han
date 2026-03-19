@@ -2,8 +2,20 @@
 
 import { useQuery } from "@tanstack/react-query";
 import api from "@/api-client/client";
-import type { HomeCategoryGridSection, HomeProductCarouselSection, HomeScreen, HomeVendorCarouselSection } from "@/lib/schema/home";
-import { HeroBanner, CategoryScroller, VendorSection, ProductSection, PromoBanner } from "./components";
+import type {
+    HomeCategoryGridSection,
+    HomeProductCarouselSection,
+    HomeScreen,
+    HomeVendorCarouselSection,
+} from "@/lib/schema/home";
+import {
+    HeroBanner,
+    CategoryScroller,
+    VendorSection,
+    ProductSection,
+    PromoBanner,
+    TestimonialSection,
+} from "./components";
 import { AdBanner } from "@/components/widgets/AdBanner";
 
 export default function HomePage() {
@@ -17,11 +29,16 @@ export default function HomePage() {
     });
 
     const sections = home?.sections ?? [];
-    const categorySection = sections.find((s): s is HomeCategoryGridSection => s.type === "category_grid");
-    const vendorSections = sections.filter((s): s is HomeVendorCarouselSection => s.type === "vendor_carousel");
-    const productSections = sections.filter((s): s is HomeProductCarouselSection => s.type === "product_carousel");
+    const categorySection = sections.find(
+        (s): s is HomeCategoryGridSection => s.type === "category_grid",
+    );
+    const vendorSections = sections.filter(
+        (s): s is HomeVendorCarouselSection => s.type === "vendor_carousel",
+    );
+    const productSections = sections.filter(
+        (s): s is HomeProductCarouselSection => s.type === "product_carousel",
+    );
 
-    // 메인 섹션들 분리
     const recommendedSection = vendorSections.find((s) => s.id === "recommended");
     const popularSection = vendorSections.find((s) => s.id === "popular");
     const reviewedSection = vendorSections.find((s) => s.id === "reviewed");
@@ -34,25 +51,28 @@ export default function HomePage() {
 
     return (
         <div className="space-y-8 md:space-y-10">
-            {/* 메인 배너 슬라이더 */}
+            {/* 히어로 배너 */}
             <HeroBanner />
+
+            {/* 카테고리 */}
+            {categorySection && <CategoryScroller categories={categorySection.items} />}
+
+            {/* 신뢰 구간 — 통계 */}
+            <PromoBanner variant="stats" />
 
             {/* 메인 광고 배너 */}
             <AdBanner position="main" />
 
-            {/* 카테고리 가로 스크롤 */}
-            {categorySection && <CategoryScroller categories={categorySection.items} />}
-
-            {/* 특징 소개 배너 */}
-            <PromoBanner variant="feature" />
-
-            {/* 추천 파트너 섹션 */}
+            {/* 추천 파트너 */}
             {recommendedSection && <VendorSection section={recommendedSection} />}
 
-            {/* 인기 업체 (그리드 형태) */}
+            {/* 인기 업체 (그리드) */}
             {popularSection && <VendorSection section={popularSection} variant="grid" />}
 
-            {/* 상품 카테고리별 인기 상품 */}
+            {/* 특징 소개 */}
+            <PromoBanner variant="feature" />
+
+            {/* 상품 섹션들 */}
             {productSections.map((section, index) => (
                 <ProductSection
                     key={section.id}
@@ -61,19 +81,22 @@ export default function HomePage() {
                 />
             ))}
 
-            {/* 업체 등록 CTA 배너 */}
+            {/* 의사 추천사 */}
+            <TestimonialSection />
+
+            {/* 업체/의사 CTA */}
             <PromoBanner variant="vendor-cta" />
 
             {/* 서브 광고 배너 */}
             <AdBanner position="sub" />
 
-            {/* 리뷰로 검증 섹션 */}
+            {/* 리뷰로 검증 */}
             {reviewedSection && <VendorSection section={reviewedSection} />}
 
-            {/* 신규 입점 섹션 */}
+            {/* 신규 입점 */}
             {newestSection && <VendorSection section={newestSection} />}
 
-            {/* 카테고리별 추천 섹션들 */}
+            {/* 카테고리별 추천 */}
             {categorySections.map((section, index) => (
                 <VendorSection
                     key={section.id}
@@ -85,33 +108,41 @@ export default function HomePage() {
     );
 }
 
+// ---------------------------------------------------------------------------
+// Skeleton
+// ---------------------------------------------------------------------------
+
 function HomePageSkeleton() {
     return (
         <div className="space-y-8 md:space-y-10 animate-pulse">
-            {/* 배너 스켈레톤 */}
+            {/* 배너 */}
             <div className="h-48 md:h-64 bg-gray-200 rounded-2xl" />
 
-            {/* 카테고리 스켈레톤 */}
+            {/* 카테고리 */}
             <div className="space-y-4">
                 <div className="h-6 w-24 bg-gray-200 rounded" />
-                <div className="flex gap-3">
+                <div className="flex gap-4">
                     {Array.from({ length: 8 }).map((_, i) => (
                         <div key={i} className="flex flex-col items-center gap-2">
-                            <div className="w-14 h-14 bg-gray-200 rounded-full" />
+                            <div className="w-16 h-16 bg-gray-200 rounded-full" />
                             <div className="w-12 h-3 bg-gray-200 rounded" />
+                            <div className="w-8 h-2 bg-gray-200 rounded" />
                         </div>
                     ))}
                 </div>
             </div>
 
-            {/* 특징 카드 스켈레톤 */}
+            {/* 신뢰 구간 */}
+            <div className="h-36 md:h-44 bg-gray-200 rounded-2xl" />
+
+            {/* 특징 카드 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {Array.from({ length: 3 }).map((_, i) => (
                     <div key={i} className="h-32 bg-gray-200 rounded-xl" />
                 ))}
             </div>
 
-            {/* 업체 섹션 스켈레톤 */}
+            {/* 업체 섹션 x2 */}
             {Array.from({ length: 2 }).map((_, i) => (
                 <div key={i} className="space-y-4">
                     <div className="h-6 w-32 bg-gray-200 rounded" />
@@ -129,6 +160,16 @@ function HomePageSkeleton() {
                     </div>
                 </div>
             ))}
+
+            {/* 추천사 */}
+            <div className="space-y-4">
+                <div className="h-6 w-48 bg-gray-200 rounded mx-auto" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="h-40 bg-gray-200 rounded-xl" />
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }
