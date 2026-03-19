@@ -12,6 +12,7 @@ import { useAuthStore, useProfile, useProfileCompletion } from "@/stores/auth";
 import { toast } from "sonner";
 import { ProfileCompletionBanner } from "@/components/widgets/ProfileCompletionBanner";
 import { VendorAddressSearch, type VendorAddressData } from "@/components/widgets/VendorAddressSearch";
+import { normalizeRegionPrimaryValue } from "@/lib/constants/regions";
 import type { VendorDetail } from "@/lib/schema/vendor";
 import type { MeData } from "@/lib/schema/profile";
 
@@ -49,7 +50,7 @@ interface AddressState {
 function parseRegionFromAddress(roadAddress: string): { regionPrimary: string; regionSecondary: string } {
     const parts = roadAddress.trim().split(/\s+/);
     return {
-        regionPrimary: parts[0] ?? "",
+        regionPrimary: normalizeRegionPrimaryValue(parts[0]) ?? "",
         regionSecondary: parts[1] ?? "",
     };
 }
@@ -205,7 +206,7 @@ export default function PartnerProfilePage() {
     const saveMutation = useMutation({
         mutationFn: async (data: VendorFormData) => {
             // Auto-fill region from structured address if available
-            let regionPrimary = data.regionPrimary || null;
+            let regionPrimary = normalizeRegionPrimaryValue(data.regionPrimary) ?? null;
             let regionSecondary = data.regionSecondary || null;
             const normalizedRoadAddress = normalizeOptionalText(addressState.roadAddress);
             if (normalizedRoadAddress) {

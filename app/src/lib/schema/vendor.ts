@@ -1,6 +1,6 @@
 import { API_SUCCESS_CODE } from "@/lib/api/types";
 import { z } from "zod";
-import { VendorBadgeSchema } from "./badge";
+import { VendorBadgeSchema, VendorBadgeTypeSchema } from "./badge";
 import { CategoryViewSchema } from "./category";
 import { zNonEmptyString, zPaginationQuery, zUuid } from "./common";
 import { VendorServicePriceSchema } from "./vendor-pricing";
@@ -78,6 +78,11 @@ export const VendorListQuerySchema = z
         regionSecondary: z.string().trim().min(1).optional(),
         ratingMin: z.coerce.number().min(0).max(5).optional(),
         hasReviews: z.enum(["true", "false"]).optional(),
+        badgeTypes: z
+            .string()
+            .transform((s) => s.split(","))
+            .pipe(z.array(VendorBadgeTypeSchema))
+            .optional(),
         sort: z.enum(["newest", "rating", "reviewCount", "popular"]).default("newest"),
     })
     .merge(zPaginationQuery)

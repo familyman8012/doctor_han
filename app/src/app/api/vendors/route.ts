@@ -1,5 +1,6 @@
 import type { Tables } from "@/lib/database.types";
 import type { z } from "zod";
+import { getRegionFilterValues } from "@/lib/constants/regions";
 import { VendorListQuerySchema, type VendorListItem } from "@/lib/schema/vendor";
 import { internalServerError } from "@/server/api/errors";
 import { buildOrIlikeFilter } from "@/server/api/postgrest";
@@ -35,7 +36,12 @@ function applyFiltersAndSort<T>(qb: T, query: ParsedQuery): T {
 
     // 지역 필터
     if (query.regionPrimary) {
-        result = result.eq("region_primary", query.regionPrimary);
+        const regionFilterValues = getRegionFilterValues(query.regionPrimary);
+        if (regionFilterValues.length === 1) {
+            result = result.eq("region_primary", regionFilterValues[0]);
+        } else if (regionFilterValues.length > 1) {
+            result = result.in("region_primary", regionFilterValues);
+        }
     }
     if (query.regionSecondary) {
         result = result.eq("region_secondary", query.regionSecondary);
@@ -51,6 +57,13 @@ function applyFiltersAndSort<T>(qb: T, query: ParsedQuery): T {
         result = result.gt("review_count", 0);
     } else if (query.hasReviews === "false") {
         result = result.eq("review_count", 0);
+    }
+
+    // 배지 필터
+    if (query.badgeTypes?.length) {
+        for (const bt of query.badgeTypes) {
+            result = result.contains("badges", JSON.stringify([{ type: bt }]));
+        }
     }
 
     // 정렬
@@ -86,6 +99,7 @@ export const GET = withApi(async (req: NextRequest) => {
         regionSecondary: searchParams.get("regionSecondary") ?? undefined,
         ratingMin: searchParams.get("ratingMin") ?? undefined,
         hasReviews: searchParams.get("hasReviews") ?? undefined,
+        badgeTypes: searchParams.get("badgeTypes") ?? undefined,
         sort: searchParams.get("sort") ?? undefined,
         page: searchParams.get("page") ?? undefined,
         pageSize: searchParams.get("pageSize") ?? undefined,
