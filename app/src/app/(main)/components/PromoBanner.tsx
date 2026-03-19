@@ -227,6 +227,7 @@ function StatItem({
     isVisible: boolean;
 }) {
     const [displayed, setDisplayed] = useState(0);
+    const hasFraction = !Number.isInteger(value);
 
     useEffect(() => {
         if (!isVisible || value === 0) return;
@@ -239,12 +240,23 @@ function StatItem({
             const progress = Math.min(elapsed / duration, 1);
             // ease-out quad
             const eased = 1 - (1 - progress) * (1 - progress);
-            setDisplayed(Math.round(eased * value));
+            const nextValue = eased * value;
+            setDisplayed(hasFraction ? Math.round(nextValue * 10) / 10 : Math.round(nextValue));
             if (progress < 1) requestAnimationFrame(tick);
         }
 
         requestAnimationFrame(tick);
-    }, [isVisible, value]);
+    }, [hasFraction, isVisible, value]);
+
+    const formattedValue = displayed.toLocaleString(
+        undefined,
+        hasFraction
+            ? {
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+              }
+            : undefined,
+    );
 
     return (
         <div className="flex flex-col items-center text-center gap-3">
@@ -253,7 +265,7 @@ function StatItem({
             </div>
             <div>
                 <span className="text-3xl md:text-4xl font-bold tabular-nums">
-                    {displayed.toLocaleString()}
+                    {formattedValue}
                 </span>
                 <span className="text-lg ml-1 text-white/80">{suffix}</span>
             </div>

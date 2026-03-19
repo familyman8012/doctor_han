@@ -1,10 +1,16 @@
 import type { Database, Tables } from "@/lib/database.types";
 import type { ProductListItem } from "@/lib/schema/product";
 import type { HomeCategoryItem, HomeScreen, HomeSection, HomeStats, HomeVendorCard } from "@/lib/schema/home";
+import {
+    fetchAllActiveVendors,
+    fetchOverallAvgResponseHours,
+    fetchVerificationStatuses,
+} from "@/server/badge/repository";
 import { internalServerError } from "@/server/api/errors";
 import { mapCategoryRow } from "@/server/category/mapper";
 import { mapProductListItem } from "@/server/product/mapper";
 import { fetchProductThumbnailsByProductIds } from "@/server/product/repository";
+import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import { mapVendorListItem } from "@/server/vendor/mapper";
 import {
     fetchVendorCategoriesByVendorIds,
@@ -149,16 +155,46 @@ async function fetchVendorCountsByCategory(supabase: SupabaseClient<Database>): 
     return result;
 }
 
+async function fetchPublicAvgResponseHours(): Promise<number> {
+    const admin = createSupabaseAdminClient();
+    const activeVendors = await fetchAllActiveVendors(admin);
+
+    if (activeVendors.length === 0) {
+        return 0;
+    }
+
+    const ownerUserIds = [...new Set(activeVendors.map((vendor) => vendor.owner_user_id))];
+    const verificationMap = await fetchVerificationStatuses(admin, ownerUserIds);
+    const publicVendors = activeVendors.filter(
+        (vendor) => verificationMap.get(vendor.owner_user_id) === "approved",
+    );
+
+    if (publicVendors.length === 0) {
+        return 0;
+    }
+
+    const vendorOwnerMap = new Map(publicVendors.map((vendor) => [vendor.id, vendor.owner_user_id]));
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+
+    return fetchOverallAvgResponseHours(
+        admin,
+        publicVendors.map((vendor) => vendor.id),
+        ninetyDaysAgo,
+        vendorOwnerMap,
+    );
+}
+
 export async function getHomeStats(supabase: SupabaseClient<Database>): Promise<HomeStats> {
-    const [vendorResult, reviewResult] = await Promise.all([
+    const [vendorResult, reviewResult, avgResponseHours] = await Promise.all([
         supabase.from("vendors").select("id", { count: "exact", head: true }),
         supabase.from("reviews").select("id", { count: "exact", head: true }),
+        fetchPublicAvgResponseHours(),
     ]);
 
     return {
         vendorCount: vendorResult.count ?? 0,
         reviewCount: reviewResult.count ?? 0,
-        avgResponseHours: 24, // TODO: calculate from actual lead response data
+        avgResponseHours,
     };
 }
 
@@ -454,4 +490,3 @@ export async function buildHomeScreen(supabase: SupabaseClient<Database>): Promi
         sections,
     };
 }
-
