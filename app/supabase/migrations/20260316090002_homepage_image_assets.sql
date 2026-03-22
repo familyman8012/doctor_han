@@ -67,21 +67,30 @@ WHERE vpa.id = vfa.asset_id;
 -- ============================================
 
 INSERT INTO public.product_images (product_id, url, alt_text, is_primary, sort_order)
-VALUES
-  -- 의료기기
-  ('26179bf9-0379-40fc-a117-e5dd795a57a3', '/images/products/thumbnails/product-26179bf9.webp', '내시경 카메라 시스템', true, 0),
-  ('9ffea9b2-2db8-4de3-81ab-31296649dd5f', '/images/products/thumbnails/product-9ffea9b2.webp', '초음파 진단기 HD-3000', true, 0),
-  ('ced55766-8378-4255-959f-46c426435aa4', '/images/products/thumbnails/product-ced55766.webp', '심전도 모니터 ECG Pro', true, 0),
-  ('e4b5ab5f-ce8a-4471-8c8a-44eb6d0ab36a', '/images/products/thumbnails/product-e4b5ab5f.webp', '의료용 레이저 치료기', true, 0),
-  -- 간판
-  ('9fe2fe86-7bbc-44e6-8f22-9b1b76af2ec6', '/images/products/thumbnails/product-9fe2fe86.webp', '외부 대형 간판 설치', true, 0),
-  ('6eef4445-5057-4a9a-ade3-808d6a22b5a6', '/images/products/thumbnails/product-6eef4445.webp', '야간 조명 간판', true, 0),
-  ('a0aa85d0-6395-45b9-a936-2b9fb52bf611', '/images/products/thumbnails/product-a0aa85d0.webp', 'LED 채널사인 제작', true, 0),
-  -- 전자차트
-  ('04d8b862-59de-4fcb-b7ed-1f08af3efaaa', '/images/products/thumbnails/product-04d8b862.webp', '클라우드 전자차트 기본형', true, 0),
-  ('6dbec8e7-8b3a-49fc-84e8-9593c92e21d9', '/images/products/thumbnails/product-6dbec8e7.webp', '보험청구 연동 EMR', true, 0),
-  ('6bf77a42-e04e-49ed-90a1-0301d7477eea', '/images/products/thumbnails/product-6bf77a42.webp', '한의원 전용 전자차트', true, 0),
-  -- 마케팅
-  ('ea3fa8d3-3ad6-4601-9f6c-f08f21bd3257', '/images/products/thumbnails/product-ea3fa8d3.webp', '병원 블로그 마케팅 월정액', true, 0),
-  ('694976c6-91f7-471d-86e4-13f1362dd0ab', '/images/products/thumbnails/product-694976c6.webp', 'SNS 마케팅 패키지', true, 0),
-  ('8586cd35-d551-4a51-82df-ffb96274758d', '/images/products/thumbnails/product-8586cd35.webp', '리뷰 관리 서비스', true, 0);
+SELECT
+  assets.product_id,
+  assets.url,
+  assets.alt_text,
+  assets.is_primary,
+  assets.sort_order
+FROM (
+  VALUES
+    -- 의료기기
+    ('26179bf9-0379-40fc-a117-e5dd795a57a3'::uuid, '/images/products/thumbnails/product-26179bf9.webp', '내시경 카메라 시스템', true, 0),
+    ('9ffea9b2-2db8-4de3-81ab-31296649dd5f'::uuid, '/images/products/thumbnails/product-9ffea9b2.webp', '초음파 진단기 HD-3000', true, 0),
+    ('ced55766-8378-4255-959f-46c426435aa4'::uuid, '/images/products/thumbnails/product-ced55766.webp', '심전도 모니터 ECG Pro', true, 0),
+    ('e4b5ab5f-ce8a-4471-8c8a-44eb6d0ab36a'::uuid, '/images/products/thumbnails/product-e4b5ab5f.webp', '의료용 레이저 치료기', true, 0),
+    -- 간판
+    ('9fe2fe86-7bbc-44e6-8f22-9b1b76af2ec6'::uuid, '/images/products/thumbnails/product-9fe2fe86.webp', '외부 대형 간판 설치', true, 0),
+    ('6eef4445-5057-4a9a-ade3-808d6a22b5a6'::uuid, '/images/products/thumbnails/product-6eef4445.webp', '야간 조명 간판', true, 0),
+    ('a0aa85d0-6395-45b9-a936-2b9fb52bf611'::uuid, '/images/products/thumbnails/product-a0aa85d0.webp', 'LED 채널사인 제작', true, 0),
+    -- 전자차트
+    ('04d8b862-59de-4fcb-b7ed-1f08af3efaaa'::uuid, '/images/products/thumbnails/product-04d8b862.webp', '클라우드 전자차트 기본형', true, 0),
+    ('6dbec8e7-8b3a-49fc-84e8-9593c92e21d9'::uuid, '/images/products/thumbnails/product-6dbec8e7.webp', '보험청구 연동 EMR', true, 0),
+    ('6bf77a42-e04e-49ed-90a1-0301d7477eea'::uuid, '/images/products/thumbnails/product-6bf77a42.webp', '한의원 전용 전자차트', true, 0),
+    -- 마케팅
+    ('ea3fa8d3-3ad6-4601-9f6c-f08f21bd3257'::uuid, '/images/products/thumbnails/product-ea3fa8d3.webp', '병원 블로그 마케팅 월정액', true, 0),
+    ('694976c6-91f7-471d-86e4-13f1362dd0ab'::uuid, '/images/products/thumbnails/product-694976c6.webp', 'SNS 마케팅 패키지', true, 0),
+    ('8586cd35-d551-4a51-82df-ffb96274758d'::uuid, '/images/products/thumbnails/product-8586cd35.webp', '리뷰 관리 서비스', true, 0)
+) AS assets(product_id, url, alt_text, is_primary, sort_order)
+JOIN public.products p ON p.id = assets.product_id;
