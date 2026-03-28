@@ -1,8 +1,9 @@
 import "server-only";
 
 import type { Database } from "@/lib/database.types";
-import type { CreditAccount, CreditPackage, CreditTransaction } from "@/lib/schema/credit";
+import type { AdminCreditAdjustType, CreditAccount, CreditPackage, CreditTransaction } from "@/lib/schema/credit";
 import { badRequest, internalServerError, notFound } from "@/server/api/errors";
+import { safeInsertAuditLog } from "@/server/audit/utils";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import { createPayment } from "@/server/payment/repository";
 import { getClientKey } from "@/server/payment/toss-client";
@@ -231,4 +232,94 @@ export async function updateAutoCharge(
 
     const updated = await updateAutoChargeSettings(admin, account.id, params);
     return mapCreditAccountRow(updated);
+}
+
+/**
+ * 관리자 수동 크레딧 조정 (지급/차감)
+ */
+export async function adminAdjustCredit(params: {
+    vendorId: string;
+    amount: number;
+    reason: string;
+    adjustType: AdminCreditAdjustType;
+    adminUserId: string;
+}): Promise<{ transaction: CreditTransaction; newBalance: number }> {
+    const admin = createSupabaseAdminClient();
+
+    // vendor 존재 확인
+    const { data: vendor, error: vendorError } = await admin
+        .from("vendors")
+        .select("id, name")
+        .eq("id", params.vendorId)
+        .maybeSingle();
+
+    if (vendorError || !vendor) {
+        throw notFound("업체를 찾을 수 없습니다.");
+    }
+
+    // 크레딧 계정 get/create
+    const account = await getOrCreateCreditAccount(admin, params.vendorId);
+
+    // 차감 시 잔액 검증
+    if (params.amount < 0 && account.balance < Math.abs(params.amount)) {
+        throw badRequest(
+            `잔액이 부족합니다. 현재 잔액: ${account.balance.toLocaleString()}원`,
+        );
+    }
+
+    // RPC로 atomic balance update (p_transaction_id=null → 신규 트랜잭션 생성)
+    const description = `[${params.adjustType}] ${params.reason}`;
+    const { data: rpcResult, error: rpcError } = await admin.rpc("credit_balance_update", {
+        p_credit_account_id: account.id,
+        p_transaction_id: null as never,
+        p_amount: params.amount,
+        p_type: "admin_adjust",
+        p_description: description,
+    });
+
+    if (rpcError) {
+        throw internalServerError("크레딧 조정에 실패했습니다.", {
+            message: rpcError.message,
+            code: rpcError.code,
+        });
+    }
+
+    const newBalance = rpcResult?.[0]?.new_balance ?? 0;
+    const transactionId = rpcResult?.[0]?.transaction_id;
+
+    // 감사 로그
+    await safeInsertAuditLog(
+        admin,
+        {
+            actor_user_id: params.adminUserId,
+            action: "credit.admin_adjust",
+            target_type: "credit_account",
+            target_id: account.id,
+            metadata: {
+                vendorId: params.vendorId,
+                vendorName: vendor.name,
+                amount: params.amount,
+                adjustType: params.adjustType,
+                reason: params.reason,
+                newBalance,
+            },
+        },
+        "adminAdjustCredit",
+    );
+
+    // 생성된 트랜잭션 조회
+    const { data: txRow } = await admin
+        .from("credit_transactions")
+        .select("*")
+        .eq("id", transactionId)
+        .single();
+
+    if (!txRow) {
+        throw internalServerError("생성된 트랜잭션을 조회할 수 없습니다.");
+    }
+
+    return {
+        transaction: mapCreditTransactionRow(txRow),
+        newBalance,
+    };
 }

@@ -62,7 +62,13 @@ import type {
     VendorGradeListResponse,
     AdminStatusHistoryQuery,
     AdminStatusHistoryListResponse,
+    BetaRewardListResponse,
 } from "@/lib/schema/beta-ops";
+import type {
+    AdminCreditAdjustBody,
+    AdminCreditAdjustResponse,
+    AdminVendorCreditResponse,
+} from "@/lib/schema/credit";
 import api from "./client";
 
 export const adminApi = {
@@ -326,6 +332,28 @@ export const adminApi = {
 
     getBetaOpsStatusHistory: async (params: Partial<AdminStatusHistoryQuery>): Promise<AdminStatusHistoryListResponse> => {
         const response = await api.get<AdminStatusHistoryListResponse>("/api/admin/beta-ops/status-history", { params });
+        return response.data;
+    },
+
+    getBetaOpsRewards: async (): Promise<BetaRewardListResponse> => {
+        const response = await api.get<BetaRewardListResponse>("/api/admin/beta-ops/rewards");
+        return response.data;
+    },
+
+    // ===========================
+    // 크레딧 관리
+    // ===========================
+
+    getVendorCredit: async (
+        vendorId: string,
+        params?: { page?: number; pageSize?: number; type?: string },
+    ): Promise<AdminVendorCreditResponse> => {
+        const response = await api.get<AdminVendorCreditResponse>(`/api/admin/credits/${vendorId}`, { params });
+        return response.data;
+    },
+
+    adjustVendorCredit: async (vendorId: string, body: AdminCreditAdjustBody): Promise<AdminCreditAdjustResponse> => {
+        const response = await api.post<AdminCreditAdjustResponse>(`/api/admin/credits/${vendorId}/adjust`, body);
         return response.data;
     },
 };

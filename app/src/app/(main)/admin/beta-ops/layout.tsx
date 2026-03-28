@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardCheck, FileText, Award, History } from "lucide-react";
+import { ClipboardCheck, FileText, Award, History, Coins } from "lucide-react";
 import { cn } from "@/components/utils";
 import type { ReactNode } from "react";
 
@@ -11,6 +11,7 @@ const TABS = [
     { href: "/admin/beta-ops/leads", label: "리드 목록", icon: FileText },
     { href: "/admin/beta-ops/vendor-grades", label: "업체 등급", icon: Award },
     { href: "/admin/beta-ops/history", label: "상태 이력", icon: History },
+    { href: "/admin/beta-ops/rewards", label: "크레딧/보상", icon: Coins },
 ];
 
 export default function BetaOpsLayout({ children }: { children: ReactNode }) {

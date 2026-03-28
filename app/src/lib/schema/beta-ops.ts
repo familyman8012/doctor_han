@@ -146,3 +146,34 @@ export const AdminStatusHistoryListResponseSchema = z.object({
 });
 
 export type AdminStatusHistoryListResponse = z.infer<typeof AdminStatusHistoryListResponseSchema>;
+
+// ============================================
+// Beta Reward Eligibility
+// ============================================
+
+export const BetaRewardItemSchema = z.object({
+    vendorId: zUuid,
+    vendorName: z.string(),
+    responseRate: z.number(),
+    avgResponseTimeMinutes: z.number().nullable(),
+    totalLeads: z.number().int(),
+    grade: VendorGradeSchema,
+    initialGranted: z.boolean(),
+    initialGrantedAt: z.string().nullable(),
+    bonusEligible: z.boolean(),
+    bonusGranted: z.boolean(),
+    bonusGrantedAt: z.string().nullable(),
+    balance: z.number().int(),
+});
+
+export type BetaRewardItem = z.infer<typeof BetaRewardItemSchema>;
+
+export const BetaRewardListResponseSchema = z.object({
+    code: z.literal(API_SUCCESS_CODE),
+    data: z.object({
+        items: z.array(BetaRewardItemSchema),
+    }),
+    message: z.string().optional(),
+});
+
+export type BetaRewardListResponse = z.infer<typeof BetaRewardListResponseSchema>;

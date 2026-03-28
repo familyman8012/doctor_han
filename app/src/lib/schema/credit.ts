@@ -159,3 +159,61 @@ export const CreditAutoChargeResponseSchema = z.object({
 });
 
 export type CreditAutoChargeResponse = z.infer<typeof CreditAutoChargeResponseSchema>;
+
+// ============================================
+// Admin Credit Adjust
+// ============================================
+
+export const AdminCreditAdjustTypeSchema = z.enum([
+    "beta_initial",
+    "beta_bonus",
+    "manual_grant",
+    "manual_deduct",
+    "penalty",
+]);
+
+export type AdminCreditAdjustType = z.infer<typeof AdminCreditAdjustTypeSchema>;
+
+export const AdminCreditAdjustBodySchema = z
+    .object({
+        amount: z.number().int().refine((v) => v !== 0, "0원은 조정할 수 없습니다."),
+        reason: z.string().min(1, "사유를 입력해주세요.").max(500),
+        adjustType: AdminCreditAdjustTypeSchema,
+    })
+    .strict()
+    .refine(
+        (d) => {
+            if (d.adjustType === "manual_deduct" || d.adjustType === "penalty") return d.amount < 0;
+            return d.amount > 0;
+        },
+        { message: "지급은 양수, 차감/패널티는 음수여야 합니다.", path: ["amount"] },
+    );
+
+export type AdminCreditAdjustBody = z.infer<typeof AdminCreditAdjustBodySchema>;
+
+export const AdminCreditAdjustResponseSchema = z.object({
+    code: z.literal(API_SUCCESS_CODE),
+    data: z.object({
+        transaction: CreditTransactionSchema,
+        newBalance: z.number().int(),
+    }),
+    message: z.string().optional(),
+});
+
+export type AdminCreditAdjustResponse = z.infer<typeof AdminCreditAdjustResponseSchema>;
+
+export const AdminVendorCreditResponseSchema = z.object({
+    code: z.literal(API_SUCCESS_CODE),
+    data: z.object({
+        account: CreditAccountSchema,
+        transactions: z.object({
+            items: z.array(CreditTransactionSchema),
+            page: z.number().int(),
+            pageSize: z.number().int(),
+            total: z.number().int(),
+        }),
+    }),
+    message: z.string().optional(),
+});
+
+export type AdminVendorCreditResponse = z.infer<typeof AdminVendorCreditResponseSchema>;
