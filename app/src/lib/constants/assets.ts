@@ -2,24 +2,28 @@
 // Image asset path constants — keyed by category slug for easy lookup
 // ---------------------------------------------------------------------------
 
-/** Category icon images (56x56 render, 112x112 source) */
+/** Category icon images (64x64 render, 1024x1024 source — 3D isometric style) */
 export const CATEGORY_ICON_PATHS: Record<string, string> = {
-    "external-decoction-herbal": "/images/icons/categories/external-decoction.png",
-    "external-decoction-pharma": "/images/icons/categories/external-decoction.png",
+    "external-decoction-herbal":
+        "/images/icons/categories/external-decoction-herbal.png",
+    "external-decoction-pharma":
+        "/images/icons/categories/external-decoction-pharma.png",
     "herbal-materials": "/images/icons/categories/herbal-materials.png",
     "medical-devices": "/images/icons/categories/medical-devices.png",
-    "opening-consulting": "/images/icons/categories/opening-consulting.png",
+    "opening-consulting": "/images/icons/categories/clinic-consulting.png",
     marketing: "/images/icons/categories/marketing.png",
     interior: "/images/icons/categories/interior.png",
     signage: "/images/icons/categories/signage.png",
     design: "/images/icons/categories/design.png",
-    "tax-law-labor": "/images/icons/categories/tax-law-labor.png",
+    "tax-law-labor": "/images/icons/categories/tax-labor.png",
     "decoction-equipment": "/images/icons/categories/decoction-equipment.png",
     "clothing-bedding": "/images/icons/categories/clothing-bedding.png",
     "hospital-management": "/images/icons/categories/hospital-management.png",
     "business-support": "/images/icons/categories/business-support.png",
     "education-academic": "/images/icons/categories/education-academic.png",
     life: "/images/icons/categories/life.png",
+    website: "/images/icons/categories/website.png",
+    emr: "/images/icons/categories/emr.png",
 };
 
 /** Category page header background images */

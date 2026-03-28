@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import api from "@/api-client/client";
 import {
     ArrowRight,
-    Users,
     Sparkles,
     TrendingUp,
     Building2,
@@ -14,6 +13,7 @@ import {
     Clock,
     Stethoscope,
     Store,
+    ShieldCheck,
 } from "lucide-react";
 import type { HomeStats } from "@/lib/schema/home";
 
@@ -22,132 +22,70 @@ interface PromoBannerProps {
 }
 
 export function PromoBanner({ variant = "vendor-cta" }: PromoBannerProps) {
-    if (variant === "stats") {
-        return <StatsBanner />;
-    }
+    if (variant === "stats") return <StatsBanner />;
+    if (variant === "feature") return <FeatureBanner />;
 
-    if (variant === "vendor-cta") {
-        return (
-            <section className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-2xl p-6 md:p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* 의사용 CTA */}
-                    <div className="flex items-start gap-4 p-4 bg-white/60 rounded-xl">
-                        <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                            <Stethoscope className="w-6 h-6 text-primary-700" />
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="text-base font-bold text-content-primary mb-1">
-                                개원 준비 중이신가요?
-                            </h3>
-                            <p className="text-sm text-gray-600 mb-3">
-                                검증된 파트너사를 비교하고 최적의 업체를 찾으세요
-                            </p>
-                            <Link
-                                href="/categories"
-                                className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 hover:text-primary-800 transition-colors"
-                            >
-                                파트너 찾기
-                                <ArrowRight className="w-4 h-4" />
-                            </Link>
-                        </div>
-                    </div>
-
-                    {/* 업체용 CTA */}
-                    <div className="flex items-start gap-4 p-4 bg-white/60 rounded-xl">
-                        <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                            <Store className="w-6 h-6 text-primary-700" />
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="text-base font-bold text-content-primary mb-1">
-                                업체를 운영하고 계신가요?
-                            </h3>
-                            <p className="text-sm text-gray-600 mb-3">
-                                메디허브에 입점하여 더 많은 의료인에게 다가가세요
-                            </p>
-                            <Link
-                                href="/signup?role=vendor"
-                                className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 hover:text-primary-800 transition-colors"
-                            >
-                                무료 입점하기
-                                <ArrowRight className="w-4 h-4" />
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 혜택 요약 */}
-                <div className="mt-4 flex items-center justify-center gap-4 text-xs text-gray-500">
-                    <span>무료 입점</span>
-                    <span className="w-1 h-1 rounded-full bg-gray-300" />
-                    <span>리드 수신</span>
-                    <span className="w-1 h-1 rounded-full bg-gray-300" />
-                    <span>매출 확대</span>
-                </div>
-            </section>
-        );
-    }
-
-    if (variant === "feature") {
-        return (
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FeatureCard
-                    icon={<Sparkles className="w-6 h-6" />}
-                    title="검증된 업체"
-                    description="사업자 인증과 실제 이용 후기를 통해 신뢰할 수 있습니다"
-                    bgColor="bg-blue-50"
-                    iconColor="text-blue-600"
-                />
-                <FeatureCard
-                    icon={<TrendingUp className="w-6 h-6" />}
-                    title="쉬운 비교"
-                    description="카테고리별로 업체를 비교하고 최적의 파트너를 찾으세요"
-                    bgColor="bg-green-50"
-                    iconColor="text-green-600"
-                />
-                <FeatureCard
-                    icon={<Users className="w-6 h-6" />}
-                    title="빠른 문의"
-                    description="원하는 업체에 바로 문의하고 견적을 받아보세요"
-                    bgColor="bg-purple-50"
-                    iconColor="text-purple-600"
-                />
-            </section>
-        );
-    }
-
-    return null;
-}
-
-function FeatureCard({
-    icon,
-    title,
-    description,
-    bgColor,
-    iconColor,
-}: {
-    icon: React.ReactNode;
-    title: string;
-    description: string;
-    bgColor: string;
-    iconColor: string;
-}) {
+    // vendor-cta — Full-width dark CTA banner with background image
     return (
-        <div
-            className={`${bgColor} rounded-xl p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200 cursor-default`}
-        >
+        <section className="relative overflow-hidden rounded-2xl min-h-[280px] md:min-h-[320px]">
+            {/* Background image */}
             <div
-                className={`w-12 h-12 rounded-full bg-white flex items-center justify-center ${iconColor} mb-3`}
-            >
-                {icon}
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: "url(/images/cta/medical-building.jpg)" }}
+            />
+            {/* Dark overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-primary-900/95 via-primary-900/85 to-primary-900/60" />
+
+            <div className="relative px-6 py-10 md:px-12 md:py-14 flex flex-col justify-center">
+                <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary-300 mb-3">
+                    START WITH MEDIHUB
+                </p>
+                <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 leading-tight">
+                    개원의 모든 것,
+                    <br />
+                    메디허브에서 시작하세요
+                </h2>
+
+                {/* Checklist */}
+                <div className="flex flex-col gap-2 mb-8">
+                    {["검증된 파트너사 비교·선택", "간편한 견적 요청과 빠른 응답", "실제 이용 후기 기반 의사결정"].map(
+                        (text) => (
+                            <div key={text} className="flex items-center gap-2">
+                                <div className="w-5 h-5 rounded-full bg-primary-400/20 flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-3 h-3 text-primary-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <span className="text-sm text-gray-200">{text}</span>
+                            </div>
+                        ),
+                    )}
+                </div>
+
+                {/* Dual CTAs */}
+                <div className="flex flex-wrap gap-3">
+                    <Link
+                        href="/categories"
+                        className="inline-flex items-center gap-2 bg-white text-gray-900 font-semibold px-6 py-3 rounded-xl hover:bg-gray-100 transition-colors text-sm"
+                    >
+                        <Stethoscope className="w-4 h-4" />
+                        개원 준비 시작하기
+                    </Link>
+                    <Link
+                        href="/signup?role=vendor"
+                        className="inline-flex items-center gap-2 border border-white/30 text-white font-semibold px-6 py-3 rounded-xl hover:bg-white/10 transition-colors text-sm"
+                    >
+                        <Store className="w-4 h-4" />
+                        무료 입점하기
+                    </Link>
+                </div>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-1">{title}</h3>
-            <p className="text-sm text-gray-600">{description}</p>
-        </div>
+        </section>
     );
 }
 
 // ---------------------------------------------------------------------------
-// Stats Banner — animated counter with intersection observer
+// Stats Banner
 // ---------------------------------------------------------------------------
 
 function StatsBanner() {
@@ -181,50 +119,58 @@ function StatsBanner() {
     return (
         <section
             ref={ref}
-            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-50/80 via-white to-primary-25 p-8 md:p-12"
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-800 via-primary-700 to-primary-900 px-6 py-10 md:px-12 md:py-14"
         >
-            {/* Decorative blobs */}
-            <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary-100/40 blur-3xl" />
-            <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-primary-100/30 blur-3xl" />
+            {/* Decorative elements */}
+            <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-white/5" />
+            <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-white/5" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-primary-600/20 blur-3xl" />
 
             <div className="relative">
-                <div className="text-center mb-8 md:mb-10">
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
+                {/* Header */}
+                <div className="text-center mb-10 md:mb-12">
+                    <p className="text-primary-300 text-xs font-semibold tracking-[0.2em] uppercase mb-3">
+                        MEDIHUB TRUST
+                    </p>
+                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
                         메디허브가 연결하는 신뢰
                     </h2>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-primary-300 text-sm">
                         검증된 파트너사와 의료인을 연결합니다
                     </p>
-                    <div className="w-12 h-1 bg-primary-500 rounded-full mx-auto mt-3" />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                {/* Stats */}
+                <div className="grid grid-cols-3">
                     <StatItem
-                        icon={<Building2 className="w-6 h-6" />}
+                        icon={<Building2 className="w-5 h-5" />}
                         value={stats?.vendorCount ?? 0}
+                        suffix="+"
                         label="등록 업체"
-                        suffix="개"
+                        unit="개"
                         isVisible={isVisible}
-                        iconBg="bg-blue-50"
-                        iconColor="text-blue-600"
+                        accent="bg-blue-400/20 text-blue-300"
+                        position="left"
                     />
                     <StatItem
-                        icon={<MessageSquare className="w-6 h-6" />}
+                        icon={<MessageSquare className="w-5 h-5" />}
                         value={stats?.reviewCount ?? 0}
+                        suffix=""
                         label="누적 리뷰"
-                        suffix="건"
+                        unit="건"
                         isVisible={isVisible}
-                        iconBg="bg-green-50"
-                        iconColor="text-green-600"
+                        accent="bg-emerald-400/20 text-emerald-300"
+                        position="center"
                     />
                     <StatItem
-                        icon={<Clock className="w-6 h-6" />}
+                        icon={<Clock className="w-5 h-5" />}
                         value={stats?.avgResponseHours ?? 0}
+                        suffix=""
                         label="평균 응답"
-                        suffix="시간"
+                        unit="시간"
                         isVisible={isVisible}
-                        iconBg="bg-amber-50"
-                        iconColor="text-amber-600"
+                        accent="bg-amber-400/20 text-amber-300"
+                        position="right"
                     />
                 </div>
             </div>
@@ -235,64 +181,163 @@ function StatsBanner() {
 function StatItem({
     icon,
     value,
-    label,
     suffix,
+    label,
+    unit,
     isVisible,
-    iconBg,
-    iconColor,
+    accent,
+    position,
 }: {
     icon: React.ReactNode;
     value: number;
-    label: string;
     suffix: string;
+    label: string;
+    unit: string;
     isVisible: boolean;
-    iconBg: string;
-    iconColor: string;
+    accent: string;
+    position: "left" | "center" | "right";
 }) {
     const [displayed, setDisplayed] = useState(0);
     const hasFraction = !Number.isInteger(value);
 
     useEffect(() => {
         if (!isVisible || value === 0) return;
-
-        const duration = 1200; // ms
+        const duration = 1400;
         const startTime = performance.now();
-
         function tick(now: number) {
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            // ease-out quad
-            const eased = 1 - (1 - progress) * (1 - progress);
-            const nextValue = eased * value;
-            setDisplayed(hasFraction ? Math.round(nextValue * 10) / 10 : Math.round(nextValue));
+            const eased = 1 - (1 - progress) ** 3; // ease-out cubic
+            const next = eased * value;
+            setDisplayed(hasFraction ? Math.round(next * 10) / 10 : Math.round(next));
             if (progress < 1) requestAnimationFrame(tick);
         }
-
         requestAnimationFrame(tick);
     }, [hasFraction, isVisible, value]);
 
-    const formattedValue = displayed.toLocaleString(
+    const formatted = displayed.toLocaleString(
         undefined,
-        hasFraction
-            ? {
-                  minimumFractionDigits: 1,
-                  maximumFractionDigits: 1,
-              }
-            : undefined,
+        hasFraction ? { minimumFractionDigits: 1, maximumFractionDigits: 1 } : undefined,
     );
 
     return (
-        <div className="flex flex-col items-center text-center gap-3 bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
-            <div className={`w-12 h-12 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center`}>
+        <div
+            className={`flex flex-col items-center text-center gap-3 py-4 px-3 md:px-6 ${
+                position === "center"
+                    ? "border-x border-white/10"
+                    : ""
+            }`}
+        >
+            {/* Icon badge */}
+            <div className={`w-10 h-10 rounded-xl ${accent} flex items-center justify-center`}>
                 {icon}
             </div>
-            <div>
-                <span className="text-3xl md:text-4xl font-bold text-gray-900 tabular-nums">
-                    {formattedValue}
+
+            {/* Number */}
+            <div className="flex items-baseline gap-0.5">
+                <span className="text-3xl md:text-5xl font-black text-white tabular-nums leading-none">
+                    {formatted}
                 </span>
-                <span className="text-lg ml-1 text-gray-400">{suffix}</span>
+                <span className="text-base md:text-xl text-primary-300 ml-0.5">
+                    {unit}
+                    {suffix}
+                </span>
             </div>
-            <span className="text-sm text-gray-500">{label}</span>
+
+            {/* Label */}
+            <span className="text-xs md:text-sm text-primary-300 font-medium">{label}</span>
         </div>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Feature Banner
+// ---------------------------------------------------------------------------
+
+function FeatureBanner() {
+    const features = [
+        {
+            step: "01",
+            icon: <ShieldCheck className="w-6 h-6 text-white" />,
+            title: "검증된 업체",
+            description: "사업자 인증과 실제 이용 후기로 검증된 신뢰할 수 있는 파트너사만 입점합니다",
+            gradient: "from-blue-500 to-blue-700",
+            glow: "group-hover:shadow-blue-500/20",
+        },
+        {
+            step: "02",
+            icon: <TrendingUp className="w-6 h-6 text-white" />,
+            title: "한눈에 비교",
+            description: "카테고리별 업체를 한 화면에서 비교하고 리뷰·가격·지역으로 최적의 파트너를 선택하세요",
+            gradient: "from-emerald-500 to-emerald-700",
+            glow: "group-hover:shadow-emerald-500/20",
+        },
+        {
+            step: "03",
+            icon: <Sparkles className="w-6 h-6 text-white" />,
+            title: "빠른 견적 문의",
+            description: "원하는 업체에 즉시 문의하고 빠른 답변과 견적을 받아보세요",
+            gradient: "from-violet-500 to-violet-700",
+            glow: "group-hover:shadow-violet-500/20",
+        },
+    ];
+
+    return (
+        <section className="relative overflow-hidden rounded-2xl bg-gray-950 px-6 py-10 md:px-12 md:py-14">
+            {/* Subtle grid background */}
+            <div
+                className="absolute inset-0 opacity-[0.03]"
+                style={{
+                    backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
+                                      linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`,
+                    backgroundSize: "40px 40px",
+                }}
+            />
+
+            <div className="relative">
+                {/* Header */}
+                <div className="text-center mb-10 md:mb-12">
+                    <p className="text-xs font-semibold tracking-[0.2em] uppercase text-gray-500 mb-3">
+                        WHY MEDIHUB
+                    </p>
+                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+                        간단하고, 빠르고, 신뢰할 수 있는
+                    </h2>
+                    <p className="text-gray-400 text-sm">
+                        메디허브와 함께라면 개원 준비가 훨씬 쉬워집니다
+                    </p>
+                </div>
+
+                {/* Feature cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                    {features.map((f) => (
+                        <div
+                            key={f.step}
+                            className="group relative bg-gray-900 border border-gray-800 rounded-2xl p-6 md:p-7 overflow-hidden hover:border-gray-700 transition-all duration-300"
+                        >
+                            {/* Step number in bg */}
+                            <span className="absolute -bottom-3 -right-1 text-8xl font-black text-white/[0.03] select-none leading-none">
+                                {f.step}
+                            </span>
+
+                            {/* Gradient icon */}
+                            <div
+                                className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.gradient} flex items-center justify-center mb-5 shadow-lg ${f.glow} group-hover:shadow-xl transition-shadow duration-300`}
+                            >
+                                {f.icon}
+                            </div>
+
+                            {/* Step label */}
+                            <p className="text-xs font-semibold tracking-widest text-gray-600 uppercase mb-2">
+                                STEP {f.step}
+                            </p>
+
+                            <h3 className="text-white font-bold text-lg mb-2">{f.title}</h3>
+                            <p className="text-gray-400 text-sm leading-relaxed">{f.description}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
     );
 }

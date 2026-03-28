@@ -15,6 +15,7 @@ import {
     ProductSection,
     PromoBanner,
     TestimonialSection,
+    ExpertShowcase,
 } from "./components";
 import { AdBanner } from "@/components/widgets/AdBanner";
 
@@ -51,14 +52,14 @@ export default function HomePage() {
 
     return (
         <div className="space-y-8 md:space-y-10">
-            {/* 히어로 배너 */}
-            <HeroBanner />
+            {/* 히어로 배너 + 카테고리 묶음 */}
+            <div className="space-y-3 sm:space-y-4">
+                <HeroBanner />
+                {categorySection && <CategoryScroller categories={categorySection.items} />}
+            </div>
 
-            {/* 카테고리 */}
-            {categorySection && <CategoryScroller categories={categorySection.items} />}
-
-            {/* 신뢰 구간 — 통계 */}
-            <PromoBanner variant="stats" />
+            {/* 신뢰 구간 — 통계 (일단 숨김) */}
+            {/* <PromoBanner variant="stats" /> */}
 
             {/* 메인 광고 배너 */}
             <AdBanner position="main" />
@@ -69,8 +70,8 @@ export default function HomePage() {
             {/* 인기 업체 (그리드) */}
             {popularSection && <VendorSection section={popularSection} variant="grid" />}
 
-            {/* 특징 소개 */}
-            <PromoBanner variant="feature" />
+            {/* 전문가 쇼케이스 */}
+            <ExpertShowcase />
 
             {/* 상품 섹션들 */}
             {productSections.map((section, index) => (

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronRight } from "lucide-react";
 import type { HomeCategoryGridSection } from "@/lib/schema/home";
 import { CATEGORY_ICON_PATHS } from "@/lib/constants/assets";
 
@@ -13,36 +12,28 @@ interface CategoryScrollerProps {
 export function CategoryScroller({ categories }: CategoryScrollerProps) {
     return (
         <section>
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-gray-900">카테고리</h2>
-                <Link
-                    href="/categories"
-                    className="text-sm text-gray-500 hover:text-content-primary flex items-center gap-1"
-                >
-                    전체보기 <ChevronRight className="w-4 h-4" />
-                </Link>
-            </div>
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+            {/* 모바일: 5열 2행 그리드 / 데스크탑: 10열 1행 그리드 — 히어로 너비에 꽉 차게 */}
+            <div className="grid grid-cols-5 md:grid-cols-10 gap-y-3">
                 {categories.map((category) => (
                     <Link
                         key={category.id}
                         href={`/categories/${category.slug}`}
-                        className="flex-shrink-0 flex flex-col items-center gap-2 p-3 min-w-[80px] rounded-xl hover:bg-primary-25 hover:scale-105 transition-all duration-200"
+                        className="flex flex-col items-center gap-2 py-3 rounded-xl hover:bg-primary-25 hover:scale-105 transition-all duration-200"
                     >
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-25 to-primary-50 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                        <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center">
                             {CATEGORY_ICON_PATHS[category.slug] ? (
                                 <Image
                                     src={CATEGORY_ICON_PATHS[category.slug]}
                                     alt={category.name}
-                                    width={44}
-                                    height={44}
-                                    className="w-11 h-11 rounded-full object-cover"
+                                    width={80}
+                                    height={80}
+                                    className="w-16 h-16 md:w-20 md:h-20 object-contain"
                                 />
                             ) : (
-                                <span className="text-2xl">📦</span>
+                                <span className="text-3xl">📦</span>
                             )}
                         </div>
-                        <span className="text-xs font-medium text-gray-700 text-center whitespace-nowrap">
+                        <span className="text-xs font-medium text-gray-700 text-center leading-tight">
                             {category.name}
                         </span>
                         {category.vendorCount > 0 && (
