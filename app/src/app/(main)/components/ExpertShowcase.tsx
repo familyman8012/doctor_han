@@ -101,8 +101,8 @@ export function ExpertShowcase() {
     }, []);
 
     return (
-        <section ref={sectionRef} className="relative overflow-hidden rounded-2xl bg-gray-800 h-[440px] md:h-[510px]">
-            <div className="mx-auto flex h-full max-w-[1200px] items-center justify-between px-6 md:px-10">
+        <section ref={sectionRef} className="relative overflow-hidden rounded-2xl bg-gray-800 md:h-[510px]">
+            <div className="mx-auto flex flex-col md:flex-row h-full max-w-[1200px] md:items-center justify-between px-6 py-10 md:px-10 md:py-0">
                 {/* Left: Text content */}
                 <div className="w-full md:w-[400px] flex-shrink-0 z-10">
                     <h2 className="text-2xl md:text-[36px] font-bold leading-tight md:leading-[44px] text-white">
@@ -113,7 +113,7 @@ export function ExpertShowcase() {
 
                     <Link
                         href="/categories"
-                        className="mt-8 md:mt-10 inline-flex items-center justify-center gap-2 bg-primary-500 text-white font-semibold h-[48px] md:h-[52px] px-8 rounded-lg hover:bg-primary-600 transition-colors text-sm md:text-base w-[220px] md:w-[240px]"
+                        className="mt-6 md:mt-10 inline-flex items-center justify-center gap-2 bg-primary-500 text-white font-semibold h-[48px] md:h-[52px] px-8 rounded-lg hover:bg-primary-600 transition-colors text-sm md:text-base w-full md:w-[240px]"
                     >
                         메디허브 시작하기
                     </Link>
@@ -178,28 +178,28 @@ export function ExpertShowcase() {
                     })}
                 </div>
 
-                {/* Mobile: Horizontal scroll */}
-                <div className="md:hidden absolute inset-x-0 bottom-6 overflow-x-auto px-6 scrollbar-hide">
-                    <div className="flex gap-3">
+                {/* Mobile: Grid layout */}
+                <div className="md:hidden w-full mt-6">
+                    <div className="grid grid-cols-4 gap-2">
                         {experts.slice(0, 4).map((expert) => (
                             <div
                                 key={expert.name}
-                                className="flex-shrink-0 flex flex-col items-center gap-2 rounded-lg px-3 py-3 w-[120px]"
-                                style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+                                className="flex flex-col items-center gap-1.5 rounded-xl px-2 py-3"
+                                style={{ backgroundColor: "rgba(255, 255, 255, 0.08)" }}
                             >
-                                <div className="w-14 h-14 rounded-full overflow-hidden">
+                                <div className="w-12 h-12 rounded-full overflow-hidden">
                                     <Image
                                         src={expert.image}
                                         alt={expert.name}
-                                        width={56}
-                                        height={56}
+                                        width={48}
+                                        height={48}
                                         className="w-full h-full object-cover"
                                     />
                                 </div>
-                                <span className="text-[11px] font-bold text-white text-center">
+                                <span className="text-[10px] font-bold text-white text-center leading-tight">
                                     {expert.name}
                                 </span>
-                                <span className="text-[9px] text-white h-4 rounded-full px-1.5 flex items-center bg-gray-700">
+                                <span className="text-[9px] text-gray-400">
                                     {expert.tags[0]}
                                 </span>
                             </div>
