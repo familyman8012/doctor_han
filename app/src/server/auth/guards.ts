@@ -102,6 +102,9 @@ export function withAuth<TParams = Record<string, string>>(
 ): (req: NextRequest, routeCtx: NextRouteContext<TParams>) => Promise<Response> {
     return withUser(async (ctx) => {
         const profile = await requireProfile(ctx.supabase, ctx.user.id);
+        if (profile.status === "banned") {
+            throw forbidden("정지된 계정입니다.");
+        }
         return handler({ ...ctx, profile });
     });
 }

@@ -182,12 +182,27 @@ export const POST = withApi(
             throw notFound("검수 요청을 찾을 수 없습니다.");
         }
 
+        // vendor 승인 시 vendors.status를 draft → active로 전이
+        let vendorActivated = false;
+        const { data: activatedVendors, error: vendorStatusError } = await ctx.supabase
+            .from("vendors")
+            .update({ status: "active" as const, updated_at: now })
+            .eq("owner_user_id", data.user_id)
+            .eq("status", "draft")
+            .select("id");
+
+        if (vendorStatusError) {
+            console.error("[POST /api/admin/verifications/:id/approve] vendor status update failed", vendorStatusError);
+        } else {
+            vendorActivated = (activatedVendors?.length ?? 0) > 0;
+        }
+
         const auditResult = await ctx.supabase.from("audit_logs").insert({
             actor_user_id: ctx.user.id,
             action: "vendor_verification.approve",
             target_type: "vendor_verification",
             target_id: data.id,
-            metadata: { status: data.status },
+            metadata: { status: data.status, vendorActivated },
         });
 
         if (auditResult.error) {
