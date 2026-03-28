@@ -38,6 +38,7 @@ export const LeadListItemSchema = z.object({
     status: LeadStatusSchema,
     createdAt: z.string(),
     updatedAt: z.string(),
+    viewedAt: z.string().nullable(),
     vendor: LeadVendorSummarySchema.nullable(),
 });
 
@@ -230,11 +231,22 @@ export const LeadListResponseSchema = z.object({
         page: z.number().int(),
         pageSize: z.number().int(),
         total: z.number().int(),
+        unviewedCount: z.number().int().optional(),
     }),
     message: z.string().optional(),
 });
 
 export type LeadListResponse = z.infer<typeof LeadListResponseSchema>;
+
+export const LeadUnreadCountResponseSchema = z.object({
+    code: z.literal(API_SUCCESS_CODE),
+    data: z.object({
+        unviewedCount: z.number().int(),
+    }),
+    message: z.string().optional(),
+});
+
+export type LeadUnreadCountResponse = z.infer<typeof LeadUnreadCountResponseSchema>;
 
 export const LeadDetailResponseSchema = z.object({
     code: z.literal(API_SUCCESS_CODE),

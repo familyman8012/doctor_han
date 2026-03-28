@@ -37,6 +37,7 @@ export function mapLeadRow(row: LeadRow, vendor?: LeadVendorSummary | null): Lea
         status: row.status,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
+        viewedAt: row.viewed_at,
         vendor: vendor ?? null,
     };
 }

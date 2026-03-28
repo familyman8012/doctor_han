@@ -1,8 +1,8 @@
 import { refundLeadCharge } from "@/server/lead/charge-service";
-import { getUnrespondedChargedLeads, markLeadChargeNoResponseWarned } from "@/server/lead/repository";
-import { getKakaoLeadNoResponseWarningTemplate } from "@/server/notification/kakao-templates";
+import { getUnrespondedChargedLeads, getUnviewedChargedLeads, markLeadChargeNoResponseWarned, markLeadChargeUnviewedReminded } from "@/server/lead/repository";
+import { getKakaoLeadNoResponseWarningTemplate, getKakaoLeadUnviewedReminderTemplate } from "@/server/notification/kakao-templates";
 import { sendVendorNotification } from "@/server/notification/service";
-import { getLeadNoResponseWarningTemplate } from "@/server/notification/templates";
+import { getLeadNoResponseWarningTemplate, getLeadUnviewedReminderTemplate } from "@/server/notification/templates";
 import { generateMonthlySettlements } from "@/server/settlement/service";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import { NextRequest } from "next/server";
@@ -27,11 +27,58 @@ export async function GET(req: NextRequest) {
 
     const admin = createSupabaseAdminClient();
 
+    // ── Phase 0: 24h 미열람 리마인더 ──
+    const unviewedLeads = await getUnviewedChargedLeads(admin, 24);
+    let reminded = 0;
+    for (const lead of unviewedLeads) {
+        try {
+            const { data: vendor } = await admin
+                .from("vendors")
+                .select("owner_user_id, name")
+                .eq("id", lead.vendorId)
+                .single();
+            if (!vendor) continue;
+
+            const { data: profile } = await admin
+                .from("profiles")
+                .select("email, phone")
+                .eq("id", vendor.owner_user_id)
+                .single();
+            if (!profile?.email && !profile?.phone) continue;
+
+            const result = await sendVendorNotification({
+                vendorUserId: vendor.owner_user_id,
+                email: profile.email ?? undefined,
+                phone: profile.phone ?? undefined,
+                notificationType: "lead_unviewed_reminder",
+                emailTemplate: getLeadUnviewedReminderTemplate({
+                    vendorName: vendor.name,
+                    leadId: lead.leadId,
+                }),
+                kakaoTemplate: getKakaoLeadUnviewedReminderTemplate({
+                    vendorName: vendor.name,
+                }),
+            });
+
+            if (result.delivered || result.skipped) {
+                await markLeadChargeUnviewedReminded(admin, lead.chargeId);
+                if (result.delivered) {
+                    reminded++;
+                }
+            } else {
+                console.warn("[CRON] Unviewed reminder: all channels failed for lead", lead.leadId);
+            }
+        } catch (err) {
+            console.error("[CRON] Unviewed reminder failed for lead", lead.leadId, err);
+        }
+    }
+
     // 48h warning
     const warningOnly = await getUnrespondedChargedLeads(admin, 48, {
         maxHoursSinceCreated: 72,
         onlyUnwarned: true,
     });
+    let warnedCount = 0;
 
     // Send warning notifications
     for (const { lead, charge } of warningOnly) {
@@ -49,7 +96,7 @@ export async function GET(req: NextRequest) {
                 .select("email, phone")
                 .eq("id", vendor.owner_user_id)
                 .single();
-            if (!profile?.email) continue;
+            if (!profile?.email && !profile?.phone) continue;
 
             const { data: doctor } = await admin
                 .from("profiles")
@@ -57,9 +104,9 @@ export async function GET(req: NextRequest) {
                 .eq("id", lead.doctor_user_id)
                 .single();
 
-            await sendVendorNotification({
+            const result = await sendVendorNotification({
                 vendorUserId: vendor.owner_user_id,
-                email: profile.email,
+                email: profile.email ?? undefined,
                 phone: profile.phone ?? undefined,
                 notificationType: "lead_no_response_warning",
                 emailTemplate: getLeadNoResponseWarningTemplate({
@@ -73,7 +120,14 @@ export async function GET(req: NextRequest) {
                 }),
             });
 
-            await markLeadChargeNoResponseWarned(admin, charge.id);
+            if (result.delivered || result.skipped) {
+                await markLeadChargeNoResponseWarned(admin, charge.id);
+                if (result.delivered) {
+                    warnedCount++;
+                }
+            } else {
+                console.warn("[CRON] Warning notification: all channels failed for lead", lead.id);
+            }
         } catch (err) {
             console.error("[CRON] Warning notification failed for lead", lead.id, err);
         }
@@ -119,7 +173,8 @@ export async function GET(req: NextRequest) {
 
     return Response.json({
         ok: true,
-        warned: warningOnly.length,
+        reminded,
+        warned: warnedCount,
         refunded: refundedCount,
         settlement: settlementResult,
     });

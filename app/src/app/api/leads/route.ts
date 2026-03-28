@@ -5,7 +5,7 @@ import { withApi } from "@/server/api/with-api";
 import { withApprovedDoctor, withAuth } from "@/server/auth/guards";
 import { calculateChargeAmount, processLeadCharge } from "@/server/lead/charge-service";
 import { mapLeadRow, mapLeadVendorSummary } from "@/server/lead/mapper";
-import { fetchLeadDetail } from "@/server/lead/repository";
+import { countUnviewedLeads, fetchLeadDetail } from "@/server/lead/repository";
 import { getKakaoLeadChargedTemplate } from "@/server/notification/kakao-templates";
 import { sendVendorNotification } from "@/server/notification/service";
 import { getLeadChargedTemplate } from "@/server/notification/templates";
@@ -41,6 +41,20 @@ export const GET = withApi(
             });
         }
 
+        // vendor 사용자인 경우 미열람 리드 수 집계
+        let unviewedCount: number | undefined;
+        if (ctx.profile.role === "vendor") {
+            const { data: vendor } = await ctx.supabase
+                .from("vendors")
+                .select("id")
+                .eq("owner_user_id", ctx.user.id)
+                .maybeSingle();
+
+            if (vendor) {
+                unviewedCount = await countUnviewedLeads(ctx.supabase, vendor.id);
+            }
+        }
+
         return ok({
             items: (data ?? []).map((row) =>
                 mapLeadRow(row, mapLeadVendorSummary(row.vendor)),
@@ -48,6 +62,7 @@ export const GET = withApi(
             page: query.page,
             pageSize: query.pageSize,
             total: count ?? 0,
+            ...(unviewedCount !== undefined && { unviewedCount }),
         });
     }),
 );
@@ -258,12 +273,12 @@ export const POST = withApi(
                     .eq("id", vendorOwner.owner_user_id)
                     .single();
 
-                if (ownerProfile?.email) {
+                if (ownerProfile?.email || ownerProfile?.phone) {
                     const serviceSummary = charge?.priceBreakdown?.map((p) => p.categoryName).join(", ") ?? "";
 
                     sendVendorNotification({
                         vendorUserId: vendorOwner.owner_user_id,
-                        email: ownerProfile.email,
+                        email: ownerProfile.email ?? undefined,
                         phone: ownerProfile.phone ?? undefined,
                         notificationType: "lead_charged",
                         emailTemplate: getLeadChargedTemplate({

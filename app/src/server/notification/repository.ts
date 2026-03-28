@@ -126,6 +126,35 @@ export async function insertNotificationDelivery(
 	}
 }
 
+export async function listNotificationDeliveries(
+	supabase: SupabaseClient<Database>,
+	filters: {
+		status?: string;
+		channel?: string;
+		userId?: string;
+		page: number;
+		pageSize: number;
+	},
+) {
+	let qb = supabase
+		.from("notification_deliveries")
+		.select("*", { count: "exact" });
+
+	if (filters.status) qb = qb.eq("status", filters.status);
+	if (filters.channel) qb = qb.eq("channel", filters.channel as "email" | "kakao" | "sms" | "in_app");
+	if (filters.userId) qb = qb.eq("user_id", filters.userId);
+
+	qb = qb.order("sent_at", { ascending: false });
+
+	const from = (filters.page - 1) * filters.pageSize;
+	const to = from + filters.pageSize - 1;
+	qb = qb.range(from, to);
+
+	const { data, error, count } = await qb;
+	if (error) throw error;
+	return { items: data ?? [], total: count ?? 0 };
+}
+
 export async function updateDeliveryStatus(
 	supabase: SupabaseClient<Database>,
 	deliveryId: string,

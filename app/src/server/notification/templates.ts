@@ -211,3 +211,62 @@ export function getLeadNoResponseWarningTemplate(data: LeadNoResponseWarningData
 		`.trim(),
 	};
 }
+
+export interface LeadUnviewedReminderData {
+	vendorName: string;
+	leadId: string;
+}
+
+/**
+ * 미열람 문의 리마인더 이메일 템플릿 (업체에게 발송)
+ */
+export function getLeadUnviewedReminderTemplate(data: LeadUnviewedReminderData) {
+	return {
+		subject: "[메디허브] 아직 확인하지 않은 문의가 있습니다",
+		body: `
+안녕하세요, ${data.vendorName}님.
+
+접수된 지 24시간이 지났지만 아직 확인하지 않은 문의가 있습니다.
+
+파트너 센터에 로그인하여 문의 내용을 확인해 주세요.
+빠른 확인과 응답은 계약 성사율을 높이는 데 큰 도움이 됩니다.
+
+※ 문의 접수 후 72시간 이내에 응답이 없으면 자동으로 환불 처리됩니다.
+
+---
+메디허브 드림
+문의: support@medihub.kr
+		`.trim(),
+	};
+}
+
+// ============================================================
+// 리드 상태 변경 알림 이메일 템플릿 (의료인에게 발송)
+// ============================================================
+
+export interface LeadStatusChangedDoctorEmailData {
+	doctorName: string;
+	vendorName: string;
+	statusLabel: string;
+	leadId: string;
+}
+
+/**
+ * 리드 상태 변경 알림 이메일 템플릿 (의료인에게 발송)
+ */
+export function getLeadStatusChangedDoctorTemplate(data: LeadStatusChangedDoctorEmailData) {
+	return {
+		subject: "[메디허브] 문의 상태가 변경되었습니다",
+		body: `
+안녕하세요, ${data.doctorName}님.
+
+회원님이 ${data.vendorName}에 보낸 문의가 '${data.statusLabel}' 상태로 변경되었습니다.
+
+로그인하여 문의 상세 내용을 확인해 주세요.
+
+---
+메디허브 드림
+문의: support@medihub.kr
+		`.trim(),
+	};
+}

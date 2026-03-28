@@ -22,6 +22,23 @@ async function fetchMyVendor(ctx: AuthedContext) {
     return data;
 }
 
+async function fetchVendorVerificationStatus(ctx: AuthedContext) {
+    const { data, error } = await ctx.supabase
+        .from("vendor_verifications")
+        .select("status")
+        .eq("user_id", ctx.user.id)
+        .maybeSingle();
+
+    if (error) {
+        throw internalServerError("업체 검수 상태를 확인할 수 없습니다.", {
+            message: error.message,
+            code: error.code,
+        });
+    }
+
+    return data?.status ?? null;
+}
+
 async function syncVendorCategories(input: {
     supabase: Parameters<typeof fetchVendorCategories>[0];
     vendorId: string;
@@ -116,6 +133,9 @@ export const POST = withApi(
             throw conflict("이미 업체 프로필이 있습니다.");
         }
 
+        const verificationStatus = await fetchVendorVerificationStatus(ctx);
+        const initialStatus = verificationStatus === "approved" ? "active" : "draft";
+
         const { data: vendor, error } = await ctx.supabase
             .from("vendors")
             .insert({
@@ -133,6 +153,7 @@ export const POST = withApi(
                 longitude: body.longitude ?? null,
                 price_min: body.priceMin ?? null,
                 price_max: body.priceMax ?? null,
+                status: initialStatus,
             })
             .select("*")
             .single();
@@ -168,6 +189,7 @@ export const POST = withApi(
                 metadata: {
                     vendorId: vendor.id,
                     name: vendor.name,
+                    status: vendor.status,
                 },
             },
             "vendors/me/POST",

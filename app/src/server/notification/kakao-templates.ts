@@ -190,3 +190,39 @@ export function getKakaoLeadNoResponseWarningTemplate(data: {
 		},
 	};
 }
+
+/**
+ * 미열람 문의 리마인더 카카오 알림톡 템플릿 (업체에게 발송)
+ */
+export function getKakaoLeadUnviewedReminderTemplate(data: {
+	vendorName: string;
+}): KakaoTemplate {
+	return {
+		templateId: "MEDIHUB_LEAD_UNVIEWED_REMINDER",
+		variables: {
+			"#{업체명}": data.vendorName,
+		},
+	};
+}
+
+// ============================================================
+// 리드 상태 변경 알림 카카오 알림톡 템플릿 (의료인에게 발송)
+// ============================================================
+
+/**
+ * 리드 상태 변경 알림 카카오 알림톡 템플릿 (의료인에게 발송)
+ */
+export function getKakaoLeadStatusChangedDoctorTemplate(data: {
+	doctorName: string;
+	vendorName: string;
+	statusLabel: string;
+}): KakaoTemplate {
+	return {
+		templateId: "MEDIHUB_LEAD_STATUS_CHANGED_DOCTOR",
+		variables: {
+			"#{한의사명}": data.doctorName,
+			"#{업체명}": data.vendorName,
+			"#{상태}": data.statusLabel,
+		},
+	};
+}

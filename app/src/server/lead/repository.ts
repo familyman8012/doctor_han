@@ -418,6 +418,134 @@ export async function getUnrespondedChargedLeads(
     }));
 }
 
+// ============================================
+// Unviewed Charged Leads (24h reminder)
+// ============================================
+
+export async function getUnviewedChargedLeads(
+    supabase: SupabaseClient<Database>,
+    hoursThreshold: number,
+): Promise<Array<{ leadId: string; chargeId: string; vendorId: string; vendorUserId: string }>> {
+    const thresholdDate = new Date();
+    thresholdDate.setHours(thresholdDate.getHours() - hoursThreshold);
+
+    // First, get charged lead_charges that haven't been reminded yet
+    const { data: charges, error: chargesError } = await supabase
+        .from("lead_charges")
+        .select("*")
+        .eq("status", "charged" as Database["public"]["Enums"]["lead_charge_status"])
+        .is("unviewed_reminded_at", null);
+
+    if (chargesError) {
+        console.error("[getUnviewedChargedLeads]", chargesError);
+        return [];
+    }
+
+    if (!charges || charges.length === 0) {
+        return [];
+    }
+
+    const chargedLeadIds = charges.map((c: LeadChargeRow) => c.lead_id);
+
+    // Then, get leads that are still 'submitted', unviewed, and older than the threshold
+    const { data: leads, error: leadsError } = await supabase
+        .from("leads")
+        .select("*")
+        .in("id", chargedLeadIds)
+        .eq("status", "submitted")
+        .is("viewed_at", null)
+        .lt("created_at", thresholdDate.toISOString());
+
+    if (leadsError) {
+        console.error("[getUnviewedChargedLeads]", leadsError);
+        return [];
+    }
+
+    if (!leads || leads.length === 0) {
+        return [];
+    }
+
+    // Get vendor info for each matched lead
+    const vendorIds = [...new Set(leads.map((l: typeof leads[number]) => l.vendor_id))];
+    const { data: vendors, error: vendorsError } = await supabase
+        .from("vendors")
+        .select("id, owner_user_id")
+        .in("id", vendorIds);
+
+    if (vendorsError) {
+        console.error("[getUnviewedChargedLeads]", vendorsError);
+        return [];
+    }
+
+    const vendorMap = new Map((vendors ?? []).map((v) => [v.id, v.owner_user_id]));
+    const chargeByLeadId = new Map(charges.map((c: LeadChargeRow) => [c.lead_id, c] as const));
+
+    return leads
+        .filter((lead: typeof leads[number]) => vendorMap.has(lead.vendor_id))
+        .map((lead: typeof leads[number]) => ({
+            leadId: lead.id,
+            chargeId: chargeByLeadId.get(lead.id)!.id,
+            vendorId: lead.vendor_id,
+            vendorUserId: vendorMap.get(lead.vendor_id)!,
+        }));
+}
+
+export async function markLeadChargeUnviewedReminded(
+    supabase: SupabaseClient<Database>,
+    chargeId: string,
+): Promise<void> {
+    const { error } = await supabase
+        .from("lead_charges")
+        .update({ unviewed_reminded_at: new Date().toISOString() })
+        .eq("id", chargeId);
+    if (error) console.error("[markLeadChargeUnviewedReminded]", error);
+}
+
+export async function markLeadViewed(supabase: SupabaseClient<Database>, leadId: string): Promise<void> {
+    const { error } = await supabase
+        .from("leads")
+        .update({ viewed_at: new Date().toISOString() })
+        .eq("id", leadId)
+        .is("viewed_at", null);
+    if (error) {
+        console.error("[markLeadViewed] failed", error);
+    }
+}
+
+export async function countUnviewedLeads(
+    supabase: SupabaseClient<Database>,
+    vendorId: string,
+): Promise<number> {
+    const { count, error } = await supabase
+        .from("leads")
+        .select("id", { count: "exact", head: true })
+        .eq("vendor_id", vendorId)
+        .is("viewed_at", null)
+        .neq("status", "canceled");
+
+    if (error) {
+        console.error("[countUnviewedLeads] failed", error);
+        return 0;
+    }
+    return count ?? 0;
+}
+
+export async function countAllUnviewedLeads(
+    supabase: SupabaseClient<Database>,
+): Promise<number> {
+    const { count, error } = await supabase
+        .from("leads")
+        .select("id", { count: "exact", head: true })
+        .is("viewed_at", null)
+        .neq("status", "canceled");
+
+    if (error) {
+        console.error("[countAllUnviewedLeads] failed", error);
+        return 0;
+    }
+    return count ?? 0;
+}
+
 export async function markLeadChargeNoResponseWarned(
     supabase: SupabaseClient<Database>,
     chargeId: string,

@@ -5,6 +5,10 @@ import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withAuth } from "@/server/auth/guards";
 import { fetchLeadDetail } from "@/server/lead/repository";
+import { createSupabaseAdminClient } from "@/server/supabase/admin";
+import { sendDoctorNotification } from "@/server/notification/service";
+import { getLeadStatusChangedDoctorTemplate } from "@/server/notification/templates";
+import { getKakaoLeadStatusChangedDoctorTemplate } from "@/server/notification/kakao-templates";
 
 export const PATCH = withApi(
     withAuth<{ id: string }>(async (ctx) => {
@@ -60,6 +64,68 @@ export const PATCH = withApi(
 
         if (historyResult.error) {
             console.error("[PATCH /api/leads/:id/status] lead_status_history insert failed", historyResult.error);
+        }
+
+        // ── 의료인 알림 발송 (fire-and-forget) ──
+        const DOCTOR_NOTIFY_STATUSES = ["in_progress", "quote_pending", "negotiating", "contracted", "canceled", "closed"];
+
+        const STATUS_LABELS: Record<string, string> = {
+            in_progress: "진행중",
+            quote_pending: "견적대기",
+            negotiating: "협상중",
+            contracted: "계약완료",
+            canceled: "취소",
+            closed: "종료",
+        };
+
+        if (DOCTOR_NOTIFY_STATUSES.includes(body.status)) {
+            const adminSupabase = createSupabaseAdminClient();
+
+            // lead의 doctor_user_id, vendor_id 조회
+            const { data: leadInfo } = await adminSupabase
+                .from("leads")
+                .select("doctor_user_id, vendor_id")
+                .eq("id", leadId)
+                .single();
+
+            if (leadInfo?.doctor_user_id && leadInfo?.vendor_id) {
+                // doctor profile 조회
+                const { data: doctorProfile } = await adminSupabase
+                    .from("profiles")
+                    .select("email, phone, display_name")
+                    .eq("id", leadInfo.doctor_user_id)
+                    .single();
+
+                // vendor name 조회
+                const { data: vendor } = await adminSupabase
+                    .from("vendors")
+                    .select("name")
+                    .eq("id", leadInfo.vendor_id)
+                    .single();
+
+                if ((doctorProfile?.email || doctorProfile?.phone) && vendor?.name) {
+                    const statusLabel = STATUS_LABELS[body.status] ?? body.status;
+                    const doctorName = doctorProfile.display_name ?? "회원";
+
+                    sendDoctorNotification({
+                        doctorUserId: leadInfo.doctor_user_id,
+                        email: doctorProfile.email ?? undefined,
+                        phone: doctorProfile.phone ?? undefined,
+                        notificationType: "lead_status_changed",
+                        emailTemplate: getLeadStatusChangedDoctorTemplate({
+                            doctorName,
+                            vendorName: vendor.name,
+                            statusLabel,
+                            leadId,
+                        }),
+                        kakaoTemplate: getKakaoLeadStatusChangedDoctorTemplate({
+                            doctorName,
+                            vendorName: vendor.name,
+                            statusLabel,
+                        }),
+                    }).catch(() => {});
+                }
+            }
         }
 
         const detail = await fetchLeadDetail(ctx.supabase, leadId);

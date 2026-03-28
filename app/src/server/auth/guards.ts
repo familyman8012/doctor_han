@@ -102,8 +102,8 @@ export function withAuth<TParams = Record<string, string>>(
 ): (req: NextRequest, routeCtx: NextRouteContext<TParams>) => Promise<Response> {
     return withUser(async (ctx) => {
         const profile = await requireProfile(ctx.supabase, ctx.user.id);
-        if (profile.status === "banned") {
-            throw forbidden("정지된 계정입니다.");
+        if (profile.status !== "active") {
+            throw forbidden(profile.status === "banned" ? "정지된 계정입니다." : "비활성 계정입니다.");
         }
         return handler({ ...ctx, profile });
     });
@@ -130,11 +130,30 @@ export function withApprovedDoctor<TParams = Record<string, string>>(
     });
 }
 
+export async function requireActiveVendor(supabase: SupabaseClient<Database>, userId: string): Promise<void> {
+    const { data, error } = await supabase
+        .from("vendors")
+        .select("status")
+        .eq("owner_user_id", userId)
+        .maybeSingle();
+
+    if (error) {
+        throw unauthorized("업체 상태를 확인할 수 없습니다.");
+    }
+
+    if (!data || data.status !== "active") {
+        throw forbidden(
+            data?.status === "banned" ? "정지된 업체입니다." : "비활성 업체입니다.",
+        );
+    }
+}
+
 export function withApprovedVendor<TParams = Record<string, string>>(
     handler: (ctx: AuthedContext<TParams>) => Promise<Response>,
 ): (req: NextRequest, routeCtx: NextRouteContext<TParams>) => Promise<Response> {
     return withRole(["vendor"], async (ctx) => {
         await requireApprovedVendor(ctx.supabase, ctx.user.id);
+        await requireActiveVendor(ctx.supabase, ctx.user.id);
         return handler(ctx);
     });
 }
