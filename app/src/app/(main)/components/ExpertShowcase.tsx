@@ -178,30 +178,34 @@ export function ExpertShowcase() {
                     })}
                 </div>
 
-                {/* Mobile: Grid layout */}
+                {/* Mobile: Snap scroll carousel — all 7 experts */}
                 <div className="md:hidden w-full mt-6">
-                    <div className="grid grid-cols-4 gap-2">
-                        {experts.slice(0, 4).map((expert) => (
+                    <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide">
+                        {experts.map((expert, idx) => (
                             <div
                                 key={expert.name}
-                                className="flex flex-col items-center gap-1.5 rounded-xl px-2 py-3"
+                                className={`flex-shrink-0 snap-start flex flex-col items-center gap-2 rounded-xl px-4 py-4 w-[140px] ${idx === 0 ? "ml-2" : ""}`}
                                 style={{ backgroundColor: "rgba(255, 255, 255, 0.08)" }}
                             >
-                                <div className="w-12 h-12 rounded-full overflow-hidden">
+                                <div className="w-16 h-16 rounded-full overflow-hidden">
                                     <Image
                                         src={expert.image}
                                         alt={expert.name}
-                                        width={48}
-                                        height={48}
+                                        width={64}
+                                        height={64}
                                         className="w-full h-full object-cover"
                                     />
                                 </div>
-                                <span className="text-[10px] font-bold text-white text-center leading-tight">
+                                <span className="text-[11px] font-bold text-white text-center leading-tight">
                                     {expert.name}
                                 </span>
-                                <span className="text-[9px] text-gray-400">
-                                    {expert.tags[0]}
-                                </span>
+                                <div className="flex flex-wrap justify-center gap-1">
+                                    {expert.tags.map((tag) => (
+                                        <span key={tag} className="text-[9px] text-gray-300 bg-gray-700/60 px-1.5 py-0.5 rounded-full">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
                         ))}
                     </div>
