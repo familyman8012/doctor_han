@@ -54,6 +54,15 @@ import type {
     FunnelAnalyticsResponse,
     OperationsAnalyticsResponse,
 } from "@/lib/schema/analytics";
+import type {
+    DailyCheckMetricsResponse,
+    AdminLeadOpsListQuery,
+    AdminLeadOpsListResponse,
+    VendorGradeListQuery,
+    VendorGradeListResponse,
+    AdminStatusHistoryQuery,
+    AdminStatusHistoryListResponse,
+} from "@/lib/schema/beta-ops";
 import api from "./client";
 
 export const adminApi = {
@@ -293,6 +302,30 @@ export const adminApi = {
 
     getAnalyticsOperations: async (params: { from: string; to: string; granularity?: string }): Promise<OperationsAnalyticsResponse> => {
         const response = await api.get<OperationsAnalyticsResponse>("/api/admin/analytics/operations", { params });
+        return response.data;
+    },
+
+    // ===========================
+    // 베타 운영 콘솔
+    // ===========================
+
+    getBetaOpsDailyCheck: async (): Promise<DailyCheckMetricsResponse> => {
+        const response = await api.get<DailyCheckMetricsResponse>("/api/admin/beta-ops/daily-check");
+        return response.data;
+    },
+
+    getBetaOpsLeads: async (params: Partial<AdminLeadOpsListQuery>): Promise<AdminLeadOpsListResponse> => {
+        const response = await api.get<AdminLeadOpsListResponse>("/api/admin/beta-ops/leads", { params });
+        return response.data;
+    },
+
+    getBetaOpsVendorGrades: async (params?: Partial<VendorGradeListQuery>): Promise<VendorGradeListResponse> => {
+        const response = await api.get<VendorGradeListResponse>("/api/admin/beta-ops/vendor-grades", { params });
+        return response.data;
+    },
+
+    getBetaOpsStatusHistory: async (params: Partial<AdminStatusHistoryQuery>): Promise<AdminStatusHistoryListResponse> => {
+        const response = await api.get<AdminStatusHistoryListResponse>("/api/admin/beta-ops/status-history", { params });
         return response.data;
     },
 };

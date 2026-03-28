@@ -21,6 +21,7 @@ import {
     Receipt,
     Download,
     BarChart3,
+    Activity,
 } from "lucide-react";
 import { useIsAuthenticated, useUserRole, useAuthStore } from "@/stores/auth";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
@@ -42,6 +43,7 @@ const NAV_ITEMS = [
     { href: "/admin/bid-projects", label: "비딩 프로젝트", icon: Gavel },
     { href: "/admin/settlements", label: "정산 관리", icon: Receipt },
     { href: "/admin/exports", label: "데이터 내보내기", icon: Download },
+    { href: "/admin/beta-ops", label: "베타 운영 콘솔", icon: Activity },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
