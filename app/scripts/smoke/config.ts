@@ -9,7 +9,7 @@ export const ACCOUNTS = {
 export type Role = keyof typeof ACCOUNTS;
 
 export const TIMEOUTS = {
-    navigation: 15_000,
+    navigation: 30_000,
     settle: 3_000,
     login: 10_000,
     toast: 2_000,

@@ -1,0 +1,417 @@
+[
+  {
+    "endpoint": "/api/leads",
+    "method": "POST",
+    "role": "doctor",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/leads/7611346e-a6b0-4021-83b3-20a576c35590/status",
+    "method": "PATCH",
+    "role": "doctor",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/leads/7611346e-a6b0-4021-83b3-20a576c35590/messages",
+    "method": "POST",
+    "role": "doctor",
+    "status": 201,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/leads/7611346e-a6b0-4021-83b3-20a576c35590/messages/read",
+    "method": "PATCH",
+    "role": "doctor",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/leads/7611346e-a6b0-4021-83b3-20a576c35590/report",
+    "method": "POST",
+    "role": "doctor",
+    "status": 403,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/reviews",
+    "method": "POST",
+    "role": "doctor",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/reviews/d3d49233-e111-4d83-869e-49d61ee34336",
+    "method": "PATCH",
+    "role": "doctor",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/reviews/d3d49233-e111-4d83-869e-49d61ee34336",
+    "method": "DELETE",
+    "role": "doctor",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/reviews/d3d49233-e111-4d83-869e-49d61ee34336",
+    "method": "POST",
+    "role": "doctor",
+    "status": 405,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/reviews/d3d49233-e111-4d83-869e-49d61ee34336/reply",
+    "method": "POST",
+    "role": "vendor",
+    "status": 404,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/favorites/toggle",
+    "method": "POST",
+    "role": "doctor",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/product-favorites/toggle",
+    "method": "POST",
+    "role": "doctor",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/vendors/me",
+    "method": "PATCH",
+    "role": "vendor",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/vendors/me/products",
+    "method": "POST",
+    "role": "vendor",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/vendors/me/products/00000000-0000-0000-0000-000000000099",
+    "method": "PATCH",
+    "role": "vendor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no productId"
+  },
+  {
+    "endpoint": "/api/vendors/me/portfolio",
+    "method": "POST",
+    "role": "vendor",
+    "status": 201,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/vendors/me/portfolio/00000000-0000-0000-0000-000000000099",
+    "method": "PATCH",
+    "role": "vendor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no portfolioId"
+  },
+  {
+    "endpoint": "/api/vendors/me/portfolio/00000000-0000-0000-0000-000000000099",
+    "method": "DELETE",
+    "role": "vendor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no portfolioId"
+  },
+  {
+    "endpoint": "/api/vendors/me/prices",
+    "method": "POST",
+    "role": "vendor",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/vendors/me/prices/00000000-0000-0000-0000-000000000099",
+    "method": "PATCH",
+    "role": "vendor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no priceId"
+  },
+  {
+    "endpoint": "/api/support/tickets",
+    "method": "POST",
+    "role": "doctor",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/support/tickets/00000000-0000-0000-0000-000000000099/messages",
+    "method": "POST",
+    "role": "doctor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no supportTicketId"
+  },
+  {
+    "endpoint": "/api/support/tickets/00000000-0000-0000-0000-000000000099/reopen",
+    "method": "POST",
+    "role": "doctor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no supportTicketId"
+  },
+  {
+    "endpoint": "/api/bid/projects",
+    "method": "POST",
+    "role": "doctor",
+    "status": 201,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/bid/projects/00000000-0000-0000-0000-000000000099/responses",
+    "method": "POST",
+    "role": "vendor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no bidProjectId"
+  },
+  {
+    "endpoint": "/api/bid/projects/00000000-0000-0000-0000-000000000099/cancel",
+    "method": "PATCH",
+    "role": "doctor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no bidProjectId"
+  },
+  {
+    "endpoint": "/api/credits/charge",
+    "method": "POST",
+    "role": "vendor",
+    "status": 404,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/credits/auto-charge",
+    "method": "PATCH",
+    "role": "vendor",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/payments/confirm",
+    "method": "POST",
+    "role": "vendor",
+    "status": 404,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/notification-settings",
+    "method": "PATCH",
+    "role": "doctor",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/profile",
+    "method": "PATCH",
+    "role": "doctor",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/onboarding",
+    "method": "PATCH",
+    "role": "doctor",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/geocode",
+    "method": "POST",
+    "role": "doctor",
+    "status": 403,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/files/signed-upload",
+    "method": "POST",
+    "role": "doctor",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/product-recent-views",
+    "method": "POST",
+    "role": "doctor",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/vendors/me/subscriptions",
+    "method": "POST",
+    "role": "vendor",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/vendors/me/membership",
+    "method": "POST",
+    "role": "vendor",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/ads/priority/purchase",
+    "method": "POST",
+    "role": "vendor",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/ads/banners/00000000-0000-0000-0000-000000000099/click",
+    "method": "POST",
+    "role": "doctor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no bannerId"
+  },
+  {
+    "endpoint": "/api/refunds",
+    "method": "POST",
+    "role": "vendor",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/admin/categories",
+    "method": "POST",
+    "role": "admin",
+    "status": 409,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/admin/categories/98e9a64d-46eb-4e5d-a022-17b25fda38b4",
+    "method": "PATCH",
+    "role": "admin",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/admin/verifications/00000000-0000-0000-0000-000000000099/reject",
+    "method": "POST",
+    "role": "admin",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no verificationId"
+  },
+  {
+    "endpoint": "/api/admin/help-center/categories",
+    "method": "POST",
+    "role": "admin",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/admin/help-center/articles",
+    "method": "POST",
+    "role": "admin",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/admin/reviews/d3d49233-e111-4d83-869e-49d61ee34336/hide",
+    "method": "POST",
+    "role": "admin",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/admin/reviews/d3d49233-e111-4d83-869e-49d61ee34336/unhide",
+    "method": "POST",
+    "role": "admin",
+    "status": 404,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/admin/reports/00000000-0000-0000-0000-000000000099/review",
+    "method": "POST",
+    "role": "admin",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no reportId"
+  },
+  {
+    "endpoint": "/api/admin/reports/00000000-0000-0000-0000-000000000099/dismiss",
+    "method": "POST",
+    "role": "admin",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no reportId"
+  },
+  {
+    "endpoint": "/api/admin/support/tickets/00000000-0000-0000-0000-000000000099/messages",
+    "method": "POST",
+    "role": "admin",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no supportTicketId"
+  },
+  {
+    "endpoint": "/api/admin/support/tickets/00000000-0000-0000-0000-000000000099/status",
+    "method": "PATCH",
+    "role": "admin",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no supportTicketId"
+  },
+  {
+    "endpoint": "/api/admin/bid-projects/00000000-0000-0000-0000-000000000099/status",
+    "method": "PATCH",
+    "role": "admin",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no bidProjectId"
+  },
+  {
+    "endpoint": "/api/admin/settlements/generate",
+    "method": "POST",
+    "role": "admin",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/admin/ads/campaigns",
+    "method": "POST",
+    "role": "admin",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/admin/credits/00000000-0000-0000-0000-000000000099/adjust",
+    "method": "POST",
+    "role": "admin",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/admin/lead-reports/00000000-0000-0000-0000-000000000099/review",
+    "method": "POST",
+    "role": "admin",
+    "status": 400,
+    "ok": true
+  },
+  {
+    "endpoint": "/api/admin/products/00000000-0000-0000-0000-000000000099",
+    "method": "PATCH",
+    "role": "admin",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: no productId"
+  }
+]

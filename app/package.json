@@ -13,6 +13,7 @@
     "test:integration": "pnpm test && pnpm test:e2e",
     "test:e2e": "echo 'No e2e test configured yet'",
     "smoke": "tsx scripts/smoke/runner.ts",
+    "smoke:mutation": "tsx scripts/smoke/mutation-runner.ts",
     "db:start": "pnpm exec supabase start",
     "db:stop": "pnpm exec supabase stop",
     "db:status": "pnpm exec supabase status",

@@ -2,7 +2,7 @@ import "server-only";
 
 import type { Database, Tables, TablesInsert } from "@/lib/database.types";
 import type { SupportTicketStatus } from "@/lib/schema/support";
-import { internalServerError } from "@/server/api/errors";
+import { badRequest, internalServerError } from "@/server/api/errors";
 import { buildOrIlikeFilter } from "@/server/api/postgrest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -68,6 +68,9 @@ export async function insertTicket(
 		.single();
 
 	if (error) {
+		if (error.code === "23503") {
+			throw badRequest("유효하지 않은 카테고리입니다.");
+		}
 		throw internalServerError("티켓을 생성할 수 없습니다.", {
 			message: error.message,
 			code: error.code,

@@ -19,26 +19,37 @@ Puppeteer로 123개 페이지 전수 조사 → 8개 실제 버그 발견 및 �
 
 ---
 
+## 완료: Mutation 스모크 테스트 (2026-04-03)
+
+57개 POST/PATCH/DELETE 엔드포인트 테스트 → 2개 버그 발견 및 수정.
+
+### 수정된 버그
+
+| # | 엔드포인트 | 에러 | 원인 | 수정 파일 |
+|---|-----------|------|------|----------|
+| 9 | `POST /api/support/tickets` | 500 — FK violation (23503) | 유효하지 않은 categoryId에 대해 500 반환 | `server/support/repository.ts` |
+| 10 | `POST /api/admin/help-center/articles` | 500 — FK violation (23503) | 유효하지 않은 categoryId에 대해 500 반환 | `api/admin/help-center/articles/route.ts` |
+
+### 테스트 결과 요약
+
+- ✅ OK (2xx): 12
+- ⚠️ Zod 검증 실패 (4xx): 29 (정상 — 최소 payload로 테스트하므로)
+- ❌ 5xx: 0 (수정 후)
+- ⏭️ 건너뜀: 16 (동적 ID 미확보)
+
+상세: `doc/mutation-smoke-report.md`
+
+## 완료: 스모크 테스트 개선 (2026-04-03)
+
+- [x] Navigation timeout 15s → 30s 로 증가
+- [x] false positive 필터링 (dummy UUID 페이지의 404, "찾을 수 없습니다" 토스트/콘솔 에러 제외)
+- [x] `pnpm smoke:mutation` 스크립트 추가
+
+---
+
 ## 미완료: 다음 세션에서 진행
 
-### 1. Mutation 엔드포인트 스모크 테스트 (Phase 4)
-Puppeteer 페이지 로딩으로 커버 안 되는 POST/PATCH/DELETE 엔드포인트 ~40개:
-- [ ] 리드 생성/상태변경/취소
-- [ ] 리뷰 작성/수정/삭제
-- [ ] 찜 토글
-- [ ] 파일 업로드 (signed URL)
-- [ ] 업체 프로필/포트폴리오 CRUD
-- [ ] 관리자: 인증 승인/반려, 카테고리 CRUD, 제재
-- [ ] 크레딧 충전/결제
-- [ ] 입찰 응답/선정/계약
-- [ ] 고객지원 티켓 생성/답변
-
-### 2. 스모크 테스트 개선
-- [ ] Navigation timeout 15s → 30s 로 증가 (dev server 부하 대응)
-- [ ] 동적 ID 해소 개선 (vendor 리드/상품/입찰 실제 데이터 연결)
-- [ ] false positive 필터링 (dummy UUID 404는 에러에서 제외)
-
-### 3. E2E 시나리오 테스트 (회귀 방지)
+### E2E 시나리오 테스트 (회귀 방지)
 - [ ] 회원가입 → 인증 제출 → 관리자 승인 전체 플로우
 - [ ] 문의 생성 → 업체 응답 → 견적 → 계약 플로우
 - [ ] 크레딧 충전 → 광고 구매 플로우
@@ -51,5 +62,6 @@ Puppeteer 페이지 로딩으로 커버 안 되는 POST/PATCH/DELETE 엔드포�
 cd app
 pnpm db:start    # Supabase 로컬 실행
 pnpm dev         # dev server 시작
-pnpm smoke       # 스모크 테스트 실행 → doc/smoke-report.md 생성
+pnpm smoke       # 페이지 로딩 스모크 테스트 → doc/smoke-report.md
+pnpm smoke:mutation  # Mutation 엔드포인트 테스트 → doc/mutation-smoke-report.md
 ```

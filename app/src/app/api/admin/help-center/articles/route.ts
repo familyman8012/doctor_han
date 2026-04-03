@@ -1,5 +1,5 @@
 import { AdminHelpArticleListQuerySchema, HelpArticleCreateBodySchema } from "@/lib/schema/help-center";
-import { internalServerError } from "@/server/api/errors";
+import { badRequest, internalServerError } from "@/server/api/errors";
 import { buildOrIlikeFilter } from "@/server/api/postgrest";
 import { created, ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
@@ -100,6 +100,9 @@ export const POST = withApi(
             .single();
 
         if (error) {
+            if (error.code === "23503") {
+                throw badRequest("유효하지 않은 카테고리입니다.");
+            }
             throw internalServerError("문서를 생성할 수 없습니다.", {
                 message: error.message,
                 code: error.code,
