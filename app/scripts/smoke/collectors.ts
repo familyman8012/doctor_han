@@ -27,6 +27,8 @@ function isDummyUuidFalsePositive(pagePath: string, url: string, status: number)
     if (!pagePath.includes(DUMMY_UUID)) return false;
     // 404 on API calls for dummy UUIDs is expected
     if (status === 404) return true;
+    // Product detail pages intentionally try to record recent views; dummy UUID should not fail the smoke run.
+    if (status === 400 && url.includes("/api/product-recent-views")) return true;
     return false;
 }
 
@@ -63,6 +65,7 @@ export function attachCollectors(page: Page, role: string, pagePath: string) {
         if (shouldIgnoreConsole(text)) return;
         // Dummy UUID pages: 404 console errors are expected
         if (pagePath.includes(DUMMY_UUID) && /404|찾을 수 없습니다/.test(text)) return;
+        if (pagePath.includes(DUMMY_UUID) && /product-recent-views/.test(text) && /400/.test(text)) return;
         errors.push({
             severity: "P2",
             type: "console",

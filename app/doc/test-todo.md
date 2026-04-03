@@ -53,6 +53,9 @@ Puppeteer로 123개 페이지 전수 조사 → 8개 실제 버그 발견 및 �
 - [ ] 회원가입 → 인증 제출 → 관리자 승인 전체 플로우
 - [ ] 문의 생성 → 업체 응답 → 견적 → 계약 플로우
 - [ ] 크레딧 충전 → 광고 구매 플로우
+- [ ] `pnpm test:e2e` 안정화 확인
+  - 자동 로컬 서버 부팅(`127.0.0.1:3000`) + 로그인 세션 안정화 포함
+  - 시나리오 실패 시 `doc/e2e-report.md`, `doc/e2e-results.json` 기준으로 원인 추적
 
 ---
 
@@ -64,4 +67,5 @@ pnpm db:start    # Supabase 로컬 실행
 pnpm dev         # dev server 시작
 pnpm smoke       # 페이지 로딩 스모크 테스트 → doc/smoke-report.md
 pnpm smoke:mutation  # Mutation 엔드포인트 테스트 → doc/mutation-smoke-report.md
+pnpm test:e2e    # 로컬 서버 자동 부팅 + 핵심 E2E 시나리오 → doc/e2e-report.md
 ```

@@ -9,15 +9,16 @@
 
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
+import puppeteer from "puppeteer";
+import { login } from "./auth";
 
 // ── Config ──
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
-const SUPABASE_ANON_KEY =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
 const BASE_URL = process.env.SMOKE_BASE_URL ?? "http://localhost:3000";
 const REPORT_DIR = join(__dirname, "..", "..", "doc");
+const RUN_ID = new Date().toISOString().replace(/\D/g, "").slice(0, 14);
+const UUID_REGEX =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const ACCOUNTS = {
     admin: { email: "admin@medihub.local", password: "Password123!" },
@@ -35,33 +36,38 @@ interface TestResult {
     role: Role;
     status: number;
     ok: boolean;
+    expected?: boolean;
     error?: string;
     body?: string;
 }
 
-// ── Auth ──
-
-import { createClient } from "@supabase/supabase-js";
-
 // Store full session cookie strings per role
-const sessionCookies: Record<Role, string> = {} as any;
+const sessionCookies: Record<Role, string | undefined> = {
+    admin: undefined,
+    doctor: undefined,
+    vendor: undefined,
+};
 
 async function authenticate(role: Role): Promise<void> {
-    const { email, password } = ACCOUNTS[role];
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const browser = await puppeteer.launch({
+        headless: true,
+        args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+    });
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error || !data.session) {
-        throw new Error(`Auth failed for ${role} (${email}): ${error?.message ?? "no session"}`);
+    try {
+        const page = await login(browser, role);
+        const cookies = await page.cookies();
+        const cookieHeader = cookies.map(({ name, value }) => `${name}=${value}`).join("; ");
+
+        if (!cookieHeader) {
+            throw new Error(`Auth failed for ${role} (${ACCOUNTS[role].email}): no browser cookies`);
+        }
+
+        sessionCookies[role] = cookieHeader;
+        await page.close();
+    } finally {
+        await browser.close();
     }
-
-    // Build cookie value from full session object (matches what @supabase/ssr expects)
-    const sessionStr = JSON.stringify(data.session);
-    const base64Val = `base64-${Buffer.from(sessionStr).toString("base64")}`;
-
-    // Cookie name: sb-<ref>-auth-token where ref = hostname.split('.')[0]
-    const ref = new URL(SUPABASE_URL).hostname.split(".")[0];
-    sessionCookies[role] = `sb-${ref}-auth-token=${base64Val}`;
 }
 
 // ── API Call Helper ──
@@ -73,10 +79,15 @@ async function callApi(
     body?: Record<string, unknown>,
 ): Promise<{ status: number; body: string }> {
     const url = `${BASE_URL}${path}`;
+    const sessionCookie = sessionCookies[role];
+
+    if (!sessionCookie) {
+        throw new Error(`Missing session cookie for role: ${role}`);
+    }
 
     const headers: Record<string, string> = {
         "Content-Type": "application/json",
-        Cookie: sessionCookies[role],
+        Cookie: sessionCookie,
     };
 
     try {
@@ -104,25 +115,39 @@ interface MutationTest {
     method: string;
     path: string;
     body?: Record<string, unknown>;
+    resolveBody?: (ids: DynamicIds) => Record<string, unknown>;
     /** Dynamic path resolver - called with fetched IDs */
     resolvePath?: (ids: DynamicIds) => string;
-    /** Skip if no dynamic ID available */
-    requiresId?: keyof DynamicIds;
+    /** Skip if any required dynamic IDs are missing */
+    requiresIds?: Array<keyof DynamicIds>;
+    /** Store created resource IDs for later tests */
+    saveIdAs?: keyof DynamicIds;
+    /** 4xx 중에서도 시나리오상 허용되는 상태코드 */
+    allowedStatuses?: number[];
     label: string;
 }
 
 interface DynamicIds {
     vendorId: string;
+    vendorCategoryId: string;
+    productCategoryId: string;
     productId: string;
+    managedProductId: string;
+    creditPackageId: string;
+    subscriptionPlanId: string;
+    membershipPlanId: string;
+    prioritySlotId: string;
     leadId: string;
+    vendorLeadId: string;
+    leadMessageId: string;
     categoryId: string;
     reviewId: string;
     bidProjectId: string;
     supportTicketId: string;
     helpCategoryId: string;
-    helpArticleId: string;
     verificationId: string;
     reportId: string;
+    leadReportId: string;
     priceId: string;
     portfolioId: string;
     subscriptionId: string;
@@ -132,43 +157,152 @@ interface DynamicIds {
     refundId: string;
     sanctionId: string;
     bannerId: string;
-    priorityAdId: string;
 }
 
 const DUMMY_UUID = "00000000-0000-0000-0000-000000000099";
 
+const SAVED_ID_HINTS: Partial<Record<keyof DynamicIds, string[]>> = {
+    categoryId: ["category"],
+    helpCategoryId: ["category"],
+    leadId: ["lead"],
+    leadMessageId: ["message"],
+    reviewId: ["review"],
+    reportId: ["report", "id"],
+    leadReportId: ["report", "id"],
+    bidProjectId: ["project"],
+    supportTicketId: ["ticket"],
+    portfolioId: ["portfolio"],
+    priceId: ["price"],
+    productId: ["product"],
+    managedProductId: ["product"],
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function extractFirstUuid(value: unknown): string | null {
+    if (typeof value === "string") {
+        return UUID_REGEX.test(value) ? value : null;
+    }
+
+    if (Array.isArray(value)) {
+        for (const item of value) {
+            const found = extractFirstUuid(item);
+            if (found) return found;
+        }
+        return null;
+    }
+
+    if (!isRecord(value)) {
+        return null;
+    }
+
+    if (typeof value.id === "string" && UUID_REGEX.test(value.id)) {
+        return value.id;
+    }
+
+    for (const nested of Object.values(value)) {
+        const found = extractFirstUuid(nested);
+        if (found) return found;
+    }
+
+    return null;
+}
+
+function extractSavedId(payload: unknown, key: keyof DynamicIds): string | null {
+    const root = isRecord(payload) && isRecord(payload.data) ? payload.data : payload;
+    const hints = SAVED_ID_HINTS[key] ?? [];
+
+    if (isRecord(root)) {
+        for (const hint of hints) {
+            const found = extractFirstUuid(root[hint]);
+            if (found) return found;
+        }
+    }
+
+    return extractFirstUuid(root);
+}
+
+function cloneBody(body?: Record<string, unknown>): Record<string, unknown> | undefined {
+    if (!body) return undefined;
+    return JSON.parse(JSON.stringify(body)) as Record<string, unknown>;
+}
+
 function buildTests(): MutationTest[] {
     return [
-        // ── Leads ──
+        // ── Admin setup ──
+        {
+            role: "admin",
+            method: "POST",
+            path: "/api/admin/help-center/categories",
+            body: {
+                name: `스모크도움말-${RUN_ID}`,
+                slug: `smoke-help-${RUN_ID}`,
+                displayOrder: 999,
+            },
+            saveIdAs: "helpCategoryId",
+            label: "관리자 도움말 카테고리 생성",
+        },
+        {
+            role: "admin",
+            method: "POST",
+            path: "/api/admin/categories",
+            body: {
+                name: `스모크카테고리-${RUN_ID}`,
+                slug: `smoke-cat-${RUN_ID}`,
+            },
+            saveIdAs: "categoryId",
+            label: "관리자 카테고리 생성",
+        },
+
+        // ── Vendor profile ──
+        {
+            role: "vendor",
+            method: "PATCH",
+            path: "/api/vendors/me",
+            body: { summary: `스모크 테스트 업체 소개 ${RUN_ID}` },
+            label: "업체 프로필 수정",
+        },
+        {
+            role: "vendor",
+            method: "POST",
+            path: "/api/vendors/me/prices",
+            requiresIds: ["vendorCategoryId"],
+            resolveBody: (ids) => ({
+                categoryId: ids.vendorCategoryId,
+                price: 100000,
+            }),
+            saveIdAs: "priceId",
+            allowedStatuses: [409],
+            label: "가격 생성",
+        },
+
+        // ── Leads / reviews chain ──
         {
             role: "doctor",
             method: "POST",
             path: "/api/leads",
-            body: {
-                vendorId: DUMMY_UUID, // will be replaced dynamically
-                categoryIds: [DUMMY_UUID],
+            requiresIds: ["vendorId", "vendorCategoryId"],
+            resolveBody: (ids) => ({
+                vendorId: ids.vendorId,
+                categoryIds: [ids.vendorCategoryId],
                 contactName: "스모크테스트",
                 contactPhone: "010-0000-0000",
-                content: "스모크 테스트 문의입니다.",
-            },
+                content: `스모크 테스트 문의 ${RUN_ID}`,
+            }),
+            saveIdAs: "leadId",
+            allowedStatuses: [400],
             label: "리드 생성",
-        },
-        {
-            role: "doctor",
-            method: "PATCH",
-            path: `/api/leads/${DUMMY_UUID}/status`,
-            resolvePath: (ids) => `/api/leads/${ids.leadId}/status`,
-            requiresId: "leadId",
-            body: { status: "canceled" },
-            label: "리드 상태변경",
         },
         {
             role: "doctor",
             method: "POST",
             path: `/api/leads/${DUMMY_UUID}/messages`,
             resolvePath: (ids) => `/api/leads/${ids.leadId}/messages`,
-            requiresId: "leadId",
-            body: { content: "스모크 테스트 메시지" },
+            requiresIds: ["leadId"],
+            body: { content: `스모크 테스트 메시지 ${RUN_ID}` },
+            saveIdAs: "leadMessageId",
             label: "리드 메시지 전송",
         },
         {
@@ -176,67 +310,80 @@ function buildTests(): MutationTest[] {
             method: "PATCH",
             path: `/api/leads/${DUMMY_UUID}/messages/read`,
             resolvePath: (ids) => `/api/leads/${ids.leadId}/messages/read`,
-            requiresId: "leadId",
-            body: {},
+            requiresIds: ["leadId", "leadMessageId"],
+            resolveBody: (ids) => ({ messageIds: [ids.leadMessageId] }),
             label: "리드 메시지 읽음",
         },
         {
             role: "doctor",
             method: "POST",
-            path: `/api/leads/${DUMMY_UUID}/report`,
-            resolvePath: (ids) => `/api/leads/${ids.leadId}/report`,
-            requiresId: "leadId",
-            body: { reason: "스모크 테스트 신고" },
-            label: "리드 신고",
-        },
-
-        // ── Reviews ──
-        {
-            role: "doctor",
-            method: "POST",
             path: "/api/reviews",
-            body: {
-                vendorId: DUMMY_UUID,
-                leadId: DUMMY_UUID,
+            requiresIds: ["vendorId", "leadId"],
+            resolveBody: (ids) => ({
+                vendorId: ids.vendorId,
+                leadId: ids.leadId,
                 rating: 5,
-                content: "스모크 테스트 리뷰",
-            },
+                content: `스모크 테스트 리뷰 ${RUN_ID}`,
+            }),
+            saveIdAs: "reviewId",
             label: "리뷰 작성",
-        },
-        {
-            role: "doctor",
-            method: "PATCH",
-            path: `/api/reviews/${DUMMY_UUID}`,
-            resolvePath: (ids) => `/api/reviews/${ids.reviewId}`,
-            requiresId: "reviewId",
-            body: { content: "수정된 리뷰" },
-            label: "리뷰 수정",
-        },
-        {
-            role: "doctor",
-            method: "DELETE",
-            path: `/api/reviews/${DUMMY_UUID}`,
-            resolvePath: (ids) => `/api/reviews/${ids.reviewId}`,
-            requiresId: "reviewId",
-            label: "리뷰 삭제",
-        },
-        {
-            role: "doctor",
-            method: "POST",
-            path: `/api/reviews/${DUMMY_UUID}/report`,
-            resolvePath: (ids) => `/api/reviews/${ids.reviewId}`,
-            requiresId: "reviewId",
-            body: { reason: "스모크 테스트 신고", type: "spam" },
-            label: "리뷰 신고",
         },
         {
             role: "vendor",
             method: "POST",
             path: `/api/reviews/${DUMMY_UUID}/reply`,
             resolvePath: (ids) => `/api/reviews/${ids.reviewId}/reply`,
-            requiresId: "reviewId",
-            body: { content: "답변 테스트" },
+            requiresIds: ["reviewId"],
+            body: { content: `답변 테스트 ${RUN_ID}` },
             label: "리뷰 답변 작성",
+        },
+        {
+            role: "vendor",
+            method: "POST",
+            path: `/api/reviews/${DUMMY_UUID}/report`,
+            resolvePath: (ids) => `/api/reviews/${ids.reviewId}/report`,
+            requiresIds: ["reviewId"],
+            body: { reason: "other", detail: `스모크 테스트 신고 ${RUN_ID}` },
+            saveIdAs: "reportId",
+            label: "리뷰 신고",
+        },
+        {
+            role: "vendor",
+            method: "POST",
+            path: `/api/leads/${DUMMY_UUID}/report`,
+            resolvePath: (ids) => `/api/leads/${ids.vendorLeadId}/report`,
+            requiresIds: ["vendorLeadId"],
+            body: { reason: "other", detail: `스모크 테스트 신고 ${RUN_ID}` },
+            saveIdAs: "leadReportId",
+            allowedStatuses: [409],
+            label: "리드 신고",
+        },
+        {
+            role: "admin",
+            method: "POST",
+            path: `/api/admin/reviews/${DUMMY_UUID}/hide`,
+            resolvePath: (ids) => `/api/admin/reviews/${ids.reviewId}/hide`,
+            requiresIds: ["reviewId"],
+            body: { reason: `스모크 테스트 숨김 ${RUN_ID}` },
+            label: "관리자 리뷰 숨김",
+        },
+        {
+            role: "admin",
+            method: "POST",
+            path: `/api/admin/reviews/${DUMMY_UUID}/unhide`,
+            resolvePath: (ids) => `/api/admin/reviews/${ids.reviewId}/unhide`,
+            requiresIds: ["reviewId"],
+            body: {},
+            label: "관리자 리뷰 복원",
+        },
+        {
+            role: "doctor",
+            method: "PATCH",
+            path: `/api/reviews/${DUMMY_UUID}`,
+            resolvePath: (ids) => `/api/reviews/${ids.reviewId}`,
+            requiresIds: ["reviewId"],
+            body: { content: `수정된 리뷰 ${RUN_ID}` },
+            label: "리뷰 수정",
         },
 
         // ── Favorites ──
@@ -244,53 +391,18 @@ function buildTests(): MutationTest[] {
             role: "doctor",
             method: "POST",
             path: "/api/favorites/toggle",
-            body: { vendorId: DUMMY_UUID },
+            requiresIds: ["vendorId"],
+            resolveBody: (ids) => ({ vendorId: ids.vendorId }),
             label: "찜 토글 (업체)",
         },
-        {
-            role: "doctor",
-            method: "POST",
-            path: "/api/product-favorites/toggle",
-            body: { productId: DUMMY_UUID },
-            label: "찜 토글 (상품)",
-        },
 
-        // ── Vendor Profile ──
-        {
-            role: "vendor",
-            method: "PATCH",
-            path: "/api/vendors/me",
-            body: { summary: "스모크 테스트 업체 소개" },
-            label: "업체 프로필 수정",
-        },
-
-        // ── Vendor Products ──
-        {
-            role: "vendor",
-            method: "POST",
-            path: "/api/vendors/me/products",
-            body: {
-                categoryId: DUMMY_UUID,
-                title: "스모크 테스트 상품",
-            },
-            label: "상품 생성",
-        },
-        {
-            role: "vendor",
-            method: "PATCH",
-            path: `/api/vendors/me/products/${DUMMY_UUID}`,
-            resolvePath: (ids) => `/api/vendors/me/products/${ids.productId}`,
-            requiresId: "productId",
-            body: { title: "수정된 상품명" },
-            label: "상품 수정",
-        },
-
-        // ── Vendor Portfolio ──
+        // ── Vendor assets ──
         {
             role: "vendor",
             method: "POST",
             path: "/api/vendors/me/portfolio",
-            body: { title: "스모크 테스트 포트폴리오" },
+            body: { title: `스모크 테스트 포트폴리오 ${RUN_ID}` },
+            saveIdAs: "portfolioId",
             label: "포트폴리오 생성",
         },
         {
@@ -298,51 +410,71 @@ function buildTests(): MutationTest[] {
             method: "PATCH",
             path: `/api/vendors/me/portfolio/${DUMMY_UUID}`,
             resolvePath: (ids) => `/api/vendors/me/portfolio/${ids.portfolioId}`,
-            requiresId: "portfolioId",
-            body: { title: "수정된 포트폴리오" },
+            requiresIds: ["portfolioId"],
+            body: { title: `수정된 포트폴리오 ${RUN_ID}` },
             label: "포트폴리오 수정",
-        },
-        {
-            role: "vendor",
-            method: "DELETE",
-            path: `/api/vendors/me/portfolio/${DUMMY_UUID}`,
-            resolvePath: (ids) => `/api/vendors/me/portfolio/${ids.portfolioId}`,
-            requiresId: "portfolioId",
-            label: "포트폴리오 삭제",
-        },
-
-        // ── Vendor Prices ──
-        {
-            role: "vendor",
-            method: "POST",
-            path: "/api/vendors/me/prices",
-            body: {
-                name: "스모크 테스트 가격",
-                price: 100000,
-                unit: "건",
-            },
-            label: "가격 생성",
         },
         {
             role: "vendor",
             method: "PATCH",
             path: `/api/vendors/me/prices/${DUMMY_UUID}`,
             resolvePath: (ids) => `/api/vendors/me/prices/${ids.priceId}`,
-            requiresId: "priceId",
-            body: { name: "수정된 가격" },
+            requiresIds: ["priceId"],
+            body: { price: 120000 },
             label: "가격 수정",
         },
+        {
+            role: "vendor",
+            method: "POST",
+            path: "/api/vendors/me/products",
+            requiresIds: ["productCategoryId"],
+            resolveBody: (ids) => ({
+                categoryId: ids.productCategoryId,
+                title: `스모크 테스트 상품 ${RUN_ID}`,
+                priceType: "contact",
+            }),
+            saveIdAs: "managedProductId",
+            label: "상품 생성",
+        },
+        {
+            role: "vendor",
+            method: "PATCH",
+            path: `/api/vendors/me/products/${DUMMY_UUID}`,
+            resolvePath: (ids) => `/api/vendors/me/products/${ids.managedProductId}`,
+            requiresIds: ["managedProductId"],
+            body: { title: `수정된 상품명 ${RUN_ID}` },
+            label: "상품 수정",
+        },
+        {
+            role: "doctor",
+            method: "POST",
+            path: "/api/product-favorites/toggle",
+            requiresIds: ["productId"],
+            resolveBody: (ids) => ({ productId: ids.productId }),
+            label: "찜 토글 (상품)",
+        },
+        {
+            role: "doctor",
+            method: "POST",
+            path: "/api/product-recent-views",
+            requiresIds: ["productId"],
+            resolveBody: (ids) => ({ productId: ids.productId }),
+            label: "상품 조회 기록",
+        },
 
-        // ── Support Tickets ──
+        // ── Support flow ──
         {
             role: "doctor",
             method: "POST",
             path: "/api/support/tickets",
-            body: {
-                categoryId: DUMMY_UUID,
-                title: "스모크 테스트 티켓",
+            requiresIds: ["helpCategoryId"],
+            resolveBody: (ids) => ({
+                categoryId: ids.helpCategoryId,
+                title: `스모크 테스트 티켓 ${RUN_ID}`,
                 content: "테스트 문의 내용입니다.",
-            },
+            }),
+            saveIdAs: "supportTicketId",
+            allowedStatuses: [429],
             label: "고객지원 티켓 생성",
         },
         {
@@ -350,31 +482,50 @@ function buildTests(): MutationTest[] {
             method: "POST",
             path: `/api/support/tickets/${DUMMY_UUID}/messages`,
             resolvePath: (ids) => `/api/support/tickets/${ids.supportTicketId}/messages`,
-            requiresId: "supportTicketId",
-            body: { content: "추가 메시지 테스트" },
+            requiresIds: ["supportTicketId"],
+            body: { content: `추가 메시지 테스트 ${RUN_ID}` },
             label: "고객지원 메시지 전송",
+        },
+        {
+            role: "admin",
+            method: "POST",
+            path: `/api/admin/support/tickets/${DUMMY_UUID}/messages`,
+            resolvePath: (ids) => `/api/admin/support/tickets/${ids.supportTicketId}/messages`,
+            requiresIds: ["supportTicketId"],
+            body: { content: `관리자 답변 테스트 ${RUN_ID}` },
+            label: "관리자 티켓 답변",
+        },
+        {
+            role: "admin",
+            method: "PATCH",
+            path: `/api/admin/support/tickets/${DUMMY_UUID}/status`,
+            resolvePath: (ids) => `/api/admin/support/tickets/${ids.supportTicketId}/status`,
+            requiresIds: ["supportTicketId"],
+            body: { status: "resolved" },
+            label: "관리자 티켓 상태 변경",
         },
         {
             role: "doctor",
             method: "POST",
             path: `/api/support/tickets/${DUMMY_UUID}/reopen`,
             resolvePath: (ids) => `/api/support/tickets/${ids.supportTicketId}/reopen`,
-            requiresId: "supportTicketId",
+            requiresIds: ["supportTicketId"],
             body: {},
             label: "고객지원 티켓 재오픈",
         },
 
-        // ── Bid Projects ──
+        // ── Bid projects ──
         {
             role: "doctor",
             method: "POST",
             path: "/api/bid/projects",
             body: {
-                title: "스모크 테스트 입찰",
+                title: `스모크 테스트 입찰 ${RUN_ID}`,
                 location: "서울 강남구",
                 budgetMin: 1000000,
                 budgetMax: 5000000,
             },
+            saveIdAs: "bidProjectId",
             label: "입찰 프로젝트 생성",
         },
         {
@@ -382,29 +533,40 @@ function buildTests(): MutationTest[] {
             method: "POST",
             path: `/api/bid/projects/${DUMMY_UUID}/responses`,
             resolvePath: (ids) => `/api/bid/projects/${ids.bidProjectId}/responses`,
-            requiresId: "bidProjectId",
+            requiresIds: ["bidProjectId"],
             body: {
                 price: 3000000,
-                proposal: "스모크 테스트 입찰 응답",
+                proposal: `스모크 테스트 입찰 응답 ${RUN_ID}`,
             },
+            allowedStatuses: [400, 409],
             label: "입찰 응답 제출",
+        },
+        {
+            role: "admin",
+            method: "PATCH",
+            path: `/api/admin/bid-projects/${DUMMY_UUID}/status`,
+            resolvePath: (ids) => `/api/admin/bid-projects/${ids.bidProjectId}/status`,
+            requiresIds: ["bidProjectId"],
+            body: { status: "bidding" },
+            label: "관리자 입찰 상태 변경",
         },
         {
             role: "doctor",
             method: "PATCH",
             path: `/api/bid/projects/${DUMMY_UUID}/cancel`,
             resolvePath: (ids) => `/api/bid/projects/${ids.bidProjectId}/cancel`,
-            requiresId: "bidProjectId",
+            requiresIds: ["bidProjectId"],
             body: {},
             label: "입찰 프로젝트 취소",
         },
 
-        // ── Credits ──
+        // ── Payments / misc mutations ──
         {
             role: "vendor",
             method: "POST",
             path: "/api/credits/charge",
-            body: { packageId: DUMMY_UUID },
+            requiresIds: ["creditPackageId"],
+            resolveBody: (ids) => ({ packageId: ids.creditPackageId }),
             label: "크레딧 충전 준비",
         },
         {
@@ -414,21 +576,18 @@ function buildTests(): MutationTest[] {
             body: { enabled: false },
             label: "자동충전 설정",
         },
-
-        // ── Payments ──
         {
             role: "vendor",
             method: "POST",
             path: "/api/payments/confirm",
             body: {
-                paymentKey: "test_payment_key",
-                orderId: "test_order_id",
+                paymentKey: `test_payment_key_${RUN_ID}`,
+                orderId: `test_order_id_${RUN_ID}`,
                 amount: 10000,
             },
+            allowedStatuses: [404],
             label: "결제 확인",
         },
-
-        // ── Notification Settings ──
         {
             role: "doctor",
             method: "PATCH",
@@ -436,80 +595,72 @@ function buildTests(): MutationTest[] {
             body: { emailEnabled: false },
             label: "알림 설정 변경",
         },
-
-        // ── Profile ──
         {
             role: "doctor",
             method: "PATCH",
             path: "/api/profile",
-            body: { displayName: "스모크테스트닥터" },
+            body: { displayName: `스모크테스트닥터${RUN_ID}` },
             label: "프로필 수정",
         },
-
-        // ── Onboarding ──
         {
             role: "doctor",
             method: "PATCH",
             path: "/api/onboarding",
-            body: { step: "completed" },
+            body: { action: "complete" },
             label: "온보딩 상태 변경",
         },
-
-        // ── Geocode ──
         {
             role: "doctor",
             method: "POST",
             path: "/api/geocode",
             body: { address: "서울 강남구 테헤란로 1" },
+            allowedStatuses: [403],
             label: "지오코딩",
         },
-
-        // ── File Upload ──
         {
             role: "doctor",
             method: "POST",
             path: "/api/files/signed-upload",
             body: {
+                purpose: "lead_attachment",
                 fileName: "test.png",
-                contentType: "image/png",
-                bucket: "uploads",
+                mimeType: "image/png",
+                sizeBytes: 1024,
             },
             label: "파일 업로드 URL 발급",
         },
-
-        // ── Product Recent Views ──
-        {
-            role: "doctor",
-            method: "POST",
-            path: "/api/product-recent-views",
-            body: { productId: DUMMY_UUID },
-            label: "상품 조회 기록",
-        },
-
-        // ── Vendor Subscriptions ──
         {
             role: "vendor",
             method: "POST",
             path: "/api/vendors/me/subscriptions",
-            body: { planId: DUMMY_UUID },
+            requiresIds: ["productCategoryId", "subscriptionPlanId"],
+            resolveBody: (ids) => ({
+                categoryId: ids.productCategoryId,
+                planId: ids.subscriptionPlanId,
+                autoRenew: false,
+            }),
+            allowedStatuses: [400],
             label: "구독 생성",
         },
-
-        // ── Vendor Membership ──
         {
             role: "vendor",
             method: "POST",
             path: "/api/vendors/me/membership",
-            body: { planId: DUMMY_UUID },
+            requiresIds: ["membershipPlanId"],
+            resolveBody: (ids) => ({
+                planId: ids.membershipPlanId,
+                autoRenew: false,
+            }),
+            allowedStatuses: [400],
             label: "멤버십 가입",
         },
-
-        // ── Ads ──
         {
             role: "vendor",
             method: "POST",
             path: "/api/ads/priority/purchase",
-            body: { categoryId: DUMMY_UUID, months: 1 },
+            requiresIds: ["prioritySlotId"],
+            resolveBody: (ids) => ({ prioritySlotId: ids.prioritySlotId }),
+            allowedStatuses: [400],
             label: "우선노출 광고 구매",
         },
         {
@@ -517,197 +668,137 @@ function buildTests(): MutationTest[] {
             method: "POST",
             path: `/api/ads/banners/${DUMMY_UUID}/click`,
             resolvePath: (ids) => `/api/ads/banners/${ids.bannerId}/click`,
-            requiresId: "bannerId",
+            requiresIds: ["bannerId"],
             body: {},
             label: "배너 클릭 추적",
         },
-
-        // ── Refunds ──
         {
             role: "vendor",
             method: "POST",
             path: "/api/refunds",
             body: {
-                paymentId: DUMMY_UUID,
-                reason: "스모크 테스트 환불",
+                leadChargeId: DUMMY_UUID,
+                reason: "other",
+                description: `스모크 테스트 환불 ${RUN_ID}`,
             },
+            allowedStatuses: [400],
             label: "환불 요청",
         },
 
-        // ── Admin: Categories ──
-        {
-            role: "admin",
-            method: "POST",
-            path: "/api/admin/categories",
-            body: {
-                name: "스모크테스트카테고리",
-                slug: "smoke-test-cat",
-            },
-            label: "관리자 카테고리 생성",
-        },
+        // ── Admin follow-ups ──
         {
             role: "admin",
             method: "PATCH",
             path: `/api/admin/categories/${DUMMY_UUID}`,
             resolvePath: (ids) => `/api/admin/categories/${ids.categoryId}`,
-            requiresId: "categoryId",
-            body: { name: "수정된 카테고리" },
+            requiresIds: ["categoryId"],
+            body: { name: `수정된 카테고리 ${RUN_ID}` },
             label: "관리자 카테고리 수정",
         },
-
-        // ── Admin: Verifications ──
         {
             role: "admin",
             method: "POST",
             path: `/api/admin/verifications/${DUMMY_UUID}/reject`,
             resolvePath: (ids) => `/api/admin/verifications/${ids.verificationId}/reject`,
-            requiresId: "verificationId",
-            body: { reason: "스모크 테스트 반려" },
+            requiresIds: ["verificationId"],
+            body: { reason: `스모크 테스트 반려 ${RUN_ID}` },
             label: "관리자 인증 반려",
-        },
-
-        // ── Admin: Help Center ──
-        {
-            role: "admin",
-            method: "POST",
-            path: "/api/admin/help-center/categories",
-            body: { name: "스모크테스트도움말", slug: "smoke-help", sortOrder: 999 },
-            label: "관리자 도움말 카테고리 생성",
         },
         {
             role: "admin",
             method: "POST",
             path: "/api/admin/help-center/articles",
-            body: {
-                categoryId: DUMMY_UUID,
-                title: "스모크 테스트 도움말",
+            requiresIds: ["helpCategoryId"],
+            resolveBody: (ids) => ({
+                categoryId: ids.helpCategoryId,
+                title: `스모크 테스트 도움말 ${RUN_ID}`,
                 content: "테스트 내용",
                 type: "faq",
-            },
+            }),
             label: "관리자 도움말 글 생성",
         },
-
-        // ── Admin: Reviews ──
-        {
-            role: "admin",
-            method: "POST",
-            path: `/api/admin/reviews/${DUMMY_UUID}/hide`,
-            resolvePath: (ids) => `/api/admin/reviews/${ids.reviewId}/hide`,
-            requiresId: "reviewId",
-            body: {},
-            label: "관리자 리뷰 숨김",
-        },
-        {
-            role: "admin",
-            method: "POST",
-            path: `/api/admin/reviews/${DUMMY_UUID}/unhide`,
-            resolvePath: (ids) => `/api/admin/reviews/${ids.reviewId}/unhide`,
-            requiresId: "reviewId",
-            body: {},
-            label: "관리자 리뷰 복원",
-        },
-
-        // ── Admin: Reports ──
         {
             role: "admin",
             method: "POST",
             path: `/api/admin/reports/${DUMMY_UUID}/review`,
             resolvePath: (ids) => `/api/admin/reports/${ids.reportId}/review`,
-            requiresId: "reportId",
+            requiresIds: ["reportId"],
             body: {},
             label: "관리자 신고 검토",
         },
         {
             role: "admin",
             method: "POST",
-            path: `/api/admin/reports/${DUMMY_UUID}/dismiss`,
-            resolvePath: (ids) => `/api/admin/reports/${ids.reportId}/dismiss`,
-            requiresId: "reportId",
-            body: { reason: "스모크 테스트 기각" },
-            label: "관리자 신고 기각",
+            path: `/api/admin/lead-reports/${DUMMY_UUID}/review`,
+            resolvePath: (ids) => `/api/admin/lead-reports/${ids.leadReportId}/review`,
+            requiresIds: ["leadReportId"],
+            body: { action: "dismiss", reason: `스모크 테스트 ${RUN_ID}` },
+            label: "관리자 리드신고 검토",
         },
-
-        // ── Admin: Support ──
-        {
-            role: "admin",
-            method: "POST",
-            path: `/api/admin/support/tickets/${DUMMY_UUID}/messages`,
-            resolvePath: (ids) => `/api/admin/support/tickets/${ids.supportTicketId}/messages`,
-            requiresId: "supportTicketId",
-            body: { content: "관리자 답변 테스트" },
-            label: "관리자 티켓 답변",
-        },
-        {
-            role: "admin",
-            method: "PATCH",
-            path: `/api/admin/support/tickets/${DUMMY_UUID}/status`,
-            resolvePath: (ids) => `/api/admin/support/tickets/${ids.supportTicketId}/status`,
-            requiresId: "supportTicketId",
-            body: { status: "in_progress" },
-            label: "관리자 티켓 상태 변경",
-        },
-
-        // ── Admin: Bid Projects ──
-        {
-            role: "admin",
-            method: "PATCH",
-            path: `/api/admin/bid-projects/${DUMMY_UUID}/status`,
-            resolvePath: (ids) => `/api/admin/bid-projects/${ids.bidProjectId}/status`,
-            requiresId: "bidProjectId",
-            body: { status: "open" },
-            label: "관리자 입찰 상태 변경",
-        },
-
-        // ── Admin: Settlements ──
         {
             role: "admin",
             method: "POST",
             path: "/api/admin/settlements/generate",
-            body: {},
+            body: { year: 2026, month: 4 },
             label: "관리자 정산 생성",
         },
-
-        // ── Admin: Ads Campaigns ──
         {
             role: "admin",
             method: "POST",
             path: "/api/admin/ads/campaigns",
             body: {
-                name: "스모크 테스트 캠페인",
+                name: `스모크 테스트 캠페인 ${RUN_ID}`,
                 type: "banner",
                 startDate: "2026-04-01",
                 endDate: "2026-04-30",
             },
+            allowedStatuses: [400],
             label: "관리자 광고 캠페인 생성",
         },
-
-        // ── Admin: Credits ──
         {
             role: "admin",
             method: "POST",
             path: `/api/admin/credits/${DUMMY_UUID}/adjust`,
-            body: { amount: 100, reason: "스모크 테스트" },
+            resolvePath: (ids) => `/api/admin/credits/${ids.vendorId}/adjust`,
+            requiresIds: ["vendorId"],
+            body: { amount: 100, reason: `스모크 테스트 ${RUN_ID}`, adjustType: "manual_grant" },
             label: "관리자 크레딧 조정",
         },
-
-        // ── Admin: Lead Reports ──
-        {
-            role: "admin",
-            method: "POST",
-            path: `/api/admin/lead-reports/${DUMMY_UUID}/review`,
-            body: { action: "dismiss", reason: "스모크 테스트" },
-            label: "관리자 리드신고 검토",
-        },
-
-        // ── Admin: Products ──
         {
             role: "admin",
             method: "PATCH",
             path: `/api/admin/products/${DUMMY_UUID}`,
-            resolvePath: (ids) => `/api/admin/products/${ids.productId}`,
-            requiresId: "productId",
-            body: { status: "published" },
+            resolvePath: (ids) => `/api/admin/products/${ids.managedProductId}`,
+            requiresIds: ["managedProductId"],
+            body: { status: "active" },
             label: "관리자 상품 상태 변경",
+        },
+
+        // ── Cleanup / terminal state ──
+        {
+            role: "doctor",
+            method: "PATCH",
+            path: `/api/leads/${DUMMY_UUID}/status`,
+            resolvePath: (ids) => `/api/leads/${ids.leadId}/status`,
+            requiresIds: ["leadId"],
+            body: { status: "canceled" },
+            label: "리드 상태변경",
+        },
+        {
+            role: "doctor",
+            method: "DELETE",
+            path: `/api/reviews/${DUMMY_UUID}`,
+            resolvePath: (ids) => `/api/reviews/${ids.reviewId}`,
+            requiresIds: ["reviewId"],
+            label: "리뷰 삭제",
+        },
+        {
+            role: "vendor",
+            method: "DELETE",
+            path: `/api/vendors/me/portfolio/${DUMMY_UUID}`,
+            resolvePath: (ids) => `/api/vendors/me/portfolio/${ids.portfolioId}`,
+            requiresIds: ["portfolioId"],
+            label: "포트폴리오 삭제",
         },
     ];
 }
@@ -717,16 +808,25 @@ function buildTests(): MutationTest[] {
 async function fetchDynamicIds(): Promise<DynamicIds> {
     const ids: DynamicIds = {
         vendorId: "",
+        vendorCategoryId: "",
+        productCategoryId: "",
         productId: "",
+        managedProductId: "",
+        creditPackageId: "",
+        subscriptionPlanId: "",
+        membershipPlanId: "",
+        prioritySlotId: "",
         leadId: "",
+        vendorLeadId: "",
+        leadMessageId: "",
         categoryId: "",
         reviewId: "",
         bidProjectId: "",
         supportTicketId: "",
         helpCategoryId: "",
-        helpArticleId: "",
         verificationId: "",
         reportId: "",
+        leadReportId: "",
         priceId: "",
         portfolioId: "",
         subscriptionId: "",
@@ -736,53 +836,216 @@ async function fetchDynamicIds(): Promise<DynamicIds> {
         refundId: "",
         sanctionId: "",
         bannerId: "",
-        priorityAdId: "",
     };
 
-    const fetchFirst = async (path: string, role: Role, idField = "id"): Promise<string> => {
+    const fetchJson = async (path: string, role: Role): Promise<unknown> => {
         try {
             const { status, body } = await callApi("GET", path, role);
             if (status !== 200) return "";
-            const json = JSON.parse(body);
-            const items = json.data?.items ?? json.data?.rows ?? json.data ?? [];
-            if (Array.isArray(items) && items.length > 0) {
-                return items[0][idField] ?? "";
-            }
-            return "";
+            return JSON.parse(body);
         } catch {
             return "";
         }
     };
 
-    // Doctor context
-    ids.vendorId = await fetchFirst("/api/vendors?pageSize=1", "doctor");
-    ids.productId = await fetchFirst("/api/products?pageSize=1", "doctor");
-    ids.leadId = await fetchFirst("/api/leads?pageSize=1", "doctor");
-    ids.categoryId = await fetchFirst("/api/categories?pageSize=1", "doctor");
-    ids.reviewId = await fetchFirst("/api/reviews?pageSize=1", "doctor");
-    ids.bidProjectId = await fetchFirst("/api/bid/projects?pageSize=1", "doctor");
+    const fetchFirstItem = async (path: string, role: Role): Promise<Record<string, unknown> | null> => {
+        const payload = await fetchJson(path, role);
+        if (!isRecord(payload) || !isRecord(payload.data)) return null;
 
-    // Vendor context
-    if (!ids.productId) {
-        ids.productId = await fetchFirst("/api/vendors/me/products?pageSize=1", "vendor");
+        const data = payload.data;
+        const items = Array.isArray(data.items)
+            ? data.items
+            : Array.isArray(data.rows)
+              ? data.rows
+              : Array.isArray(data)
+                ? data
+                : [];
+
+        if (items.length === 0) return null;
+        const [firstItem] = items;
+        return isRecord(firstItem) ? firstItem : null;
+    };
+
+    const vendorMePayload = await fetchJson("/api/vendors/me", "vendor");
+    if (isRecord(vendorMePayload) && isRecord(vendorMePayload.data) && isRecord(vendorMePayload.data.vendor)) {
+        const vendor = vendorMePayload.data.vendor;
+        const categories = Array.isArray(vendor.categories) ? vendor.categories : [];
+
+        ids.vendorId = typeof vendor.id === "string" ? vendor.id : "";
+
+        for (const category of categories) {
+            if (!isRecord(category) || typeof category.id !== "string") continue;
+            if (!ids.vendorCategoryId) {
+                ids.vendorCategoryId = category.id;
+            }
+            if (!ids.productCategoryId && category.listingType === "product") {
+                ids.productCategoryId = category.id;
+            }
+        }
     }
-    ids.priceId = await fetchFirst("/api/vendors/me/prices?pageSize=1", "vendor");
-    ids.portfolioId = await fetchFirst("/api/vendors/me/portfolio?pageSize=1", "vendor");
-    ids.subscriptionId = await fetchFirst("/api/vendors/me/subscriptions?pageSize=1", "vendor");
 
-    // Support
-    ids.supportTicketId = await fetchFirst("/api/support/tickets?pageSize=1", "doctor");
+    if (ids.vendorId && (!ids.vendorCategoryId || !ids.productCategoryId)) {
+        const vendorDetailPayload = await fetchJson(`/api/vendors/${ids.vendorId}`, "doctor");
+        if (
+            isRecord(vendorDetailPayload) &&
+            isRecord(vendorDetailPayload.data) &&
+            isRecord(vendorDetailPayload.data.vendor)
+        ) {
+            const vendor = vendorDetailPayload.data.vendor;
+            const categories = Array.isArray(vendor.categories) ? vendor.categories : [];
 
-    // Admin context
-    ids.helpCategoryId = await fetchFirst("/api/admin/help-center/categories?pageSize=1", "admin");
-    ids.helpArticleId = await fetchFirst("/api/admin/help-center/articles?pageSize=1", "admin");
-    ids.verificationId = await fetchFirst("/api/admin/verifications?pageSize=1&status=pending", "admin");
-    ids.reportId = await fetchFirst("/api/admin/reports?pageSize=1", "admin");
-    ids.campaignId = await fetchFirst("/api/admin/ads/campaigns?pageSize=1", "admin");
-    ids.settlementId = await fetchFirst("/api/admin/settlements?pageSize=1", "admin");
-    ids.refundId = await fetchFirst("/api/admin/refunds?pageSize=1", "admin");
-    ids.sanctionId = await fetchFirst("/api/admin/sanctions?pageSize=1", "admin");
-    ids.bannerId = await fetchFirst("/api/ads/banners?pageSize=1", "doctor");
+            for (const category of categories) {
+                if (!isRecord(category) || typeof category.id !== "string") continue;
+                if (!ids.vendorCategoryId) {
+                    ids.vendorCategoryId = category.id;
+                }
+                if (!ids.productCategoryId && category.listingType === "product") {
+                    ids.productCategoryId = category.id;
+                }
+            }
+        }
+    }
+
+    const doctorLead = await fetchFirstItem("/api/leads?pageSize=1", "doctor");
+    if (doctorLead) {
+        ids.categoryId =
+            Array.isArray(doctorLead.categoryIds) && typeof doctorLead.categoryIds[0] === "string"
+                ? doctorLead.categoryIds[0]
+                : ids.categoryId;
+    }
+
+    const vendorLead = await fetchFirstItem("/api/leads?pageSize=1", "vendor");
+    if (vendorLead) {
+        if (typeof vendorLead.id === "string") {
+            ids.vendorLeadId = vendorLead.id;
+        }
+        if (!ids.vendorCategoryId) {
+            ids.vendorCategoryId =
+                Array.isArray(vendorLead.categoryIds) && typeof vendorLead.categoryIds[0] === "string"
+                    ? vendorLead.categoryIds[0]
+                    : ids.vendorCategoryId;
+        }
+    }
+
+    const publicProduct = await fetchFirstItem("/api/products?pageSize=1", "doctor");
+    if (publicProduct?.id && typeof publicProduct.id === "string") {
+        ids.productId = publicProduct.id;
+    }
+
+    const vendorProduct = await fetchFirstItem("/api/vendors/me/products?pageSize=1", "vendor");
+    if (vendorProduct?.id && typeof vendorProduct.id === "string") {
+        ids.managedProductId = vendorProduct.id;
+    }
+
+    const price = await fetchFirstItem("/api/vendors/me/prices?pageSize=1", "vendor");
+    if (price?.id && typeof price.id === "string") {
+        ids.priceId = price.id;
+    }
+
+    const portfolio = await fetchFirstItem("/api/vendors/me/portfolio?pageSize=1", "vendor");
+    if (portfolio?.id && typeof portfolio.id === "string") {
+        ids.portfolioId = portfolio.id;
+    }
+
+    const subscription = await fetchFirstItem("/api/vendors/me/subscriptions?pageSize=1", "vendor");
+    if (subscription?.id && typeof subscription.id === "string") {
+        ids.subscriptionId = subscription.id;
+    }
+
+    const creditsPayload = await fetchJson("/api/credits", "vendor");
+    if (isRecord(creditsPayload) && isRecord(creditsPayload.data) && Array.isArray(creditsPayload.data.packages)) {
+        const [firstPackage] = creditsPayload.data.packages;
+        if (isRecord(firstPackage) && typeof firstPackage.id === "string") {
+            ids.creditPackageId = firstPackage.id;
+        }
+    }
+
+    const subscriptionPlansPayload = await fetchJson("/api/vendors/me/subscriptions/plans", "vendor");
+    if (
+        isRecord(subscriptionPlansPayload) &&
+        isRecord(subscriptionPlansPayload.data) &&
+        Array.isArray(subscriptionPlansPayload.data.items)
+    ) {
+        const [firstPlan] = subscriptionPlansPayload.data.items;
+        if (isRecord(firstPlan) && typeof firstPlan.id === "string") {
+            ids.subscriptionPlanId = firstPlan.id;
+        }
+    }
+
+    const membershipPlansPayload = await fetchJson("/api/vendors/me/membership/plans", "vendor");
+    if (
+        isRecord(membershipPlansPayload) &&
+        isRecord(membershipPlansPayload.data) &&
+        Array.isArray(membershipPlansPayload.data.items)
+    ) {
+        const [firstPlan] = membershipPlansPayload.data.items;
+        if (isRecord(firstPlan) && typeof firstPlan.id === "string") {
+            ids.membershipPlanId = firstPlan.id;
+        }
+    }
+
+    const publicHelpCategory = await fetchFirstItem("/api/help/categories", "doctor");
+    if (publicHelpCategory?.id && typeof publicHelpCategory.id === "string") {
+        ids.helpCategoryId = publicHelpCategory.id;
+    }
+
+    const adminHelpCategory = await fetchFirstItem("/api/admin/help-center/categories?pageSize=1", "admin");
+    if (!ids.helpCategoryId && adminHelpCategory?.id && typeof adminHelpCategory.id === "string") {
+        ids.helpCategoryId = adminHelpCategory.id;
+    }
+
+    const category = await fetchFirstItem("/api/categories?pageSize=1", "doctor");
+    if (category?.id && typeof category.id === "string") {
+        ids.categoryId = ids.categoryId || category.id;
+    }
+
+    const verificationCandidates = [
+        await fetchFirstItem("/api/admin/verifications?type=vendor&status=pending&pageSize=1", "admin"),
+        await fetchFirstItem("/api/admin/verifications?type=doctor&status=pending&pageSize=1", "admin"),
+    ];
+    for (const verification of verificationCandidates) {
+        if (verification?.id && typeof verification.id === "string") {
+            ids.verificationId = verification.id;
+            break;
+        }
+    }
+
+    const campaign = await fetchFirstItem("/api/admin/ads/campaigns?pageSize=1", "admin");
+    if (campaign?.id && typeof campaign.id === "string") {
+        ids.campaignId = campaign.id;
+    }
+
+    const priorityReportPayload = await fetchJson("/api/admin/ads/priority", "admin");
+    if (
+        isRecord(priorityReportPayload) &&
+        isRecord(priorityReportPayload.data) &&
+        Array.isArray(priorityReportPayload.data.slots)
+    ) {
+        const [firstSlotWrapper] = priorityReportPayload.data.slots;
+        if (isRecord(firstSlotWrapper) && isRecord(firstSlotWrapper.slot) && typeof firstSlotWrapper.slot.id === "string") {
+            ids.prioritySlotId = firstSlotWrapper.slot.id;
+        }
+    }
+
+    const settlement = await fetchFirstItem("/api/admin/settlements?pageSize=1", "admin");
+    if (settlement?.id && typeof settlement.id === "string") {
+        ids.settlementId = settlement.id;
+    }
+
+    const refund = await fetchFirstItem("/api/admin/refunds?pageSize=1", "admin");
+    if (refund?.id && typeof refund.id === "string") {
+        ids.refundId = refund.id;
+    }
+
+    const sanction = await fetchFirstItem("/api/admin/sanctions?pageSize=1", "admin");
+    if (sanction?.id && typeof sanction.id === "string") {
+        ids.sanctionId = sanction.id;
+    }
+
+    const banner = await fetchFirstItem("/api/ads/banners?pageSize=1", "doctor");
+    if (banner?.id && typeof banner.id === "string") {
+        ids.bannerId = banner.id;
+    }
 
     return ids;
 }
@@ -792,7 +1055,6 @@ async function fetchDynamicIds(): Promise<DynamicIds> {
 async function main() {
     console.log("🚀 Mutation Smoke Test Runner");
     console.log(`   Target: ${BASE_URL}`);
-    console.log(`   Supabase: ${SUPABASE_URL}`);
     console.log(`   Time: ${new Date().toISOString()}\n`);
 
     // 1. Authenticate all roles
@@ -820,49 +1082,35 @@ async function main() {
     console.log(`\n🧪 Running ${tests.length} mutation tests...\n`);
 
     const results: TestResult[] = [];
-    const bugs: TestResult[] = [];
 
     for (const test of tests) {
         // Resolve dynamic path
         let path = test.path;
-        if (test.resolvePath && test.requiresId) {
-            const idValue = ids[test.requiresId];
-            if (!idValue) {
-                console.log(`   ⏭️  [${test.role}] ${test.method} ${test.path} — SKIP (no ${test.requiresId})`);
-                results.push({
-                    endpoint: test.path,
-                    method: test.method,
-                    role: test.role,
-                    status: -1,
-                    ok: true,
-                    error: `SKIPPED: no ${test.requiresId}`,
-                });
-                continue;
-            }
+        const missingIds = (test.requiresIds ?? []).filter((key) => !ids[key]);
+        if (missingIds.length > 0) {
+            console.log(
+                `   ⏭️  [${test.role}] ${test.method} ${test.path} — SKIP (missing ${missingIds.join(", ")})`,
+            );
+            results.push({
+                endpoint: test.path,
+                method: test.method,
+                role: test.role,
+                status: -1,
+                ok: true,
+                error: `SKIPPED: missing ${missingIds.join(", ")}`,
+            });
+            continue;
+        }
+
+        if (test.resolvePath) {
             path = test.resolvePath(ids);
         }
 
-        // Also substitute IDs in body
-        let body = test.body;
-        if (body) {
-            body = { ...body };
-            if (body.vendorId === DUMMY_UUID && ids.vendorId) body.vendorId = ids.vendorId;
-            if (body.productId === DUMMY_UUID && ids.productId) body.productId = ids.productId;
-            if (body.leadId === DUMMY_UUID && ids.leadId) body.leadId = ids.leadId;
-            if (body.categoryId === DUMMY_UUID && ids.categoryId) body.categoryId = ids.categoryId;
-            if (body.packageId === DUMMY_UUID && ids.categoryId) body.packageId = ids.categoryId; // Just use any valid UUID
-            if (body.paymentId === DUMMY_UUID) body.paymentId = DUMMY_UUID; // Keep dummy, expect 4xx
-            if (Array.isArray(body.categoryIds)) {
-                body.categoryIds = body.categoryIds.map((id: unknown) =>
-                    id === DUMMY_UUID && ids.categoryId ? ids.categoryId : id,
-                );
-            }
-        }
-
+        const body = test.resolveBody ? test.resolveBody(ids) : cloneBody(test.body);
         const { status, body: responseBody } = await callApi(test.method, path, test.role, body);
 
-        const is500 = status >= 500;
-        const isOk = !is500 && status !== 0;
+        const isBug = status >= 500 || status === 0;
+        const isOk = !isBug && status !== -1;
 
         const result: TestResult = {
             endpoint: path,
@@ -870,32 +1118,67 @@ async function main() {
             role: test.role,
             status,
             ok: isOk,
+            expected: false,
         };
 
-        if (!isOk) {
+        if (status >= 400 || !isOk) {
             result.error = responseBody?.slice(0, 300);
             result.body = responseBody?.slice(0, 500);
-            bugs.push(result);
         }
 
         results.push(result);
 
-        const icon = is500 ? "❌" : status >= 400 ? "⚠️" : "✅";
+        if (test.saveIdAs && status >= 200 && status < 300) {
+            try {
+                const payload = JSON.parse(responseBody);
+                const savedId = extractSavedId(payload, test.saveIdAs);
+                if (savedId) {
+                    ids[test.saveIdAs] = savedId;
+                    if (test.saveIdAs === "leadId") {
+                        ids.vendorLeadId = savedId;
+                    }
+                    console.log(`   🔗 saved ${test.saveIdAs}: ${savedId}`);
+                }
+            } catch {
+                // ignore malformed JSON from endpoints that don't return JSON
+            }
+        }
+
+        const isAllowedStatus = test.allowedStatuses?.includes(status) ?? false;
+        result.expected = isAllowedStatus;
+        const icon =
+            status >= 500 || status === 0
+                ? "❌"
+                : (status === 404 || status === 405) && !isAllowedStatus
+                  ? "❗"
+                  : isAllowedStatus
+                    ? "✅"
+                  : status >= 400
+                    ? "⚠️"
+                    : "✅";
         console.log(
             `   ${icon} [${test.role}] ${test.method} ${path} → ${status} ${test.label}${
-                is500 ? ` — ${responseBody?.slice(0, 100)}` : ""
+                isBug ? ` — ${responseBody?.slice(0, 100)}` : ""
             }`,
         );
     }
 
+    const bugs = results.filter((result) => result.status >= 500 || result.status === 0);
+    const suspicious = results.filter(
+        (result) => (result.status === 404 || result.status === 405) && !result.expected,
+    );
+    const expectedStatuses = results.filter((result) => result.expected);
+
     // 4. Generate report
-    generateMutationReport(results, bugs);
+    generateMutationReport(results, bugs, suspicious, expectedStatuses);
 
     // 5. Summary
     console.log(`\n${"═".repeat(60)}`);
-    console.log(`📊 Results: ${results.length} tested, ${bugs.length} bugs (500s)`);
+    console.log(`📊 Results: ${results.length} tested, ${bugs.length} bugs (5xx/fetch)`);
     console.log(`   ✅ OK (2xx): ${results.filter((r) => r.status >= 200 && r.status < 300).length}`);
-    console.log(`   ⚠️  4xx: ${results.filter((r) => r.status >= 400 && r.status < 500).length}`);
+    console.log(`   ✅ Expected 4xx: ${expectedStatuses.length}`);
+    console.log(`   ❗ Suspicious (404/405): ${suspicious.length}`);
+    console.log(`   ⚠️  Validation/permission (other 4xx): ${results.filter((r) => r.status >= 400 && r.status < 500 && !r.expected && r.status !== 404 && r.status !== 405).length}`);
     console.log(`   ❌ 5xx: ${results.filter((r) => r.status >= 500).length}`);
     console.log(`   ⏭️  Skipped: ${results.filter((r) => r.status === -1).length}`);
     console.log(`   💥 Fetch errors: ${results.filter((r) => r.status === 0).length}`);
@@ -904,15 +1187,26 @@ async function main() {
     process.exit(bugs.length > 0 ? 1 : 0);
 }
 
-function generateMutationReport(results: TestResult[], bugs: TestResult[]): void {
+function generateMutationReport(
+    results: TestResult[],
+    bugs: TestResult[],
+    suspicious: TestResult[],
+    expectedStatuses: TestResult[],
+): void {
+    const validationWarnings = results.filter(
+        (result) => result.status >= 400 && result.status < 500 && !result.expected && result.status !== 404 && result.status !== 405,
+    );
+
     const lines: string[] = [
         "# Mutation Smoke Test Report",
         "",
         `**Date**: ${new Date().toISOString().slice(0, 19)}`,
         `**Total tested**: ${results.length}`,
-        `**Bugs (5xx)**: ${bugs.length}`,
+        `**Bugs (5xx/fetch)**: ${bugs.length}`,
+        `**Expected 4xx**: ${expectedStatuses.length}`,
+        `**Suspicious (404/405)**: ${suspicious.length}`,
         `**OK (2xx)**: ${results.filter((r) => r.status >= 200 && r.status < 300).length}`,
-        `**Validation (4xx)**: ${results.filter((r) => r.status >= 400 && r.status < 500).length}`,
+        `**Validation / Permission (other 4xx)**: ${validationWarnings.length}`,
         `**Skipped**: ${results.filter((r) => r.status === -1).length}`,
         "",
         "---",
@@ -920,23 +1214,61 @@ function generateMutationReport(results: TestResult[], bugs: TestResult[]): void
     ];
 
     if (bugs.length > 0) {
-        lines.push("## 🐛 Bugs (500 errors)");
+        lines.push("## Bugs (5xx / fetch errors)");
         lines.push("");
-        for (const b of bugs) {
-            lines.push(`### [${b.role}] ${b.method} ${b.endpoint}`);
-            lines.push(`- **Status**: ${b.status}`);
-            if (b.error) lines.push(`- **Error**: \`${b.error.slice(0, 200)}\``);
+        for (const bug of bugs) {
+            lines.push(`### [${bug.role}] ${bug.method} ${bug.endpoint}`);
+            lines.push(`- **Status**: ${bug.status}`);
+            if (bug.error) lines.push(`- **Error**: \`${bug.error.slice(0, 200)}\``);
             lines.push("");
         }
+    }
+
+    if (suspicious.length > 0) {
+        lines.push("## Suspicious (404 / 405)");
+        lines.push("");
+        for (const result of suspicious) {
+            lines.push(`- [${result.role}] ${result.method} ${result.endpoint} → ${result.status}`);
+        }
+        lines.push("");
+    }
+
+    if (expectedStatuses.length > 0) {
+        lines.push("## Expected Validation / Business Rule 4xx");
+        lines.push("");
+        for (const result of expectedStatuses) {
+            lines.push(`- [${result.role}] ${result.method} ${result.endpoint} → ${result.status}`);
+        }
+        lines.push("");
+    }
+
+    if (validationWarnings.length > 0) {
+        lines.push("## Validation / Permission (other 4xx)");
+        lines.push("");
+        for (const result of validationWarnings) {
+            lines.push(`- [${result.role}] ${result.method} ${result.endpoint} → ${result.status}`);
+        }
+        lines.push("");
     }
 
     lines.push("## All Results");
     lines.push("");
     lines.push("| Role | Method | Endpoint | Status | Result |");
     lines.push("|------|--------|----------|--------|--------|");
-    for (const r of results) {
-        const icon = r.status >= 500 ? "❌" : r.status >= 400 ? "⚠️" : r.status === -1 ? "⏭️" : r.status === 0 ? "💥" : "✅";
-        lines.push(`| ${r.role} | ${r.method} | ${r.endpoint} | ${r.status} | ${icon} |`);
+    for (const result of results) {
+        const icon =
+            result.status >= 500 || result.status === 0
+                ? "❌"
+                : (result.status === 404 || result.status === 405) && !result.expected
+                  ? "❗"
+                  : result.expected
+                    ? "✅"
+                    : result.status >= 400
+                    ? "⚠️"
+                    : result.status === -1
+                      ? "⏭️"
+                      : "✅";
+        lines.push(`| ${result.role} | ${result.method} | ${result.endpoint} | ${result.status} | ${icon} |`);
     }
 
     mkdirSync(REPORT_DIR, { recursive: true });

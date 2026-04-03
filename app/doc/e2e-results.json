@@ -1,0 +1,29 @@
+[
+  {
+    "name": "vendor-approval",
+    "ok": true,
+    "details": [
+      "fixture reset: 51965868-827e-498c-9e34-bf30c14a9707",
+      "대기 업체 프로필 갱신",
+      "관리자 승인 API 성공",
+      "승인 후 파트너 페이지 진입 확인"
+    ]
+  },
+  {
+    "name": "lead-lifecycle",
+    "ok": true,
+    "details": [
+      "lead vendor fixture: 9aa9bd7c-e00a-46c3-8a8b-e0f29ae04d08",
+      "lead created: 31cd2089-1dd5-4160-8013-f1c543148b25",
+      "업체 상태 변경 및 응답 전송",
+      "의사 화면에서 상태/응답 확인"
+    ]
+  },
+  {
+    "name": "credit-charge-preparation",
+    "ok": true,
+    "details": [
+      "order prepared: MDHB-20260403-0bafc9f49464"
+    ]
+  }
+]

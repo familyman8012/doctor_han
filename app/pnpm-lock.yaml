@@ -113,6 +113,9 @@ importers:
       recharts:
         specifier: ^3.6.0
         version: 3.6.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react-is@16.13.1)(react@19.2.1)(redux@5.0.1)
+      require-in-the-middle:
+        specifier: ^8.0.1
+        version: 8.0.1
       resend:
         specifier: ^6.7.0
         version: 6.7.0
@@ -163,8 +166,8 @@ importers:
         specifier: ^24.40.0
         version: 24.40.0(typescript@5.9.3)
       supabase:
-        specifier: ^2.67.2
-        version: 2.67.2
+        specifier: ^2.84.2
+        version: 2.84.8
       tailwindcss:
         specifier: ^4
         version: 4.1.18
@@ -2069,6 +2072,10 @@ packages:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
 
+  agent-base@8.0.0:
+    resolution: {integrity: sha512-QT8i0hCz6C/KQ+KTAbSNwCHDGdmUJl2tp2ZpNlGSWCfhUNVbYG2WLE3MdZGBAgXPV4GAvjGMxo+C1hroyxmZEg==}
+    engines: {node: '>= 14'}
+
   ajv-formats@2.1.1:
     resolution: {integrity: sha512-Wx0Kx52hxE7C18hkMEggYlEifqWZtYaRgouJor+WMdPnQyEK13vgEWyVNup7SoeeoLMsr4kf5h6dOW11I15MUA==}
     peerDependencies:
@@ -3055,6 +3062,10 @@ packages:
 
   https-proxy-agent@7.0.6:
     resolution: {integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==}
+    engines: {node: '>= 14'}
+
+  https-proxy-agent@8.0.0:
+    resolution: {integrity: sha512-YYeW+iCnAS3xhvj2dvVoWgsbca3RfQy/IlaNHHOtDmU0jMqPI9euIq3Y9BJETdxk16h9NHHCKqp/KB9nIMStCQ==}
     engines: {node: '>= 14'}
 
   iceberg-js@0.8.1:
@@ -4193,8 +4204,8 @@ packages:
   stylis@4.2.0:
     resolution: {integrity: sha512-Orov6g6BB1sDfYgzWfTHDOxamtX1bE/zo104Dh9e6fqJ3PooipYyfJ0pUmrZO2wAvO8YbEyeFrkV91XTsGMSrw==}
 
-  supabase@2.67.2:
-    resolution: {integrity: sha512-JDOLNGfH9SPHApqRCH4XgGseSIFVZ9F/43eWfCf1dxpUm9YPND52G7QemWrJieqBtmw2MoMzGYLQHHQtxiwHXw==}
+  supabase@2.84.8:
+    resolution: {integrity: sha512-Of1NN0Klbp/TYgFvaahUKc9JOPN4ykbUkNrlpUN9t6GN8XRvk0t/Gb4K+13VZoUnBlddmHe+TmefXlvZNrjBPg==}
     engines: {npm: '>=8'}
     hasBin: true
 
@@ -4236,8 +4247,8 @@ packages:
     resolution: {integrity: sha512-FCEhQ/4rE1zYv9rYXJw/msRqsnmlje5jHP6huWeBZ704jUTy02c5AZyWujpMR1ax6mVw9NyJMfuK2CMDWVIfgA==}
     deprecated: This version of tar is no longer supported, and will not receive security updates. Please upgrade asap.
 
-  tar@7.5.2:
-    resolution: {integrity: sha512-7NyxrTE4Anh8km8iEy7o0QYPs+0JKBTj5ZaqHg6B39erLg0qYXN3BijtShwbsNSvQ+LN75+KV+C4QR/f6Gwnpg==}
+  tar@7.5.13:
+    resolution: {integrity: sha512-tOG/7GyXpFevhXVh8jOPJrmtRpOTsYqUIkVdVooZYJS/z8WhfQUX8RJILmeuJNinGAMSu1veBr4asSHFt5/hng==}
     engines: {node: '>=18'}
 
   teex@1.0.1:
@@ -6493,6 +6504,8 @@ snapshots:
 
   agent-base@7.1.4: {}
 
+  agent-base@8.0.0: {}
+
   ajv-formats@2.1.1(ajv@8.17.1):
     optionalDependencies:
       ajv: 8.17.1
@@ -7655,6 +7668,13 @@ snapshots:
   https-proxy-agent@7.0.6:
     dependencies:
       agent-base: 7.1.4
+      debug: 4.4.3
+    transitivePeerDependencies:
+      - supports-color
+
+  https-proxy-agent@8.0.0:
+    dependencies:
+      agent-base: 8.0.0
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
@@ -8872,12 +8892,12 @@ snapshots:
 
   stylis@4.2.0: {}
 
-  supabase@2.67.2:
+  supabase@2.84.8:
     dependencies:
       bin-links: 6.0.0
-      https-proxy-agent: 7.0.6
+      https-proxy-agent: 8.0.0
       node-fetch: 3.3.2
-      tar: 7.5.2
+      tar: 7.5.13
     transitivePeerDependencies:
       - supports-color
 
@@ -8933,7 +8953,7 @@ snapshots:
       fstream: 1.0.12
       inherits: 2.0.4
 
-  tar@7.5.2:
+  tar@7.5.13:
     dependencies:
       '@isaacs/fs-minipass': 4.0.1
       chownr: 3.0.0

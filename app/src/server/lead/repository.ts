@@ -2,7 +2,7 @@ import "server-only";
 
 import type { Database } from "@/lib/database.types";
 import type { PriceBreakdownItem } from "@/lib/schema/lead";
-import { internalServerError, notFound } from "@/server/api/errors";
+import { conflict, internalServerError, notFound } from "@/server/api/errors";
 import {
     mapLeadAttachmentRow,
     mapLeadChargeRow,
@@ -243,11 +243,22 @@ export async function insertLeadReport(
         .select()
         .single();
 
-    if (error || !data) {
+    if (error) {
+        if (error.code === "23505") {
+            throw conflict("이미 신고한 리드입니다.", {
+                message: error.message,
+                code: error.code,
+            });
+        }
+
         throw internalServerError("리드 신고를 생성할 수 없습니다.", {
-            message: error?.message,
-            code: error?.code,
+            message: error.message,
+            code: error.code,
         });
+    }
+
+    if (!data) {
+        throw internalServerError("리드 신고를 생성할 수 없습니다.");
     }
 
     return data;

@@ -329,7 +329,7 @@ export type LeadMessageResponse = z.infer<typeof LeadMessageResponseSchema>;
 
 export const LeadMessageReadPatchBodySchema = z
     .object({
-        messageIds: z.array(zUuid).min(1),
+        messageIds: z.array(zUuid).default([]),
     })
     .strict();
 

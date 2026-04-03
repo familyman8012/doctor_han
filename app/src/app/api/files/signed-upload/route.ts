@@ -37,8 +37,12 @@ async function ensurePrivateBucketExists(bucket: string): Promise<void> {
     const admin = createSupabaseAdminClient();
     const { error } = await admin.storage.createBucket(bucket, { public: false });
     const meta = pickSupabaseErrorMeta(error);
+    const alreadyExists =
+        meta.status === 409 ||
+        meta.statusCode === "409" ||
+        error?.message?.includes("already exists");
 
-    if (error && meta.status !== 409) {
+    if (error && !alreadyExists) {
         throw internalServerError("스토리지 버킷을 준비할 수 없습니다.", {
             message: error.message,
             ...meta,

@@ -6,7 +6,7 @@ import { login, resolveDynamicIds } from "./auth";
 import { attachCollectors, type SmokeError } from "./collectors";
 import { getPagesForRole, type PageEntry } from "./pages";
 
-const SCREENSHOT_DIR = join(__dirname, "screenshots");
+const SCREENSHOT_DIR = process.env.SMOKE_SCREENSHOT_DIR ?? join(__dirname, "screenshots");
 const REPORT_DIR = join(__dirname, "..", "..", "doc");
 
 // ── Helpers ──
@@ -35,8 +35,6 @@ async function runSmokeForRole(role: Role, allErrors: SmokeError[]): Promise<voi
     });
 
     try {
-        let page: Awaited<ReturnType<typeof login>>;
-
         // Auth pages - visit before login
         if (role === "doctor") {
             const authPages = getPagesForRole(role).filter((p) => p.roles.length === 0);
@@ -51,14 +49,23 @@ async function runSmokeForRole(role: Role, allErrors: SmokeError[]): Promise<voi
         }
 
         // Login
-        page = await login(browser, role);
+        const page = await login(browser, role);
 
         // Resolve dynamic IDs
         const dynamicIds = await resolveDynamicIds(page, role);
         console.log(`  📋 Dynamic IDs:`, dynamicIds);
 
         // Get pages for this role (exclude auth pages)
-        const pages = getPagesForRole(role).filter((p) => p.roles.length > 0);
+        const pagePathFilter = process.env.SMOKE_ONLY_PATHS
+            ?.split(",")
+            .map((value) => value.trim())
+            .filter(Boolean);
+        const pages = getPagesForRole(role)
+            .filter((p) => p.roles.length > 0)
+            .filter((entry) => {
+                if (!pagePathFilter || pagePathFilter.length === 0) return true;
+                return pagePathFilter.includes(entry.path);
+            });
         console.log(`  📄 Pages to test: ${pages.length}\n`);
 
         for (const entry of pages) {

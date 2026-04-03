@@ -62,6 +62,20 @@ api.interceptors.response.use(
         return response;
     },
     (error) => {
+        // 라우트 전환/언마운트로 취소된 요청은 네트워크 오류로 취급하지 않는다.
+        if (
+            axios.isCancel(error) ||
+            error?.code === "ERR_CANCELED" ||
+            error?.name === "CanceledError"
+        ) {
+            return Promise.reject({
+                code: "REQUEST_CANCELED",
+                message: "요청이 취소되었습니다.",
+                status: -1,
+                data: null,
+            });
+        }
+
         // 타임아웃 에러
         if (error.code === "ECONNABORTED" && error.message.includes("timeout")) {
             return Promise.reject({

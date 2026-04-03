@@ -15,15 +15,14 @@ export type VendorThumbnail = {
 } | null;
 
 export async function fetchVendorCategories(
-    supabase: SupabaseClient<Database>,
+    _supabase: SupabaseClient<Database>,
     vendorId: string,
 ): Promise<CategoryView[]> {
-    type CategoryRow = Tables<"categories">;
-    type VendorCategoryRow = { categories: CategoryRow | null };
+    const admin = createSupabaseAdminClient();
 
-    const { data, error } = await supabase
+    const { data, error } = await admin
         .from("vendor_categories")
-        .select("categories(*)")
+        .select("category_id")
         .eq("vendor_id", vendorId);
 
     if (error) {
@@ -33,29 +32,46 @@ export async function fetchVendorCategories(
         });
     }
 
-    const items: CategoryView[] = [];
-    for (const row of (data ?? []) as unknown as VendorCategoryRow[]) {
-        const category = row.categories;
-        if (category) items.push(mapCategoryRow(category));
+    const categoryIds = Array.from(
+        new Set((data ?? []).map((row) => row.category_id).filter((id): id is string => Boolean(id))),
+    );
+
+    if (categoryIds.length === 0) {
+        return [];
     }
+
+    const { data: categoryRows, error: categoryError } = await admin
+        .from("categories")
+        .select("*")
+        .in("id", categoryIds);
+
+    if (categoryError) {
+        throw internalServerError("카테고리 상세를 조회할 수 없습니다.", {
+            message: categoryError.message,
+            code: categoryError.code,
+        });
+    }
+
+    const categoryMap = new Map((categoryRows ?? []).map((row) => [row.id, mapCategoryRow(row)]));
+    const items = categoryIds
+        .map((categoryId) => categoryMap.get(categoryId))
+        .filter((category): category is CategoryView => Boolean(category));
 
     items.sort((a, b) => a.depth - b.depth || a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, "ko"));
     return items;
 }
 
 export async function fetchVendorCategoriesByVendorIds(
-    supabase: SupabaseClient<Database>,
+    _supabase: SupabaseClient<Database>,
     vendorIds: string[],
 ): Promise<Map<string, CategoryView[]>> {
-    type CategoryRow = Tables<"categories">;
-    type VendorCategoryRow = { vendor_id: string; categories: CategoryRow | null };
-
     const result = new Map<string, CategoryView[]>();
     if (vendorIds.length === 0) return result;
+    const admin = createSupabaseAdminClient();
 
-    const { data, error } = await supabase
+    const { data, error } = await admin
         .from("vendor_categories")
-        .select("vendor_id, categories(*)")
+        .select("vendor_id, category_id")
         .in("vendor_id", vendorIds);
 
     if (error) {
@@ -65,11 +81,34 @@ export async function fetchVendorCategoriesByVendorIds(
         });
     }
 
-    for (const row of (data ?? []) as unknown as VendorCategoryRow[]) {
-        const category = row.categories;
+    const vendorCategoryRows = data ?? [];
+    const categoryIds = Array.from(
+        new Set(vendorCategoryRows.map((row) => row.category_id).filter((id): id is string => Boolean(id))),
+    );
+
+    if (categoryIds.length === 0) {
+        return result;
+    }
+
+    const { data: categoryRows, error: categoryError } = await admin
+        .from("categories")
+        .select("*")
+        .in("id", categoryIds);
+
+    if (categoryError) {
+        throw internalServerError("카테고리 상세를 조회할 수 없습니다.", {
+            message: categoryError.message,
+            code: categoryError.code,
+        });
+    }
+
+    const categoryMap = new Map((categoryRows ?? []).map((row) => [row.id, mapCategoryRow(row)]));
+
+    for (const row of vendorCategoryRows) {
+        const category = categoryMap.get(row.category_id);
         if (!category) continue;
         const list = result.get(row.vendor_id) ?? [];
-        list.push(mapCategoryRow(category));
+        list.push(category);
         result.set(row.vendor_id, list);
     }
 

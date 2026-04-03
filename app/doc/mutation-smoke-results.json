@@ -1,154 +1,195 @@
 [
   {
-    "endpoint": "/api/leads",
+    "endpoint": "/api/admin/help-center/categories",
     "method": "POST",
-    "role": "doctor",
-    "status": 400,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/leads/7611346e-a6b0-4021-83b3-20a576c35590/status",
-    "method": "PATCH",
-    "role": "doctor",
-    "status": 200,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/leads/7611346e-a6b0-4021-83b3-20a576c35590/messages",
-    "method": "POST",
-    "role": "doctor",
+    "role": "admin",
     "status": 201,
-    "ok": true
+    "ok": true,
+    "expected": false
   },
   {
-    "endpoint": "/api/leads/7611346e-a6b0-4021-83b3-20a576c35590/messages/read",
-    "method": "PATCH",
-    "role": "doctor",
-    "status": 400,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/leads/7611346e-a6b0-4021-83b3-20a576c35590/report",
+    "endpoint": "/api/admin/categories",
     "method": "POST",
-    "role": "doctor",
-    "status": 403,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/reviews",
-    "method": "POST",
-    "role": "doctor",
-    "status": 400,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/reviews/d3d49233-e111-4d83-869e-49d61ee34336",
-    "method": "PATCH",
-    "role": "doctor",
-    "status": 200,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/reviews/d3d49233-e111-4d83-869e-49d61ee34336",
-    "method": "DELETE",
-    "role": "doctor",
-    "status": 200,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/reviews/d3d49233-e111-4d83-869e-49d61ee34336",
-    "method": "POST",
-    "role": "doctor",
-    "status": 405,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/reviews/d3d49233-e111-4d83-869e-49d61ee34336/reply",
-    "method": "POST",
-    "role": "vendor",
-    "status": 404,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/favorites/toggle",
-    "method": "POST",
-    "role": "doctor",
-    "status": 200,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/product-favorites/toggle",
-    "method": "POST",
-    "role": "doctor",
-    "status": 400,
-    "ok": true
+    "role": "admin",
+    "status": 201,
+    "ok": true,
+    "expected": false
   },
   {
     "endpoint": "/api/vendors/me",
     "method": "PATCH",
     "role": "vendor",
     "status": 200,
-    "ok": true
+    "ok": true,
+    "expected": false
   },
   {
-    "endpoint": "/api/vendors/me/products",
+    "endpoint": "/api/vendors/me/prices",
     "method": "POST",
     "role": "vendor",
-    "status": 400,
-    "ok": true
+    "status": 409,
+    "ok": true,
+    "expected": true,
+    "error": "{\"code\":\"4090\",\"message\":\"해당 카테고리에 이미 단가가 설정되어 있습니다.\"}",
+    "body": "{\"code\":\"4090\",\"message\":\"해당 카테고리에 이미 단가가 설정되어 있습니다.\"}"
   },
   {
-    "endpoint": "/api/vendors/me/products/00000000-0000-0000-0000-000000000099",
+    "endpoint": "/api/leads",
+    "method": "POST",
+    "role": "doctor",
+    "status": 400,
+    "ok": true,
+    "expected": true,
+    "error": "{\"code\":\"4000\",\"message\":\"입점비 미납 상태로 리드를 받을 수 없습니다.\"}",
+    "body": "{\"code\":\"4000\",\"message\":\"입점비 미납 상태로 리드를 받을 수 없습니다.\"}"
+  },
+  {
+    "endpoint": "/api/leads/00000000-0000-0000-0000-000000000099/messages",
+    "method": "POST",
+    "role": "doctor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: missing leadId"
+  },
+  {
+    "endpoint": "/api/leads/00000000-0000-0000-0000-000000000099/messages/read",
     "method": "PATCH",
+    "role": "doctor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: missing leadId, leadMessageId"
+  },
+  {
+    "endpoint": "/api/reviews",
+    "method": "POST",
+    "role": "doctor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: missing leadId"
+  },
+  {
+    "endpoint": "/api/reviews/00000000-0000-0000-0000-000000000099/reply",
+    "method": "POST",
     "role": "vendor",
     "status": -1,
     "ok": true,
-    "error": "SKIPPED: no productId"
+    "error": "SKIPPED: missing reviewId"
+  },
+  {
+    "endpoint": "/api/reviews/00000000-0000-0000-0000-000000000099/report",
+    "method": "POST",
+    "role": "vendor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: missing reviewId"
+  },
+  {
+    "endpoint": "/api/leads/56fe621a-ec62-4da4-8358-51a1d15f4c13/report",
+    "method": "POST",
+    "role": "vendor",
+    "status": 409,
+    "ok": true,
+    "expected": true,
+    "error": "{\"code\":\"4090\",\"message\":\"이미 신고한 리드입니다.\",\"details\":{\"message\":\"duplicate key value violates unique constraint \\\"lead_reports_lead_id_reporter_user_id_key\\\"\",\"code\":\"23505\"}}",
+    "body": "{\"code\":\"4090\",\"message\":\"이미 신고한 리드입니다.\",\"details\":{\"message\":\"duplicate key value violates unique constraint \\\"lead_reports_lead_id_reporter_user_id_key\\\"\",\"code\":\"23505\"}}"
+  },
+  {
+    "endpoint": "/api/admin/reviews/00000000-0000-0000-0000-000000000099/hide",
+    "method": "POST",
+    "role": "admin",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: missing reviewId"
+  },
+  {
+    "endpoint": "/api/admin/reviews/00000000-0000-0000-0000-000000000099/unhide",
+    "method": "POST",
+    "role": "admin",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: missing reviewId"
+  },
+  {
+    "endpoint": "/api/reviews/00000000-0000-0000-0000-000000000099",
+    "method": "PATCH",
+    "role": "doctor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: missing reviewId"
+  },
+  {
+    "endpoint": "/api/favorites/toggle",
+    "method": "POST",
+    "role": "doctor",
+    "status": 200,
+    "ok": true,
+    "expected": false
   },
   {
     "endpoint": "/api/vendors/me/portfolio",
     "method": "POST",
     "role": "vendor",
     "status": 201,
-    "ok": true
+    "ok": true,
+    "expected": false
   },
   {
-    "endpoint": "/api/vendors/me/portfolio/00000000-0000-0000-0000-000000000099",
+    "endpoint": "/api/vendors/me/portfolio/4c04c420-c17f-4360-a6ca-30f34748d2ef",
     "method": "PATCH",
     "role": "vendor",
-    "status": -1,
+    "status": 200,
     "ok": true,
-    "error": "SKIPPED: no portfolioId"
+    "expected": false
   },
   {
-    "endpoint": "/api/vendors/me/portfolio/00000000-0000-0000-0000-000000000099",
-    "method": "DELETE",
+    "endpoint": "/api/vendors/me/prices/f7f472a2-c3f9-4822-b54c-daa48ac5674c",
+    "method": "PATCH",
     "role": "vendor",
-    "status": -1,
+    "status": 200,
     "ok": true,
-    "error": "SKIPPED: no portfolioId"
+    "expected": false
   },
   {
-    "endpoint": "/api/vendors/me/prices",
+    "endpoint": "/api/vendors/me/products",
     "method": "POST",
     "role": "vendor",
-    "status": 400,
-    "ok": true
+    "status": 201,
+    "ok": true,
+    "expected": false
   },
   {
-    "endpoint": "/api/vendors/me/prices/00000000-0000-0000-0000-000000000099",
+    "endpoint": "/api/vendors/me/products/f03bc0b8-6178-4381-8c67-f9d5a6ca834e",
     "method": "PATCH",
     "role": "vendor",
-    "status": -1,
+    "status": 200,
     "ok": true,
-    "error": "SKIPPED: no priceId"
+    "expected": false
+  },
+  {
+    "endpoint": "/api/product-favorites/toggle",
+    "method": "POST",
+    "role": "doctor",
+    "status": 200,
+    "ok": true,
+    "expected": false
+  },
+  {
+    "endpoint": "/api/product-recent-views",
+    "method": "POST",
+    "role": "doctor",
+    "status": 200,
+    "ok": true,
+    "expected": false
   },
   {
     "endpoint": "/api/support/tickets",
     "method": "POST",
     "role": "doctor",
-    "status": 400,
-    "ok": true
+    "status": 429,
+    "ok": true,
+    "expected": true,
+    "error": "{\"code\":\"4290\",\"message\":\"일일 티켓 생성 한도(5건)를 초과했습니다.\",\"details\":{\"retryAfter\":86400}}",
+    "body": "{\"code\":\"4290\",\"message\":\"일일 티켓 생성 한도(5건)를 초과했습니다.\",\"details\":{\"retryAfter\":86400}}"
   },
   {
     "endpoint": "/api/support/tickets/00000000-0000-0000-0000-000000000099/messages",
@@ -156,203 +197,7 @@
     "role": "doctor",
     "status": -1,
     "ok": true,
-    "error": "SKIPPED: no supportTicketId"
-  },
-  {
-    "endpoint": "/api/support/tickets/00000000-0000-0000-0000-000000000099/reopen",
-    "method": "POST",
-    "role": "doctor",
-    "status": -1,
-    "ok": true,
-    "error": "SKIPPED: no supportTicketId"
-  },
-  {
-    "endpoint": "/api/bid/projects",
-    "method": "POST",
-    "role": "doctor",
-    "status": 201,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/bid/projects/00000000-0000-0000-0000-000000000099/responses",
-    "method": "POST",
-    "role": "vendor",
-    "status": -1,
-    "ok": true,
-    "error": "SKIPPED: no bidProjectId"
-  },
-  {
-    "endpoint": "/api/bid/projects/00000000-0000-0000-0000-000000000099/cancel",
-    "method": "PATCH",
-    "role": "doctor",
-    "status": -1,
-    "ok": true,
-    "error": "SKIPPED: no bidProjectId"
-  },
-  {
-    "endpoint": "/api/credits/charge",
-    "method": "POST",
-    "role": "vendor",
-    "status": 404,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/credits/auto-charge",
-    "method": "PATCH",
-    "role": "vendor",
-    "status": 200,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/payments/confirm",
-    "method": "POST",
-    "role": "vendor",
-    "status": 404,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/notification-settings",
-    "method": "PATCH",
-    "role": "doctor",
-    "status": 200,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/profile",
-    "method": "PATCH",
-    "role": "doctor",
-    "status": 200,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/onboarding",
-    "method": "PATCH",
-    "role": "doctor",
-    "status": 400,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/geocode",
-    "method": "POST",
-    "role": "doctor",
-    "status": 403,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/files/signed-upload",
-    "method": "POST",
-    "role": "doctor",
-    "status": 400,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/product-recent-views",
-    "method": "POST",
-    "role": "doctor",
-    "status": 400,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/vendors/me/subscriptions",
-    "method": "POST",
-    "role": "vendor",
-    "status": 400,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/vendors/me/membership",
-    "method": "POST",
-    "role": "vendor",
-    "status": 400,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/ads/priority/purchase",
-    "method": "POST",
-    "role": "vendor",
-    "status": 400,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/ads/banners/00000000-0000-0000-0000-000000000099/click",
-    "method": "POST",
-    "role": "doctor",
-    "status": -1,
-    "ok": true,
-    "error": "SKIPPED: no bannerId"
-  },
-  {
-    "endpoint": "/api/refunds",
-    "method": "POST",
-    "role": "vendor",
-    "status": 400,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/admin/categories",
-    "method": "POST",
-    "role": "admin",
-    "status": 409,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/admin/categories/98e9a64d-46eb-4e5d-a022-17b25fda38b4",
-    "method": "PATCH",
-    "role": "admin",
-    "status": 200,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/admin/verifications/00000000-0000-0000-0000-000000000099/reject",
-    "method": "POST",
-    "role": "admin",
-    "status": -1,
-    "ok": true,
-    "error": "SKIPPED: no verificationId"
-  },
-  {
-    "endpoint": "/api/admin/help-center/categories",
-    "method": "POST",
-    "role": "admin",
-    "status": 400,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/admin/help-center/articles",
-    "method": "POST",
-    "role": "admin",
-    "status": 400,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/admin/reviews/d3d49233-e111-4d83-869e-49d61ee34336/hide",
-    "method": "POST",
-    "role": "admin",
-    "status": 400,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/admin/reviews/d3d49233-e111-4d83-869e-49d61ee34336/unhide",
-    "method": "POST",
-    "role": "admin",
-    "status": 404,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/admin/reports/00000000-0000-0000-0000-000000000099/review",
-    "method": "POST",
-    "role": "admin",
-    "status": -1,
-    "ok": true,
-    "error": "SKIPPED: no reportId"
-  },
-  {
-    "endpoint": "/api/admin/reports/00000000-0000-0000-0000-000000000099/dismiss",
-    "method": "POST",
-    "role": "admin",
-    "status": -1,
-    "ok": true,
-    "error": "SKIPPED: no reportId"
+    "error": "SKIPPED: missing supportTicketId"
   },
   {
     "endpoint": "/api/admin/support/tickets/00000000-0000-0000-0000-000000000099/messages",
@@ -360,7 +205,7 @@
     "role": "admin",
     "status": -1,
     "ok": true,
-    "error": "SKIPPED: no supportTicketId"
+    "error": "SKIPPED: missing supportTicketId"
   },
   {
     "endpoint": "/api/admin/support/tickets/00000000-0000-0000-0000-000000000099/status",
@@ -368,50 +213,260 @@
     "role": "admin",
     "status": -1,
     "ok": true,
-    "error": "SKIPPED: no supportTicketId"
+    "error": "SKIPPED: missing supportTicketId"
   },
   {
-    "endpoint": "/api/admin/bid-projects/00000000-0000-0000-0000-000000000099/status",
+    "endpoint": "/api/support/tickets/00000000-0000-0000-0000-000000000099/reopen",
+    "method": "POST",
+    "role": "doctor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: missing supportTicketId"
+  },
+  {
+    "endpoint": "/api/bid/projects",
+    "method": "POST",
+    "role": "doctor",
+    "status": 201,
+    "ok": true,
+    "expected": false
+  },
+  {
+    "endpoint": "/api/bid/projects/cf0b5962-fbf1-438c-a422-efd3edd4160f/responses",
+    "method": "POST",
+    "role": "vendor",
+    "status": 400,
+    "ok": true,
+    "expected": true,
+    "error": "{\"code\":\"4000\",\"message\":\"입찰 기간이 아닙니다.\"}",
+    "body": "{\"code\":\"4000\",\"message\":\"입찰 기간이 아닙니다.\"}"
+  },
+  {
+    "endpoint": "/api/admin/bid-projects/cf0b5962-fbf1-438c-a422-efd3edd4160f/status",
     "method": "PATCH",
+    "role": "admin",
+    "status": 200,
+    "ok": true,
+    "expected": false
+  },
+  {
+    "endpoint": "/api/bid/projects/cf0b5962-fbf1-438c-a422-efd3edd4160f/cancel",
+    "method": "PATCH",
+    "role": "doctor",
+    "status": 200,
+    "ok": true,
+    "expected": false
+  },
+  {
+    "endpoint": "/api/credits/charge",
+    "method": "POST",
+    "role": "vendor",
+    "status": 200,
+    "ok": true,
+    "expected": false
+  },
+  {
+    "endpoint": "/api/credits/auto-charge",
+    "method": "PATCH",
+    "role": "vendor",
+    "status": 200,
+    "ok": true,
+    "expected": false
+  },
+  {
+    "endpoint": "/api/payments/confirm",
+    "method": "POST",
+    "role": "vendor",
+    "status": 404,
+    "ok": true,
+    "expected": true,
+    "error": "{\"code\":\"4040\",\"message\":\"결제 정보를 찾을 수 없습니다.\"}",
+    "body": "{\"code\":\"4040\",\"message\":\"결제 정보를 찾을 수 없습니다.\"}"
+  },
+  {
+    "endpoint": "/api/notification-settings",
+    "method": "PATCH",
+    "role": "doctor",
+    "status": 200,
+    "ok": true,
+    "expected": false
+  },
+  {
+    "endpoint": "/api/profile",
+    "method": "PATCH",
+    "role": "doctor",
+    "status": 200,
+    "ok": true,
+    "expected": false
+  },
+  {
+    "endpoint": "/api/onboarding",
+    "method": "PATCH",
+    "role": "doctor",
+    "status": 200,
+    "ok": true,
+    "expected": false
+  },
+  {
+    "endpoint": "/api/geocode",
+    "method": "POST",
+    "role": "doctor",
+    "status": 403,
+    "ok": true,
+    "expected": true,
+    "error": "{\"code\":\"8991\",\"message\":\"권한이 없습니다.\"}",
+    "body": "{\"code\":\"8991\",\"message\":\"권한이 없습니다.\"}"
+  },
+  {
+    "endpoint": "/api/files/signed-upload",
+    "method": "POST",
+    "role": "doctor",
+    "status": 201,
+    "ok": true,
+    "expected": false
+  },
+  {
+    "endpoint": "/api/vendors/me/subscriptions",
+    "method": "POST",
+    "role": "vendor",
+    "status": 400,
+    "ok": true,
+    "expected": true,
+    "error": "{\"code\":\"4000\",\"message\":\"크레딧 잔액이 부족합니다.\"}",
+    "body": "{\"code\":\"4000\",\"message\":\"크레딧 잔액이 부족합니다.\"}"
+  },
+  {
+    "endpoint": "/api/vendors/me/membership",
+    "method": "POST",
+    "role": "vendor",
+    "status": 400,
+    "ok": true,
+    "expected": true,
+    "error": "{\"code\":\"4000\",\"message\":\"크레딧 잔액이 부족합니다.\"}",
+    "body": "{\"code\":\"4000\",\"message\":\"크레딧 잔액이 부족합니다.\"}"
+  },
+  {
+    "endpoint": "/api/ads/priority/purchase",
+    "method": "POST",
+    "role": "vendor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: missing prioritySlotId"
+  },
+  {
+    "endpoint": "/api/ads/banners/00000000-0000-0000-0000-000000000099/click",
+    "method": "POST",
+    "role": "doctor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: missing bannerId"
+  },
+  {
+    "endpoint": "/api/refunds",
+    "method": "POST",
+    "role": "vendor",
+    "status": 400,
+    "ok": true,
+    "expected": true,
+    "error": "{\"code\":\"4000\",\"message\":\"입력 검증 실패\",\"details\":[{\"origin\":\"string\",\"code\":\"invalid_format\",\"format\":\"uuid\",\"pattern\":\"/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/\",\"path\":[\"lead",
+    "body": "{\"code\":\"4000\",\"message\":\"입력 검증 실패\",\"details\":[{\"origin\":\"string\",\"code\":\"invalid_format\",\"format\":\"uuid\",\"pattern\":\"/^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/\",\"path\":[\"leadChargeId\"],\"message\":\"Invalid UUID\"}]}"
+  },
+  {
+    "endpoint": "/api/admin/categories/d3e73462-1fde-4b71-a1b3-9ef0ed97edbb",
+    "method": "PATCH",
+    "role": "admin",
+    "status": 200,
+    "ok": true,
+    "expected": false
+  },
+  {
+    "endpoint": "/api/admin/verifications/00000000-0000-0000-0000-000000000099/reject",
+    "method": "POST",
     "role": "admin",
     "status": -1,
     "ok": true,
-    "error": "SKIPPED: no bidProjectId"
+    "error": "SKIPPED: missing verificationId"
+  },
+  {
+    "endpoint": "/api/admin/help-center/articles",
+    "method": "POST",
+    "role": "admin",
+    "status": 201,
+    "ok": true,
+    "expected": false
+  },
+  {
+    "endpoint": "/api/admin/reports/00000000-0000-0000-0000-000000000099/review",
+    "method": "POST",
+    "role": "admin",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: missing reportId"
+  },
+  {
+    "endpoint": "/api/admin/lead-reports/00000000-0000-0000-0000-000000000099/review",
+    "method": "POST",
+    "role": "admin",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: missing leadReportId"
   },
   {
     "endpoint": "/api/admin/settlements/generate",
     "method": "POST",
     "role": "admin",
-    "status": 400,
-    "ok": true
+    "status": 201,
+    "ok": true,
+    "expected": false
   },
   {
     "endpoint": "/api/admin/ads/campaigns",
     "method": "POST",
     "role": "admin",
     "status": 400,
-    "ok": true
+    "ok": true,
+    "expected": true,
+    "error": "{\"code\":\"4000\",\"message\":\"입력 검증 실패\",\"details\":[{\"expected\":\"string\",\"code\":\"invalid_type\",\"path\":[\"adSlotId\"],\"message\":\"Invalid input: expected string, received undefined\"},{\"expected\":\"string\",\"code\":\"invalid_type\",\"path\":[\"advertiserName\"],\"message\":\"Invalid input: expected string, received undef",
+    "body": "{\"code\":\"4000\",\"message\":\"입력 검증 실패\",\"details\":[{\"expected\":\"string\",\"code\":\"invalid_type\",\"path\":[\"adSlotId\"],\"message\":\"Invalid input: expected string, received undefined\"},{\"expected\":\"string\",\"code\":\"invalid_type\",\"path\":[\"advertiserName\"],\"message\":\"Invalid input: expected string, received undefined\"},{\"expected\":\"string\",\"code\":\"invalid_type\",\"path\":[\"startsAt\"],\"message\":\"Invalid input: expected string, received undefined\"},{\"expected\":\"string\",\"code\":\"invalid_type\",\"path\":[\"endsAt\"],\"mess"
   },
   {
-    "endpoint": "/api/admin/credits/00000000-0000-0000-0000-000000000099/adjust",
+    "endpoint": "/api/admin/credits/83c31402-5660-4cd1-978d-16d96205b0c3/adjust",
     "method": "POST",
     "role": "admin",
-    "status": 400,
-    "ok": true
+    "status": 201,
+    "ok": true,
+    "expected": false
   },
   {
-    "endpoint": "/api/admin/lead-reports/00000000-0000-0000-0000-000000000099/review",
-    "method": "POST",
-    "role": "admin",
-    "status": 400,
-    "ok": true
-  },
-  {
-    "endpoint": "/api/admin/products/00000000-0000-0000-0000-000000000099",
+    "endpoint": "/api/admin/products/f03bc0b8-6178-4381-8c67-f9d5a6ca834e",
     "method": "PATCH",
     "role": "admin",
+    "status": 200,
+    "ok": true,
+    "expected": false
+  },
+  {
+    "endpoint": "/api/leads/00000000-0000-0000-0000-000000000099/status",
+    "method": "PATCH",
+    "role": "doctor",
     "status": -1,
     "ok": true,
-    "error": "SKIPPED: no productId"
+    "error": "SKIPPED: missing leadId"
+  },
+  {
+    "endpoint": "/api/reviews/00000000-0000-0000-0000-000000000099",
+    "method": "DELETE",
+    "role": "doctor",
+    "status": -1,
+    "ok": true,
+    "error": "SKIPPED: missing reviewId"
+  },
+  {
+    "endpoint": "/api/vendors/me/portfolio/4c04c420-c17f-4360-a6ca-30f34748d2ef",
+    "method": "DELETE",
+    "role": "vendor",
+    "status": 200,
+    "ok": true,
+    "expected": false
   }
 ]

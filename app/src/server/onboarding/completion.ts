@@ -129,7 +129,7 @@ export async function calculateVendorCompletion(ctx: CompletionContext): Promise
     const { data: vendor, error: vendorError } = await supabase
         .from("vendors")
         .select("id, name, description, region_primary")
-        .eq("user_id", userId)
+        .eq("owner_user_id", userId)
         .maybeSingle();
 
     if (vendorError) {
@@ -143,7 +143,7 @@ export async function calculateVendorCompletion(ctx: CompletionContext): Promise
     if (vendor) {
         const { count: categoryCount, error: categoryCountError } = await supabase
             .from("vendor_categories")
-            .select("id", { count: "exact", head: true })
+            .select("category_id", { count: "exact", head: true })
             .eq("vendor_id", vendor.id);
 
         if (categoryCountError) {

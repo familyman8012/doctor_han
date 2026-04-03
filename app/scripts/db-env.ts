@@ -1,30 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-import { appRoot, runSupabaseCaptureStdout } from "./_supabase";
-
-type EnvMap = Record<string, string>;
-
-function parseEnvOutput(output: string): EnvMap {
-	const lines = output
-		.split("\n")
-		.map((line) => line.trim())
-		.filter(Boolean);
-
-	const env: EnvMap = {};
-
-	for (const line of lines) {
-		if (line.startsWith("Stopped services:")) continue;
-
-		const match = /^([A-Z0-9_]+)="(.*)"$/.exec(line);
-		if (!match) continue;
-
-		const [, key, rawValue] = match;
-		env[key] = rawValue.replaceAll('\\"', '"');
-	}
-
-	return env;
-}
+import { appRoot, ensureLocalSupabaseEnv } from "./_supabase";
 
 function replaceOrAppendKey(lines: string[], key: string, value: string): string[] {
 	const prefix = `${key}=`;
@@ -57,10 +34,7 @@ async function main() {
 		// ok: does not exist
 	}
 
-	const statusEnv = await runSupabaseCaptureStdout([
-		"status",
-		"-o",
-		"env",
+	const envFromStatus = await ensureLocalSupabaseEnv([
 		"--override-name",
 		"api.url=NEXT_PUBLIC_SUPABASE_URL",
 		"--override-name",
@@ -68,8 +42,6 @@ async function main() {
 		"--override-name",
 		"auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY",
 	]);
-
-	const envFromStatus = parseEnvOutput(statusEnv);
 
 	const requiredKeys = [
 		"NEXT_PUBLIC_SUPABASE_URL",

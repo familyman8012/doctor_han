@@ -29,6 +29,15 @@ function formatError(error: unknown): string {
     return String(error);
 }
 
+function isCanceledRequest(error: unknown): boolean {
+    return Boolean(
+        error &&
+            typeof error === "object" &&
+            "code" in error &&
+            (error as { code?: unknown }).code === "REQUEST_CANCELED",
+    );
+}
+
 /**
  * 앱 전역 Provider
  * - React Query v5 대응 (QueryCache/MutationCache로 중앙 에러 처리)
@@ -51,6 +60,7 @@ export default function Providers({ children }: { children: ReactNode }) {
                 },
                 queryCache: new QueryCache({
                     onError: (error: unknown, query) => {
+                        if (isCanceledRequest(error)) return;
                         const queryKey = JSON.stringify(query.queryKey);
                         console.error("[Query Error]", queryKey, formatError(error));
                         errorHandler(error);
@@ -58,6 +68,7 @@ export default function Providers({ children }: { children: ReactNode }) {
                 }),
                 mutationCache: new MutationCache({
                     onError: (error: unknown) => {
+                        if (isCanceledRequest(error)) return;
                         console.error("[Mutation Error]", formatError(error));
                         errorHandler(error);
                     },
