@@ -175,7 +175,7 @@ export async function countNotificationFailuresSince(
         .from("notification_deliveries")
         .select("id", { count: "exact", head: true })
         .not("failed_at", "is", null)
-        .gte("created_at", since);
+        .gte("sent_at", since);
 
     if (error) {
         throw internalServerError("알림 실패 수를 조회할 수 없습니다.", {

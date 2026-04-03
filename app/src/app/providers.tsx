@@ -8,6 +8,27 @@ import { Toaster } from "sonner";
 import { errorHandler } from "@/api-client/error-handler";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 
+/** axios interceptor가 반환하는 plain object 에러를 읽기 쉬운 형태로 변환 */
+function formatError(error: unknown): string {
+    if (error instanceof Error) return error.message;
+    if (error && typeof error === "object") {
+        const e = error as Record<string, unknown>;
+        const code = e.code ?? "";
+        const message = e.message ?? e.error ?? "";
+        const status = e.status ?? "";
+        if (message || code || status) {
+            return `[${status}] ${code}: ${message || "unknown"}`;
+        }
+        // Fallback: serialize unknown object shape for debugging
+        try {
+            return JSON.stringify(error);
+        } catch {
+            return "unknown error object";
+        }
+    }
+    return String(error);
+}
+
 /**
  * 앱 전역 Provider
  * - React Query v5 대응 (QueryCache/MutationCache로 중앙 에러 처리)
@@ -29,23 +50,15 @@ export default function Providers({ children }: { children: ReactNode }) {
                     },
                 },
                 queryCache: new QueryCache({
-                    onError: (error: unknown) => {
-                        if (error instanceof Error) {
-                            console.error("[Query Error]", {
-                                error: error.message,
-                                stack: error.stack,
-                                cause: error.cause,
-                                ...error,
-                            });
-                        } else {
-                            console.error("[Query Error]", error);
-                        }
+                    onError: (error: unknown, query) => {
+                        const queryKey = JSON.stringify(query.queryKey);
+                        console.error("[Query Error]", queryKey, formatError(error));
                         errorHandler(error);
                     },
                 }),
                 mutationCache: new MutationCache({
                     onError: (error: unknown) => {
-                        console.error("[Mutation Error]", error);
+                        console.error("[Mutation Error]", formatError(error));
                         errorHandler(error);
                     },
                 }),

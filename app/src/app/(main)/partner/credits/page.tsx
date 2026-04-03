@@ -150,18 +150,25 @@ export default function PartnerCreditsPage() {
                 <h2 className="text-lg font-semibold text-content-primary mb-3">충전하기</h2>
                 <div className="grid grid-cols-2 gap-3">
                     {packages.map((pkg) => (
-                        <button
+                        <div
                             key={pkg.id}
-                            type="button"
-                            className="bg-white rounded-xl border border-gray-200 p-4 text-left hover:border-primary hover:shadow-sm transition-all"
+                            role="button"
+                            tabIndex={0}
+                            className="bg-white rounded-xl border border-gray-200 p-4 text-left hover:border-primary hover:shadow-sm transition-all cursor-pointer"
                             onClick={() => router.push(`/partner/credits/charge?packageId=${pkg.id}`)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    router.push(`/partner/credits/charge?packageId=${pkg.id}`);
+                                }
+                            }}
                         >
                             <p className="text-lg font-bold text-content-primary">{pkg.name}</p>
                             <p className="text-sm text-gray-500 mt-1">{formatKRW(pkg.amount)}</p>
                             <Button variant="primary" size="sm" className="mt-3 w-full">
                                 충전
                             </Button>
-                        </button>
+                        </div>
                     ))}
                 </div>
             </div>

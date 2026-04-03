@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
         root: process.cwd(),
     },
     images: {
+        dangerouslyAllowSVG: true,
+        contentDispositionType: "attachment",
         remotePatterns: [
             {
                 protocol: "https",

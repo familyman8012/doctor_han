@@ -42,7 +42,7 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error, count } = await (supabase as any)
         .from("products")
-        .select("*, categories!inner(slug)", { count: "exact" })
+        .select("*, categories(slug)", { count: "exact" })
         .eq("vendor_id", vendorId)
         .eq("status", "active")
         .order("sort_order", { ascending: true })

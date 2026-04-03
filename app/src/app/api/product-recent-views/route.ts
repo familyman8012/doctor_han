@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { zUuid } from "@/lib/schema/common";
-import { internalServerError } from "@/server/api/errors";
+import { badRequest, internalServerError } from "@/server/api/errors";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withRole } from "@/server/auth/guards";
@@ -22,6 +22,26 @@ export const POST = withApi(
         const body = RecentViewBodySchema.parse(await ctx.req.json());
         const userId = ctx.user.id;
         const { productId } = body;
+
+        // Validate product exists (prevent FK violation)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: productRow, error: productCheckError } = await (ctx.supabase as any)
+            .from("products")
+            .select("id")
+            .eq("id", productId)
+            .eq("status", "active")
+            .maybeSingle();
+
+        if (productCheckError) {
+            throw internalServerError("상품 조회에 실패했습니다.", {
+                message: productCheckError.message,
+                code: productCheckError.code,
+            });
+        }
+
+        if (!productRow) {
+            throw badRequest("존재하지 않거나 비활성화된 상품입니다.");
+        }
 
         // Check if a record already exists
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -123,10 +143,12 @@ export const GET = withApi(
         const productIds = rows.map((r) => r.product_id as string);
 
         // Fetch product details with vendor join
+        // Use left join for categories (no !inner) so products with inactive/missing
+        // categories are still returned — the code already handles null category.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: productData, error: productError } = await (ctx.supabase as any)
             .from("products")
-            .select("*, vendors!inner(id, name), categories!inner(slug)")
+            .select("*, vendors(id, name), categories(slug)")
             .in("id", productIds)
             .eq("status", "active");
 

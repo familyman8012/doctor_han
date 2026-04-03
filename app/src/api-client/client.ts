@@ -55,7 +55,6 @@ api.interceptors.response.use(
                 message: response.data.message || "요청 처리에 실패했습니다.",
                 status: response.status,
                 data: response.data.data || null,
-                response,
             };
             return Promise.reject(standardError);
         }
@@ -77,8 +76,6 @@ api.interceptors.response.use(
         if (error.response) {
             const { status, data } = error.response;
 
-            console.log("error.response", error.response);
-
             // 표준화된 에러 객체
             const message = data?.error || data?.message || getDefaultMessage(status);
             const details = data?.details ?? data?.data ?? null;
@@ -89,7 +86,6 @@ api.interceptors.response.use(
                 status,
                 data: details,
                 details,
-                response: error.response,
             };
 
             return Promise.reject(standardError);

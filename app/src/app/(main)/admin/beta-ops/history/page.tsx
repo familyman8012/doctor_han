@@ -154,7 +154,7 @@ export default function BetaOpsHistoryPage() {
                                 {items.map((item) => (
                                     <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                                         <td className="px-4 py-3 font-mono text-xs text-gray-500">
-                                            {item.leadId.slice(0, 8)}
+                                            {item.leadId?.slice(0, 8) ?? "-"}
                                         </td>
                                         <td className="px-4 py-3">
                                             <span className="inline-flex items-center gap-1.5">
