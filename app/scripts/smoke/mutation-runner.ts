@@ -4,7 +4,9 @@
  * Tests all POST/PATCH/DELETE API endpoints with minimal payloads.
  * Success criteria: 200/201 or 400 (Zod validation) = OK, 500 = BUG.
  *
- * Usage: cd app && pnpm tsx scripts/smoke/mutation-runner.ts
+ * Usage:
+ *   - Safe default: cd app && pnpm smoke:mutation
+ *   - Advanced/manual: ALLOW_REMOTE_SMOKE_MUTATION=1 pnpm tsx scripts/smoke/mutation-runner.ts
  */
 
 import { writeFileSync, mkdirSync } from "node:fs";
@@ -27,6 +29,45 @@ const ACCOUNTS = {
 } as const;
 
 type Role = keyof typeof ACCOUNTS;
+
+function isLoopbackUrl(url: string): boolean {
+    try {
+        const parsed = new URL(url);
+        return parsed.hostname === "127.0.0.1" || parsed.hostname === "localhost";
+    } catch {
+        return false;
+    }
+}
+
+function assertSafeTarget(): void {
+    if (process.env.ALLOW_REMOTE_SMOKE_MUTATION === "1") {
+        return;
+    }
+
+    const problems: string[] = [];
+
+    if (!isLoopbackUrl(BASE_URL)) {
+        problems.push(`SMOKE_BASE_URL is not local: ${BASE_URL}`);
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (supabaseUrl && !isLoopbackUrl(supabaseUrl)) {
+        problems.push(`NEXT_PUBLIC_SUPABASE_URL is not local: ${supabaseUrl}`);
+    }
+
+    if (problems.length === 0) {
+        return;
+    }
+
+    throw new Error(
+        [
+            "Mutation smoke runner refused to start against a non-local target.",
+            ...problems.map((problem) => `- ${problem}`),
+            "Use `pnpm smoke:mutation` for the local harness.",
+            "If you really need a remote run, set ALLOW_REMOTE_SMOKE_MUTATION=1 explicitly.",
+        ].join("\n"),
+    );
+}
 
 // ── Types ──
 
@@ -1053,6 +1094,8 @@ async function fetchDynamicIds(): Promise<DynamicIds> {
 // ── Main ──
 
 async function main() {
+    assertSafeTarget();
+
     console.log("🚀 Mutation Smoke Test Runner");
     console.log(`   Target: ${BASE_URL}`);
     console.log(`   Time: ${new Date().toISOString()}\n`);
