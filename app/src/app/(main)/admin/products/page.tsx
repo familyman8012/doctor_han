@@ -48,6 +48,10 @@ const STATUS_OPTIONS: { value: ProductStatus | "all"; label: string }[] = [
     { value: "rejected", label: "반려" },
 ];
 
+function canReviewProduct(status: ProductStatus) {
+    return status === "draft" || status === "pending_review";
+}
+
 function getStatusBadge(status: ProductStatus) {
     switch (status) {
         case "active":
@@ -224,7 +228,7 @@ export default function AdminProductsPage() {
                                                 </span>
                                             )}
                                         </div>
-                                        {product.status === "pending_review" && (
+                                        {canReviewProduct(product.status) && (
                                             <div className="flex gap-2 pt-1">
                                                 <Button
                                                     variant="primary"
@@ -296,7 +300,7 @@ export default function AdminProductsPage() {
                                             {dayjs(product.createdAt).format("YYYY.MM.DD")}
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            {product.status === "pending_review" && (
+                                            {canReviewProduct(product.status) && (
                                                 <>
                                                     <button
                                                         type="button"

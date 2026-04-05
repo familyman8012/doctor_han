@@ -158,7 +158,7 @@ export const POST = withApi(
             throw badRequest("상품형 카테고리에서만 상품을 생성할 수 있습니다.");
         }
 
-        // Insert product
+        // 새 상품 등록은 곧바로 관리자 검토 대상으로 보낸다.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: productRow, error: productError } = await (ctx.supabase as any)
             .from("products")
@@ -173,7 +173,7 @@ export const POST = withApi(
                 price_max: body.priceMax ?? null,
                 price_unit: body.priceUnit ?? null,
                 sort_order: body.sortOrder ?? 0,
-                status: "draft",
+                status: "pending_review",
             })
             .select("*, categories!inner(slug)")
             .single();
