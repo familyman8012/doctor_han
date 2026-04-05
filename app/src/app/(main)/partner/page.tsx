@@ -22,6 +22,7 @@ interface Category {
     slug: string;
     parentId: string | null;
     depth: number;
+    listingType?: "vendor" | "product";
 }
 
 interface VendorFormData {
@@ -553,6 +554,11 @@ export default function PartnerProfilePage() {
                         <Tag className="w-5 h-5 text-primary" />
                         서비스 카테고리
                     </h2>
+                    <p className="mb-4 text-sm text-gray-500">
+                        상품 등록은 <span className="font-medium text-content-primary">상품형</span> 카테고리를 선택한 뒤
+                        진행할 수 있어요. <span className="font-medium text-content-primary">업체형</span> 카테고리는
+                        리드/문의 중심으로 사용됩니다.
+                    </p>
 
                     <div className="flex flex-wrap gap-2">
                         {topCategories.map((category) => {
@@ -562,13 +568,26 @@ export default function PartnerProfilePage() {
                                     key={category.id}
                                     type="button"
                                     onClick={() => toggleCategory(category.id)}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                    className={`min-w-[132px] rounded-xl border px-4 py-3 text-left transition-colors ${
                                         isSelected
-                                            ? "bg-primary text-white"
-                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                            ? "border-primary bg-primary-25 text-content-primary"
+                                            : "border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
                                     }`}
                                 >
-                                    {category.name}
+                                    <span className="block text-sm font-semibold">{category.name}</span>
+                                    <span
+                                        className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                                            category.listingType === "product"
+                                                ? isSelected
+                                                    ? "bg-primary text-white"
+                                                    : "bg-blue-100 text-blue-700"
+                                                : isSelected
+                                                  ? "bg-white text-content-primary"
+                                                  : "bg-gray-200 text-gray-600"
+                                        }`}
+                                    >
+                                        {category.listingType === "product" ? "상품형" : "업체형"}
+                                    </span>
                                 </button>
                             );
                         })}

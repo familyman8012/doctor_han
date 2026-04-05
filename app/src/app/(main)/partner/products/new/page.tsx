@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { ArrowLeft, Package } from "lucide-react";
+import { AlertCircle, ArrowLeft, Package } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
@@ -63,16 +64,28 @@ export default function PartnerProductNewPage() {
         },
     });
 
-    // Fetch vendor-owned product categories only
-    const { data: productCategories = [], isLoading: categoriesLoading } = useQuery({
-        queryKey: ["vendor", "me", "product-categories"],
+    const { data: vendor, isLoading: vendorLoading } = useQuery({
+        queryKey: ["vendor", "me", "product-setup"],
         queryFn: async () => {
             const res = await api.get<VendorMeResponse>("/api/vendors/me");
-            return (res.data.data.vendor?.categories ?? []).filter(
-                (category) => category.listingType === "product",
-            ) as CategoryOption[];
+            return res.data.data.vendor ?? null;
         },
     });
+
+    const vendorCategories = (vendor?.categories ?? []) as CategoryOption[];
+    const productCategories = vendorCategories.filter((category) => category.listingType === "product");
+    const hasVendorProfile = Boolean(vendor);
+    const hasVendorCategories = vendorCategories.length > 0;
+    const hasProductCategories = productCategories.length > 0;
+
+    let categoryGuide = "";
+    if (!hasVendorProfile) {
+        categoryGuide = "업체 프로필이 아직 없습니다. 먼저 업체 프로필과 카테고리를 저장해주세요.";
+    } else if (!hasVendorCategories) {
+        categoryGuide = "업체 프로필에 연결된 카테고리가 없습니다. 업체 프로필에서 카테고리를 먼저 선택해주세요.";
+    } else if (!hasProductCategories) {
+        categoryGuide = "현재 선택한 카테고리에는 상품형 카테고리가 없습니다. 상품 등록이 가능한 카테고리를 업체 프로필에서 추가해주세요.";
+    }
 
     const createMutation = useMutation({
         mutationFn: async (data: ProductFormData) => {
@@ -129,7 +142,7 @@ export default function PartnerProductNewPage() {
             return res.data;
         },
         onSuccess: () => {
-            toast.success("상품이 등록되었습니다.");
+            toast.success("상품이 등록되어 관리자 검토를 요청했습니다.");
             router.push("/partner/products");
         },
         onError: (err: Error) => {
@@ -138,6 +151,18 @@ export default function PartnerProductNewPage() {
     });
 
     const onSubmit = (data: ProductFormData) => {
+        if (!hasVendorProfile) {
+            toast.error("업체 프로필을 먼저 등록해주세요.");
+            return;
+        }
+        if (!hasVendorCategories) {
+            toast.error("업체 프로필에서 카테고리를 먼저 선택해주세요.");
+            return;
+        }
+        if (!hasProductCategories) {
+            toast.error("상품형 카테고리를 업체 프로필에서 먼저 추가해주세요.");
+            return;
+        }
         if (!data.categoryId) {
             toast.error("카테고리를 선택해주세요.");
             return;
@@ -145,7 +170,7 @@ export default function PartnerProductNewPage() {
         createMutation.mutate(data);
     };
 
-    if (categoriesLoading) {
+    if (vendorLoading) {
         return (
             <div className="flex justify-center items-center py-20">
                 <Spinner size="lg" />
@@ -170,7 +195,7 @@ export default function PartnerProductNewPage() {
                         새 상품 등록
                     </h1>
                     <p className="text-sm text-gray-500 mt-1">
-                        상품 정보를 입력하여 새 상품을 등록하세요.
+                        상품 정보를 입력하면 등록과 함께 관리자 검토가 요청됩니다.
                     </p>
                 </div>
             </div>
@@ -188,7 +213,8 @@ export default function PartnerProductNewPage() {
                     <select
                         id="categoryId"
                         {...register("categoryId", { required: "카테고리를 선택해주세요." })}
-                        className="w-full h-[38px] px-3 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                        disabled={!hasProductCategories}
+                        className="w-full h-[38px] px-3 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
                     >
                         <option value="">카테고리 선택</option>
                         {productCategories.map((cat) => (
@@ -199,6 +225,26 @@ export default function PartnerProductNewPage() {
                     </select>
                     {errors.categoryId && (
                         <p className="mt-1.5 text-sm text-red-500">{errors.categoryId.message}</p>
+                    )}
+                    {!hasProductCategories && (
+                        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                            <div className="flex items-start gap-3">
+                                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+                                <div className="space-y-3 text-sm text-amber-900">
+                                    <p>{categoryGuide}</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button asChild variant="secondary" size="sm">
+                                            <Link href="/partner">업체 프로필로 이동</Link>
+                                        </Button>
+                                        {hasVendorProfile && hasVendorCategories && (
+                                            <Button asChild variant="ghostSecondary" size="sm">
+                                                <Link href="/partner/pricing">서비스 단가도 확인</Link>
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     )}
                 </div>
 
@@ -341,9 +387,9 @@ export default function PartnerProductNewPage() {
                     <Button
                         type="submit"
                         isLoading={createMutation.isPending}
-                        disabled={createMutation.isPending}
+                        disabled={createMutation.isPending || !hasProductCategories}
                     >
-                        상품 등록
+                        등록 후 검토 요청
                     </Button>
                 </div>
             </form>
