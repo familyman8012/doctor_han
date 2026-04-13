@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { ArrowLeft, Package, Trash2 } from "lucide-react";
+import { AlertCircle, ArrowLeft, Package, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
@@ -261,7 +261,11 @@ function ProductEditForm({
             return res.data;
         },
         onSuccess: () => {
-            toast.success("상품이 수정되었습니다.");
+            if (product.status === "active") {
+                toast.success("상품이 수정되어 관리자 재검토가 요청되었습니다.");
+            } else {
+                toast.success("상품이 수정되었습니다.");
+            }
             queryClient.invalidateQueries({ queryKey: ["vendor", "me", "products"] });
             queryClient.invalidateQueries({ queryKey: ["vendor", "me", "products", productId] });
         },
@@ -316,6 +320,17 @@ function ProductEditForm({
                     삭제
                 </Button>
             </div>
+
+            {/* 재승인 안내 배너 */}
+            {product.status === "active" && (
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <div>
+                        <p className="font-medium">판매 중인 상품입니다</p>
+                        <p className="text-sm mt-0.5">내용을 수정하면 관리자 재검토가 필요하며, 검토가 완료될 때까지 상품이 비노출될 수 있습니다.</p>
+                    </div>
+                </div>
+            )}
 
             {/* Form */}
             <form
@@ -515,7 +530,7 @@ function ProductEditForm({
                         isLoading={updateMutation.isPending}
                         disabled={updateMutation.isPending}
                     >
-                        저장
+                        {product.status === "active" ? "수정 후 검토 요청" : "저장"}
                     </Button>
                 </div>
             </form>

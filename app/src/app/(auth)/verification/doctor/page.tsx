@@ -15,6 +15,7 @@ import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { useAuthStore, useUserRole } from "@/stores/auth";
 import type { FileSignedUploadResponse } from "@/lib/schema/file";
 import type { DoctorVerificationUpsertResponse } from "@/lib/schema/verification";
+import { DOCTOR_WORK_TYPE_LABELS, type DoctorWorkType } from "@/lib/schema/verification";
 import { getSupabaseBrowserClient } from "@/server/supabase/browser";
 
 interface DoctorVerificationForm {
@@ -22,6 +23,8 @@ interface DoctorVerificationForm {
     fullName: string;
     birthDate: string;
     clinicName: string;
+    workType: DoctorWorkType | "";
+    workTypeOther: string;
 }
 
 export default function DoctorVerificationPage() {
@@ -37,8 +40,11 @@ export default function DoctorVerificationPage() {
     const {
         register,
         handleSubmit,
+        watch,
         formState: { errors },
     } = useForm<DoctorVerificationForm>();
+
+    const selectedWorkType = watch("workType");
 
     // 파일 업로드 mutation
     const uploadFileMutation = useMutation({
@@ -75,6 +81,8 @@ export default function DoctorVerificationPage() {
             fullName: string;
             birthDate?: string | null;
             clinicName?: string | null;
+            workType?: string | null;
+            workTypeOther?: string | null;
             licenseFileId?: string | null;
         }) => {
             const response = await api.post<DoctorVerificationUpsertResponse>("/api/doctor/verification", payload);
@@ -136,6 +144,8 @@ export default function DoctorVerificationPage() {
             fullName: data.fullName,
             birthDate: data.birthDate || null,
             clinicName: data.clinicName || null,
+            workType: data.workType || null,
+            workTypeOther: data.workType === "other" ? (data.workTypeOther || null) : null,
             licenseFileId: uploadedFileId,
         });
     };
@@ -222,6 +232,33 @@ export default function DoctorVerificationPage() {
                         error={errors.clinicName?.message}
                         {...register("clinicName")}
                     />
+
+                    {/* 근무형태 */}
+                    <div>
+                        <label className="block text-sm font-medium text-content-primary mb-1.5">
+                            근무형태
+                        </label>
+                        <select
+                            className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                            {...register("workType")}
+                        >
+                            <option value="">선택해주세요 (선택)</option>
+                            {Object.entries(DOCTOR_WORK_TYPE_LABELS).map(([value, label]) => (
+                                <option key={value} value={value}>{label}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {selectedWorkType === "other" && (
+                        <Input
+                            label="근무형태 (직접입력)"
+                            placeholder="근무형태를 입력해주세요"
+                            error={errors.workTypeOther?.message}
+                            {...register("workTypeOther", {
+                                required: selectedWorkType === "other" ? "근무형태를 입력해주세요" : false,
+                            })}
+                        />
+                    )}
 
                     {/* 면허증 업로드 */}
                     <div>

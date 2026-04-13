@@ -48,6 +48,7 @@ export type RankedVendorRow = {
     price_max: number | null;
     rating_avg: number | null;
     review_count: number;
+    profile_image_url: string | null;
     rank: number;
     total_count: number;
 };

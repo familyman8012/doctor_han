@@ -34,6 +34,7 @@ export function mapLeadRow(row: LeadRow, vendor?: LeadVendorSummary | null): Lea
         preferredChannel: row.preferred_channel,
         preferredTime: row.preferred_time,
         content: row.content,
+        doctorMemo: row.doctor_memo,
         status: row.status,
         createdAt: row.created_at,
         updatedAt: row.updated_at,

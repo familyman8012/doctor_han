@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Hammer, Plus } from "lucide-react";
+import { Hammer, Plus, Users } from "lucide-react";
 import { biddingApi } from "@/api-client/bidding";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
@@ -95,7 +95,7 @@ export default function InteriorPage() {
                 >
                     전체
                 </button>
-                {(["open", "bidding", "selecting", "contracted", "in_progress", "completed"] as BidProjectStatus[]).map(
+                {(["open", "bidding", "selecting", "contracted", "in_progress", "completed", "canceled"] as BidProjectStatus[]).map(
                     (s) => (
                         <button
                             key={s}
@@ -144,6 +144,12 @@ export default function InteriorPage() {
                                         {project.budgetMin.toLocaleString()}~
                                         {project.budgetMax.toLocaleString()}원
                                     </p>
+                                    {typeof project.responseCount === "number" && project.responseCount > 0 && (
+                                        <p className="text-sm text-primary font-medium mt-1.5 flex items-center gap-1">
+                                            <Users className="w-3.5 h-3.5" />
+                                            {project.responseCount}개 업체 입찰
+                                        </p>
+                                    )}
                                 </div>
                                 <p className="text-xs text-gray-400 whitespace-nowrap ml-4">
                                     {new Date(project.createdAt).toLocaleDateString("ko-KR")}

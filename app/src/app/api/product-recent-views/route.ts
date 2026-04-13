@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { zUuid } from "@/lib/schema/common";
-import { badRequest, internalServerError } from "@/server/api/errors";
+import { badRequest, internalServerError, notFound } from "@/server/api/errors";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withRole } from "@/server/auth/guards";
@@ -198,5 +198,38 @@ export const GET = withApi(
             .filter(Boolean);
 
         return ok({ items });
+    }),
+);
+
+// ============================================
+// DELETE — remove a recent view
+// ============================================
+
+const RecentViewDeleteBodySchema = z
+    .object({
+        productId: zUuid,
+    })
+    .strict();
+
+export const DELETE = withApi(
+    withRole(["doctor"], async (ctx) => {
+        const body = RecentViewDeleteBodySchema.parse(await ctx.req.json());
+        const userId = ctx.user.id;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (ctx.supabase as any)
+            .from("product_recent_views")
+            .delete()
+            .eq("user_id", userId)
+            .eq("product_id", body.productId);
+
+        if (error) {
+            throw internalServerError("최근 본 상품 삭제에 실패했습니다.", {
+                message: error.message,
+                code: error.code,
+            });
+        }
+
+        return ok({ productId: body.productId });
     }),
 );

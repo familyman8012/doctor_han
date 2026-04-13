@@ -36,11 +36,6 @@ export function CategoryScroller({ categories }: CategoryScrollerProps) {
                         <span className="text-xs font-medium text-gray-700 text-center leading-tight">
                             {category.name}
                         </span>
-                        {category.vendorCount > 0 && (
-                            <span className="text-[11px] text-gray-400 -mt-1">
-                                업체 {category.vendorCount}개
-                            </span>
-                        )}
                     </Link>
                 ))}
             </div>

@@ -4,7 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { User, Heart, FileText, Star, Settings, ChevronRight, Bell, MessageCircle, Clock } from "lucide-react";
+import { User, Heart, FileText, Star, Settings, ChevronRight, Bell, MessageCircle, Clock, Hammer } from "lucide-react";
 import { useIsAuthenticated, useUserRole, useAuthStore, useProfile } from "@/stores/auth";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { cn } from "@/components/utils";
@@ -12,6 +12,7 @@ import { cn } from "@/components/utils";
 const NAV_ITEMS = [
     { href: "/mypage", label: "프로필", icon: User, exact: true },
     { href: "/mypage/leads", label: "내 문의함", icon: FileText },
+    { href: "/interior", label: "인테리어 프로젝트", icon: Hammer },
     { href: "/mypage/favorites", label: "찜 목록", icon: Heart },
     { href: "/mypage/recent-views", label: "최근 본 상품", icon: Clock },
     { href: "/mypage/reviews", label: "내 리뷰", icon: Star },
@@ -48,7 +49,11 @@ export default function MypageLayout({ children }: { children: ReactNode }) {
     }
 
     if (!isAuthenticated || role !== "doctor") {
-        return null;
+        return (
+            <div className="flex justify-center items-center py-20">
+                <Spinner size="lg" />
+            </div>
+        );
     }
 
     const isActive = (href: string, exact?: boolean) => {

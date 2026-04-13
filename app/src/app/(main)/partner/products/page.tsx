@@ -2,8 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import NextImage from "next/image";
-import { Package, Plus, Pencil, Trash2, ImageIcon } from "lucide-react";
+import { Package, Plus, Pencil, Trash2, ImageIcon, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
@@ -126,11 +125,10 @@ export default function PartnerProductsPage() {
                                 {/* Thumbnail */}
                                 <div className="hidden sm:block w-14 h-14 rounded-lg bg-gray-100 overflow-hidden shrink-0">
                                     {product.thumbnail ? (
-                                        <NextImage
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img
                                             src={product.thumbnail}
                                             alt={product.title}
-                                            width={56}
-                                            height={56}
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
@@ -191,6 +189,20 @@ export default function PartnerProductsPage() {
 
                                 {/* Actions */}
                                 <div className="flex items-center gap-1 justify-end">
+                                    {(product as { status?: string }).status === "active" && (
+                                        <Link
+                                            href={`/products/${product.id}`}
+                                            target="_blank"
+                                            title="상품 노출 페이지 보기"
+                                        >
+                                            <button
+                                                type="button"
+                                                className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
+                                            >
+                                                <ExternalLink className="w-4 h-4" />
+                                            </button>
+                                        </Link>
+                                    )}
                                     <Link href={`/partner/products/${product.id}`}>
                                         <button
                                             type="button"

@@ -11,13 +11,18 @@ interface PortfolioTabProps {
     portfolios: VendorPortfolio[];
 }
 
+function resolveAssetUrl(asset: { fileId: string | null; url: string | null }): string | null {
+    if (asset.fileId) return `/api/files/open?fileId=${asset.fileId}`;
+    return asset.url;
+}
+
 function getPortfolioLightboxImages(portfolio: VendorPortfolio) {
     return portfolio.assets
-        .filter((asset): asset is typeof asset & { url: string } => Boolean(asset.url))
         .map((asset) => ({
-            url: asset.url,
+            url: resolveAssetUrl(asset),
             alt: portfolio.title ?? "포트폴리오",
-        }));
+        }))
+        .filter((img): img is { url: string; alt: string } => Boolean(img.url));
 }
 
 export function PortfolioTab({ portfolios }: PortfolioTabProps) {
@@ -57,7 +62,24 @@ export function PortfolioTab({ portfolios }: PortfolioTabProps) {
 
     return (
         <div>
-            <h2 className="text-xl font-bold text-content-primary mb-4">포트폴리오</h2>
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-content-primary">포트폴리오</h2>
+                {filtered.length > 0 && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            const first = filtered[0];
+                            if (first && getPortfolioLightboxImages(first).length > 0) {
+                                setSelectedPortfolio(first);
+                                setCurrentAssetIndex(0);
+                            }
+                        }}
+                        className="text-sm text-gray-500 hover:text-content-primary transition-colors"
+                    >
+                        더보기
+                    </button>
+                )}
+            </div>
 
             {/* Tag filter bar */}
             {allTags.length > 0 && (
@@ -101,10 +123,10 @@ export function PortfolioTab({ portfolios }: PortfolioTabProps) {
                             className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative group cursor-pointer"
                         >
                             {/* Cover image */}
-                            {portfolio.assets[0]?.url ? (
+                            {resolveAssetUrl(portfolio.assets[0]) ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img
-                                    src={portfolio.assets[0].url}
+                                    src={resolveAssetUrl(portfolio.assets[0])!}
                                     alt={portfolio.title || "포트폴리오"}
                                     className="w-full h-full object-cover"
                                 />

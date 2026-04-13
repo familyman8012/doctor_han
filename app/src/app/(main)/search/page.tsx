@@ -120,6 +120,7 @@ function SearchContent() {
             "vendors",
             "search",
             q,
+            tab,
             page,
             priceMin,
             priceMax,
@@ -154,7 +155,7 @@ function SearchContent() {
 
     // 상품 검색
     const { data: productData, isLoading: productsLoading } = useQuery({
-        queryKey: ["products", "search", q, page, priceMin, priceMax, sort],
+        queryKey: ["products", "search", q, tab, page, priceMin, priceMax, sort],
         queryFn: async () => {
             const params = new URLSearchParams();
             if (q) params.set("q", q);

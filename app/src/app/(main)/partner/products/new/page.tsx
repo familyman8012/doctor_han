@@ -50,6 +50,7 @@ export default function PartnerProductNewPage() {
     const {
         register,
         handleSubmit,
+        getValues,
         formState: { errors },
     } = useForm<ProductFormData>({
         defaultValues: {
@@ -87,57 +88,60 @@ export default function PartnerProductNewPage() {
         categoryGuide = "현재 선택한 카테고리에는 상품형 카테고리가 없습니다. 상품 등록이 가능한 카테고리를 업체 프로필에서 추가해주세요.";
     }
 
+    const buildPayload = (data: ProductFormData, status: "draft" | "pending_review") => {
+        const uploading = images.some((img) => img.status === "uploading");
+        if (uploading) {
+            throw new Error("이미지 업로드가 진행 중입니다. 잠시 후 다시 시도해주세요.");
+        }
+
+        const errorImages = images.filter((img) => img.status === "error");
+        if (errorImages.length > 0) {
+            throw new Error("업로드 실패한 이미지가 있습니다. 제거하거나 재시도해주세요.");
+        }
+
+        const body: Record<string, unknown> = {
+            categoryId: data.categoryId,
+            title: data.title.trim(),
+            summary: data.summary.trim() || null,
+            description: data.description.trim() || null,
+            priceType: priceType,
+            priceUnit: data.priceUnit.trim() || null,
+            status,
+        };
+
+        if (priceType === "fixed" && data.priceMin) {
+            body.priceMin = Number(data.priceMin);
+        }
+        if (priceType === "range") {
+            if (data.priceMin) body.priceMin = Number(data.priceMin);
+            if (data.priceMax) body.priceMax = Number(data.priceMax);
+        }
+
+        const doneImages = images.filter((img) => img.status === "done" && img.fileId);
+        if (doneImages.length > 0) {
+            body.images = doneImages.map((img, i) => ({
+                fileId: img.fileId,
+                altText: img.altText || null,
+                isPrimary: img.isPrimary,
+                sortOrder: i,
+            }));
+        }
+
+        const validFaqs = faqs.filter((f) => f.question.trim() && f.answer.trim());
+        if (validFaqs.length > 0) {
+            body.faqs = validFaqs.map((f, i) => ({
+                question: f.question.trim(),
+                answer: f.answer.trim(),
+                sortOrder: i,
+            }));
+        }
+
+        return body;
+    };
+
     const createMutation = useMutation({
         mutationFn: async (data: ProductFormData) => {
-            // Check all images are uploaded
-            const uploading = images.some((img) => img.status === "uploading");
-            if (uploading) {
-                throw new Error("이미지 업로드가 진행 중입니다. 잠시 후 다시 시도해주세요.");
-            }
-
-            const errorImages = images.filter((img) => img.status === "error");
-            if (errorImages.length > 0) {
-                throw new Error("업로드 실패한 이미지가 있습니다. 제거하거나 재시도해주세요.");
-            }
-
-            const body: Record<string, unknown> = {
-                categoryId: data.categoryId,
-                title: data.title.trim(),
-                summary: data.summary.trim() || null,
-                description: data.description.trim() || null,
-                priceType: priceType,
-                priceUnit: data.priceUnit.trim() || null,
-            };
-
-            if (priceType === "fixed" && data.priceMin) {
-                body.priceMin = Number(data.priceMin);
-            }
-            if (priceType === "range") {
-                if (data.priceMin) body.priceMin = Number(data.priceMin);
-                if (data.priceMax) body.priceMax = Number(data.priceMax);
-            }
-
-            // Attach images
-            const doneImages = images.filter((img) => img.status === "done" && img.fileId);
-            if (doneImages.length > 0) {
-                body.images = doneImages.map((img, i) => ({
-                    fileId: img.fileId,
-                    altText: img.altText || null,
-                    isPrimary: img.isPrimary,
-                    sortOrder: i,
-                }));
-            }
-
-            // Attach FAQs
-            const validFaqs = faqs.filter((f) => f.question.trim() && f.answer.trim());
-            if (validFaqs.length > 0) {
-                body.faqs = validFaqs.map((f, i) => ({
-                    question: f.question.trim(),
-                    answer: f.answer.trim(),
-                    sortOrder: i,
-                }));
-            }
-
+            const body = buildPayload(data, "pending_review");
             const res = await api.post("/api/vendors/me/products", body);
             return res.data;
         },
@@ -147,6 +151,21 @@ export default function PartnerProductNewPage() {
         },
         onError: (err: Error) => {
             toast.error(err.message || "상품 등록에 실패했습니다.");
+        },
+    });
+
+    const draftMutation = useMutation({
+        mutationFn: async (data: ProductFormData) => {
+            const body = buildPayload(data, "draft");
+            const res = await api.post("/api/vendors/me/products", body);
+            return res.data;
+        },
+        onSuccess: () => {
+            toast.success("상품이 임시저장되었습니다.");
+            router.push("/partner/products");
+        },
+        onError: (err: Error) => {
+            toast.error(err.message || "임시저장에 실패했습니다.");
         },
     });
 
@@ -385,9 +404,29 @@ export default function PartnerProductNewPage() {
                         취소
                     </Button>
                     <Button
+                        type="button"
+                        variant="secondary"
+                        isLoading={draftMutation.isPending}
+                        disabled={draftMutation.isPending || createMutation.isPending}
+                        onClick={() => {
+                            const data = getValues();
+                            if (!data.title.trim()) {
+                                toast.error("상품명은 필수입니다.");
+                                return;
+                            }
+                            if (!data.categoryId) {
+                                toast.error("카테고리를 선택해주세요.");
+                                return;
+                            }
+                            draftMutation.mutate(data);
+                        }}
+                    >
+                        임시저장
+                    </Button>
+                    <Button
                         type="submit"
                         isLoading={createMutation.isPending}
-                        disabled={createMutation.isPending || !hasProductCategories}
+                        disabled={createMutation.isPending || draftMutation.isPending || !hasProductCategories}
                     >
                         등록 후 검토 요청
                     </Button>

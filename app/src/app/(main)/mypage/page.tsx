@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import Image from "next/image";
 import { Camera, User, Mail, Phone, Shield, CheckCircle, Clock, XCircle } from "lucide-react";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
@@ -161,11 +160,11 @@ export default function MyProfilePage() {
                         <div className="relative">
                             <div className="relative w-24 h-24 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden">
                                 {profile?.avatarUrl ? (
-                                    <Image
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img
                                         src={profile.avatarUrl}
                                         alt="프로필"
-                                        fill
-                                        className="object-cover"
+                                        className="w-full h-full object-cover"
                                     />
                                 ) : (
                                     <User className="w-10 h-10 text-primary" />

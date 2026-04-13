@@ -11,6 +11,7 @@ export function mapProfileRow(row: ProfileRow): ProfileView {
         role: row.role,
         status: row.status,
         displayName: row.display_name,
+        position: row.position ?? null,
         avatarUrl: rowWithAvatar.avatar_url ?? null,
         phone: row.phone,
         email: row.email,

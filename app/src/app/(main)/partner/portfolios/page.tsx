@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import NextImage from "next/image";
-import { FolderOpen, Plus, Trash2, Image as ImageIcon } from "lucide-react";
+import { FolderOpen, Plus, Trash2, Pencil, Image as ImageIcon, X } from "lucide-react";
+import { Input } from "@/components/ui/Input/Input";
+import { ImageLightbox } from "@/app/(main)/vendors/[id]/components/gallery/ImageLightbox";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
@@ -146,26 +147,58 @@ function PortfolioCard({
     onDelete: () => void;
     isDeleting: boolean;
 }) {
+    const queryClient = useQueryClient();
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editTitle, setEditTitle] = useState(portfolio.title ?? "");
+    const [editDescription, setEditDescription] = useState(portfolio.description ?? "");
+    const [editTags, setEditTags] = useState<string[]>(portfolio.tags ?? []);
+    const [editTagInput, setEditTagInput] = useState("");
+
+    const editMutation = useMutation({
+        mutationFn: async () => {
+            await api.patch(`/api/vendors/me/portfolio/${portfolio.id}`, {
+                title: editTitle.trim(),
+                description: editDescription.trim() || null,
+                tags: editTags,
+            });
+        },
+        onSuccess: () => {
+            toast.success("포트폴리오가 수정되었습니다");
+            setIsEditing(false);
+            queryClient.invalidateQueries({ queryKey: ["vendor", "me"] });
+        },
+        onError: () => {
+            toast.error("수정에 실패했습니다");
+        },
+    });
     const firstAsset = portfolio.assets?.[0];
     const assetCount = portfolio.assets?.length ?? 0;
 
+    const imageUrls = (portfolio.assets ?? [])
+        .map((a) => ({
+            url: a.fileId ? `/api/files/open?fileId=${a.fileId}` : a.url ?? "",
+            alt: portfolio.title ?? "포트폴리오",
+        }))
+        .filter((img) => img.url);
+
+    const thumbnailSrc = firstAsset?.fileId
+        ? `/api/files/open?fileId=${firstAsset.fileId}`
+        : firstAsset?.url ?? null;
+
     return (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden group">
-            {/* 썸네일 */}
-            <div className="relative aspect-video bg-gray-100">
-                {firstAsset?.fileId ? (
-                    <NextImage
-                        src={`/api/files/open?fileId=${firstAsset.fileId}`}
+            {/* 썸네일 — 클릭 시 라이트박스 */}
+            <div
+                className="relative aspect-video bg-gray-100 cursor-pointer"
+                onClick={() => imageUrls.length > 0 && setLightboxIndex(0)}
+            >
+                {thumbnailSrc ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                        src={thumbnailSrc}
                         alt={portfolio.title ?? "포트폴리오"}
-                        fill
-                        className="object-cover"
-                    />
-                ) : firstAsset?.url ? (
-                    <NextImage
-                        src={firstAsset.url}
-                        alt={portfolio.title ?? "포트폴리오"}
-                        fill
-                        className="object-cover"
+                        className="absolute inset-0 w-full h-full object-cover"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -180,17 +213,28 @@ function PortfolioCard({
                     </div>
                 )}
 
-                {/* 삭제 버튼 */}
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete();
-                    }}
-                    disabled={isDeleting}
-                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-white transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
-                >
-                    <Trash2 className="w-4 h-4" />
-                </button>
+                {/* 수정/삭제 버튼 */}
+                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsEditing(true);
+                        }}
+                        className="w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center text-gray-400 hover:text-primary hover:bg-white transition-colors"
+                    >
+                        <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete();
+                        }}
+                        disabled={isDeleting}
+                        className="w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-white transition-colors disabled:opacity-50"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                </div>
             </div>
 
             {/* 정보 */}
@@ -204,6 +248,96 @@ function PortfolioCard({
                     </p>
                 )}
             </div>
+
+            {/* 라이트박스 */}
+            {lightboxIndex !== null && imageUrls.length > 0 && (
+                <ImageLightbox
+                    images={imageUrls}
+                    currentIndex={lightboxIndex}
+                    onIndexChange={setLightboxIndex}
+                    onClose={() => setLightboxIndex(null)}
+                />
+            )}
+
+            {/* 수정 모달 */}
+            {isEditing && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white rounded-xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+                        <div className="sticky top-0 bg-white flex items-center justify-between p-4 border-b border-gray-200">
+                            <h2 className="text-lg font-semibold text-content-primary">포트폴리오 수정</h2>
+                            <button
+                                onClick={() => setIsEditing(false)}
+                                className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"
+                            >
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+                        <div className="p-4 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">제목</label>
+                                <Input
+                                    value={editTitle}
+                                    onChange={(e) => setEditTitle(e.target.value)}
+                                    placeholder="포트폴리오 제목"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">설명</label>
+                                <textarea
+                                    value={editDescription}
+                                    onChange={(e) => setEditDescription(e.target.value)}
+                                    rows={3}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                                    placeholder="설명"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                    태그 <span className="text-gray-400 font-normal">(최대 10개)</span>
+                                </label>
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                    {editTags.map((tag) => (
+                                        <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-50 text-primary text-xs font-medium">
+                                            {tag}
+                                            <button type="button" onClick={() => setEditTags((prev) => prev.filter((t) => t !== tag))} className="hover:text-red-500">
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                                {editTags.length < 10 && (
+                                    <Input
+                                        value={editTagInput}
+                                        onChange={(e) => setEditTagInput(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" || e.key === ",") {
+                                                e.preventDefault();
+                                                const value = editTagInput.trim().replace(/,/g, "");
+                                                if (value && !editTags.includes(value)) {
+                                                    setEditTags((prev) => [...prev, value]);
+                                                }
+                                                setEditTagInput("");
+                                            }
+                                        }}
+                                        placeholder="태그 입력 후 Enter"
+                                    />
+                                )}
+                            </div>
+                            <div className="flex justify-end gap-2 pt-2">
+                                <Button variant="secondary" onClick={() => setIsEditing(false)}>취소</Button>
+                                <Button
+                                    variant="primary"
+                                    onClick={() => editMutation.mutate()}
+                                    isLoading={editMutation.isPending}
+                                    disabled={!editTitle.trim() || editMutation.isPending}
+                                >
+                                    저장
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

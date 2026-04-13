@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MapPin, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { cn } from "@/components/utils";
 import { formatPriceCompact } from "@/lib/utils/format";
 import { VendorCardThumbnail } from "./VendorCardThumbnail";
@@ -19,13 +19,6 @@ export function VendorCard({
     const showFav = showFavoriteButton ?? variant === "grid";
     const isCarousel = variant === "carousel";
     const isList = variant === "list";
-
-    const getRegion = () => {
-        if (vendor.regionPrimary && vendor.regionSecondary) {
-            return `${vendor.regionPrimary} ${vendor.regionSecondary}`;
-        }
-        return vendor.regionPrimary || vendor.regionSecondary || "전국";
-    };
 
     const categoryTags = vendor.categories
         ?.filter((c) => c.depth === 2)
@@ -84,10 +77,6 @@ export function VendorCard({
                         )}
                     </div>
                     <div className="flex items-center gap-4 mt-2 pt-2 border-t border-gray-50">
-                        <div className="flex items-center gap-1 text-xs text-gray-500">
-                            <MapPin className="w-3 h-3 flex-shrink-0" />
-                            <span className="truncate">{getRegion()}</span>
-                        </div>
                         {vendor.ratingAvg && (
                             <div className="flex items-center gap-1 text-xs text-gray-500">
                                 <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
@@ -169,12 +158,6 @@ export function VendorCard({
                         ))}
                     </div>
                 )}
-
-                {/* Region */}
-                <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <MapPin className="w-3 h-3 flex-shrink-0" />
-                    <span className="truncate">{getRegion()}</span>
-                </div>
 
                 {/* Price */}
                 <div className={cn(

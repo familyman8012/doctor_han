@@ -4,6 +4,8 @@ import { internalServerError, notFound } from "@/server/api/errors";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withRole } from "@/server/auth/guards";
+import { sendVendorNotification } from "@/server/notification/service";
+import { createSupabaseAdminClient } from "@/server/supabase/admin";
 
 // ============================================
 // Body Schema
@@ -78,6 +80,71 @@ export const PATCH = withApi(
             console.error("[PATCH /api/admin/products/:id] audit_logs insert failed", auditResult.error);
         }
 
+        // 상품 승인/반려 알림 발송 (비동기)
+        const productRow = data as Record<string, unknown>;
+        const vendorId = productRow.vendor_id as string;
+        const productTitle = (productRow.title as string) ?? "상품";
+
+        sendProductStatusNotification({
+            vendorId,
+            productTitle,
+            status: body.status,
+            rejectionReason: body.rejectionReason,
+        }).catch((err) => {
+            console.error("[PATCH /api/admin/products/:id] notification failed", err);
+        });
+
         return ok({ product: data });
     }),
 );
+
+// ============================================
+// 상품 승인/반려 알림 발송
+// ============================================
+
+async function sendProductStatusNotification(params: {
+    vendorId: string;
+    productTitle: string;
+    status: "active" | "rejected";
+    rejectionReason?: string;
+}): Promise<void> {
+    const { vendorId, productTitle, status, rejectionReason } = params;
+    const admin = createSupabaseAdminClient();
+
+    // vendor → owner user 조회
+    const { data: vendor } = await admin
+        .from("vendors")
+        .select("owner_user_id")
+        .eq("id", vendorId)
+        .maybeSingle();
+
+    if (!vendor?.owner_user_id) return;
+
+    const vendorUserId = vendor.owner_user_id;
+
+    // 프로필 조회
+    const { data: profile } = await admin
+        .from("profiles")
+        .select("display_name, email, phone")
+        .eq("id", vendorUserId)
+        .maybeSingle();
+
+    if (!profile) return;
+
+    const isApproved = status === "active";
+    const subject = isApproved
+        ? `[메디허브] 상품 "${productTitle}" 승인 완료`
+        : `[메디허브] 상품 "${productTitle}" 반려`;
+    const emailBody = isApproved
+        ? `안녕하세요, ${profile.display_name || "파트너"}님.\n\n등록하신 상품 "${productTitle}"이(가) 관리자 검토를 통과하여 승인되었습니다.\n이제 고객에게 정상 노출됩니다.\n\n감사합니다.\n메디허브 팀`
+        : `안녕하세요, ${profile.display_name || "파트너"}님.\n\n등록하신 상품 "${productTitle}"이(가) 관리자 검토에서 반려되었습니다.\n\n반려 사유: ${rejectionReason || "사유 없음"}\n\n상품 정보를 수정하여 다시 검토를 요청해주세요.\n\n감사합니다.\n메디허브 팀`;
+
+    await sendVendorNotification({
+        vendorUserId,
+        email: profile.email ?? "",
+        phone: profile.phone ?? undefined,
+        notificationType: "product_review_result",
+        emailTemplate: { subject, body: emailBody },
+        kakaoTemplate: undefined,
+    });
+}

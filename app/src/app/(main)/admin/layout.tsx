@@ -30,7 +30,8 @@ import { cn } from "@/components/utils";
 const NAV_ITEMS = [
     { href: "/admin/dashboard", label: "대시보드", icon: BarChart3 },
     { href: "/admin/verifications", label: "인증 승인 관리", icon: CheckCircle },
-    { href: "/admin/reports", label: "신고 관리", icon: Flag },
+    { href: "/admin/reports", label: "리뷰 신고 관리", icon: Flag },
+    { href: "/admin/lead-reports", label: "리드 신고 관리", icon: Flag },
     { href: "/admin/support", label: "고객지원", icon: MessageCircle },
     { href: "/admin/users", label: "사용자 관리", icon: Users },
     { href: "/admin/vendors", label: "업체 관리", icon: Building2 },
@@ -73,7 +74,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
 
     if (!isAuthenticated || role !== "admin") {
-        return null;
+        return (
+            <div className="flex justify-center items-center py-20">
+                <Spinner size="lg" />
+            </div>
+        );
     }
 
     const isActive = (href: string) => pathname.startsWith(href);

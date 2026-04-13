@@ -39,6 +39,7 @@ interface SignupFormData {
     passwordConfirm: string;
     name: string;
     nickname: string;
+    position: string;
     termsAgreed: boolean;
     marketingAgreed: boolean;
 }
@@ -59,14 +60,15 @@ function SignupForm() {
         register,
         handleSubmit,
         watch,
+        setError,
         formState: { errors },
-    } = useForm<SignupFormData>();
+    } = useForm<SignupFormData>({ mode: "onBlur" });
 
     const password = watch("password");
     const termsAgreed = watch("termsAgreed");
 
     const profileMutation = useMutation({
-        mutationFn: async (payload: { role: UserRole; displayName: string; termsAgreed: true; marketingAgreed?: boolean }) => {
+        mutationFn: async (payload: { role: UserRole; displayName: string; position?: string; termsAgreed: true; marketingAgreed?: boolean }) => {
             const response = await api.post<ProfileResponse>("/api/profile", payload);
             return response.data.data.profile;
         },
@@ -88,9 +90,9 @@ function SignupForm() {
 
             if (authError) {
                 if (authError.message.includes("already registered")) {
-                    toast.error("이미 등록된 이메일입니다");
+                    setError("email", { message: "이미 등록된 이메일입니다. 로그인을 시도해주세요." });
                 } else {
-                    toast.error(authError.message);
+                    setError("email", { message: authError.message });
                 }
                 return;
             }
@@ -105,6 +107,7 @@ function SignupForm() {
                 await profileMutation.mutateAsync({
                     role,
                     displayName: data.nickname.trim(),
+                    position: role === "vendor" && data.position?.trim() ? data.position.trim() : undefined,
                     termsAgreed: true,
                     marketingAgreed: data.marketingAgreed || false,
                 });
@@ -232,19 +235,29 @@ function SignupForm() {
                     />
 
                     <Input
-                        label="닉네임"
+                        label={role === "vendor" ? "회사명" : "닉네임"}
                         type="text"
-                        placeholder="사용할 닉네임을 입력하세요"
+                        placeholder={role === "vendor" ? "회사명을 입력하세요" : "사용할 닉네임을 입력하세요"}
                         error={errors.nickname?.message}
                         required
                         {...register("nickname", {
-                            required: "닉네임을 입력해주세요",
+                            required: role === "vendor" ? "회사명을 입력해주세요" : "닉네임을 입력해주세요",
                             minLength: {
                                 value: 2,
-                                message: "닉네임은 2자 이상이어야 합니다",
+                                message: role === "vendor" ? "회사명은 2자 이상이어야 합니다" : "닉네임은 2자 이상이어야 합니다",
                             },
                         })}
                     />
+
+                    {role === "vendor" && (
+                        <Input
+                            label="직책"
+                            type="text"
+                            placeholder="예: 대표, 영업담당, 마케팅팀장"
+                            error={errors.position?.message}
+                            {...register("position")}
+                        />
+                    )}
 
                     {/* 약관 동의 */}
                     <div className="space-y-3 pt-2">

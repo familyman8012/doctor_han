@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { Building2, MapPin, Tag, CheckCircle, Clock, XCircle, AlertCircle, User, Mail, Phone } from "lucide-react";
+import { Building2, MapPin, Tag, CheckCircle, Clock, XCircle, AlertCircle, User, Mail, Phone, Camera } from "lucide-react";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
@@ -15,6 +15,8 @@ import { VendorAddressSearch, type VendorAddressData } from "@/components/widget
 import { normalizeRegionPrimaryValue } from "@/lib/constants/regions";
 import type { VendorDetail } from "@/lib/schema/vendor";
 import type { MeData } from "@/lib/schema/profile";
+import type { FileSignedUploadResponse } from "@/lib/schema/file";
+import { getSupabaseBrowserClient } from "@/server/supabase/browser";
 
 interface Category {
     id: string;
@@ -74,6 +76,10 @@ export default function PartnerProfilePage() {
     const setAuth = useAuthStore((state) => state.setAuth);
     const profileCompletion = useProfileCompletion();
     const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+    const [initialCategoryIds, setInitialCategoryIds] = useState<string[]>([]);
+    const [initialAddress, setInitialAddress] = useState<string>("");
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
+    const imageInputRef = useRef<HTMLInputElement>(null);
     const [addressState, setAddressState] = useState<AddressState>({
         roadAddress: null,
         jibunAddress: null,
@@ -157,7 +163,7 @@ export default function PartnerProfilePage() {
         },
     });
 
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<VendorFormData>({
+    const { register, handleSubmit, reset, formState: { errors, isDirty: isFormDirty } } = useForm<VendorFormData>({
         defaultValues: {
             name: "",
             summary: "",
@@ -184,6 +190,9 @@ export default function PartnerProfilePage() {
             const newCategoryIds = vendorData.categories?.map((c) => c.id) ?? [];
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setSelectedCategoryIds(newCategoryIds);
+            setInitialCategoryIds(newCategoryIds);
+            const addrKey = [vendorData.roadAddress, vendorData.addressDetail].filter(Boolean).join("|");
+            setInitialAddress(addrKey);
             setAddressState({
                 roadAddress: vendorData.roadAddress ?? null,
                 jibunAddress: vendorData.jibunAddress ?? null,
@@ -249,6 +258,51 @@ export default function PartnerProfilePage() {
         },
     });
 
+    // 업체 프로필 이미지 업로드
+    const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            toast.error("이미지 파일만 업로드할 수 있습니다");
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("5MB 이하의 이미지만 업로드할 수 있습니다");
+            return;
+        }
+
+        setIsUploadingImage(true);
+        try {
+            const signedRes = await api.post<FileSignedUploadResponse>("/api/files/signed-upload", {
+                purpose: "avatar",
+                fileName: file.name,
+                mimeType: file.type,
+                sizeBytes: file.size,
+            });
+
+            const { bucket, path, token } = signedRes.data.data.upload;
+            const fileId = signedRes.data.data.file.id;
+
+            const supabase = getSupabaseBrowserClient();
+            const { error: uploadError } = await supabase.storage
+                .from(bucket)
+                .uploadToSignedUrl(path, token, file, { cacheControl: "3600" });
+            if (uploadError) throw uploadError;
+
+            // 업체 프로필에 이미지 연결
+            await api.patch("/api/vendors/me", { profileImageFileId: fileId });
+
+            toast.success("프로필 사진이 변경되었습니다");
+            queryClient.invalidateQueries({ queryKey: ["vendor", "me"] });
+        } catch {
+            toast.error("프로필 사진 업로드에 실패했습니다");
+        } finally {
+            setIsUploadingImage(false);
+            if (imageInputRef.current) imageInputRef.current.value = "";
+        }
+    };
+
     // 계정 정보 수정
     const updateAccountMutation = useMutation({
         mutationFn: async (data: AccountFormData) => {
@@ -283,6 +337,12 @@ export default function PartnerProfilePage() {
         }
         saveMutation.mutate(data);
     };
+
+    // 업체 폼 dirty 판단: 폼 필드 + 카테고리 + 주소
+    const isCategoryDirty = JSON.stringify([...selectedCategoryIds].sort()) !== JSON.stringify([...initialCategoryIds].sort());
+    const currentAddrKey = [addressState.roadAddress, addressState.addressDetail].filter(Boolean).join("|");
+    const isAddressDirty = currentAddrKey !== initialAddress;
+    const isVendorDirty = !vendorData || isFormDirty || isCategoryDirty || isAddressDirty;
 
     const verification = vendorVerification;
     const verificationStatus = verification?.status;
@@ -433,6 +493,52 @@ export default function PartnerProfilePage() {
                     </h2>
 
                     <div className="space-y-5">
+                        {/* 업체 프로필 사진 */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-3">
+                                프로필 사진
+                            </label>
+                            <div className="flex items-center gap-6">
+                                <div className="relative">
+                                    <div className="relative w-24 h-24 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-gray-200">
+                                        {vendorData?.profileImageUrl ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img
+                                                src={vendorData.profileImageUrl}
+                                                alt="업체 프로필"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <Building2 className="w-10 h-10 text-gray-400" />
+                                        )}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => imageInputRef.current?.click()}
+                                        disabled={isUploadingImage || !vendorData}
+                                        className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isUploadingImage ? (
+                                            <Spinner size="sm" className="text-white" />
+                                        ) : (
+                                            <Camera className="w-4 h-4" />
+                                        )}
+                                    </button>
+                                    <input
+                                        ref={imageInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleProfileImageUpload}
+                                        className="hidden"
+                                    />
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                    <p>고객에게 보여지는 업체 대표 이미지입니다.</p>
+                                    <p className="mt-1">JPG, PNG 형식, 5MB 이하</p>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* 업체명 */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -603,7 +709,7 @@ export default function PartnerProfilePage() {
                         type="submit"
                         variant="primary"
                         size="lg"
-                        disabled={saveMutation.isPending || geocodeMutation.isPending}
+                        disabled={saveMutation.isPending || geocodeMutation.isPending || !isVendorDirty}
                         isLoading={saveMutation.isPending}
                     >
                         {vendorData ? "저장하기" : "업체 프로필 등록"}

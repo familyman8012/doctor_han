@@ -98,22 +98,22 @@ export function StickyCtaPanel({ vendor, isFavorited }: StickyCtaPanelProps) {
                     지금 바로 문의하고 견적을 받아보세요
                 </p>
                 {canInquire ? (
-                    <Link href={`/vendors/${vendor.id}/inquiry`}>
+                    <Link href={`/vendors/${vendor.id}/inquiry`} className="block w-full">
                         <Button
                             variant="secondary"
                             size="lg"
                             LeadingIcon={<FileText className="w-5 h-5" />}
-                            className="bg-primary text-content-primary hover:bg-primary-700"
+                            className="w-full bg-primary text-content-primary hover:bg-primary-700"
                         >
                             문의하기
                         </Button>
                     </Link>
                 ) : !isAuthenticated ? (
-                    <Link href="/login">
+                    <Link href="/login" className="block w-full">
                         <Button
                             variant="secondary"
                             size="lg"
-                            className="bg-primary text-content-primary hover:bg-primary-700"
+                            className="w-full bg-primary text-content-primary hover:bg-primary-700"
                         >
                             로그인하고 문의하기
                         </Button>

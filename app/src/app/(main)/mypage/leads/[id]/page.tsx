@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import dayjs from "dayjs";
-import { ArrowLeft, Building2, Phone, Mail, Clock, FileText, XCircle } from "lucide-react";
+import { ArrowLeft, Building2, Phone, Mail, Clock, FileText, XCircle, StickyNote } from "lucide-react";
 import { leadsApi } from "@/api-client/leads";
 import { Button } from "@/components/ui/Button/button";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
@@ -124,7 +124,23 @@ export default function LeadDetailPage() {
 
     const lead = data.data.lead;
     const statusConfig = STATUS_CONFIG[lead.status];
-    const canCancel = role === "doctor" && !["canceled", "closed", "contracted"].includes(lead.status);
+    const canCancel = role === "doctor" && !["responded", "canceled", "closed", "contracted"].includes(lead.status);
+
+    const [memoText, setMemoText] = useState(lead.doctorMemo ?? "");
+    const [isMemoEditing, setIsMemoEditing] = useState(false);
+
+    const memoMutation = useMutation({
+        mutationFn: (memo: string) => leadsApi.updateMemo(leadId, memo),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["lead", leadId] });
+            toast.success("메모가 저장되었습니다");
+            setIsMemoEditing(false);
+        },
+    });
+
+    const handleSaveMemo = () => {
+        memoMutation.mutate(memoText);
+    };
 
     const tabs = [
         { title: "상세정보" },
@@ -254,6 +270,60 @@ export default function LeadDetailPage() {
                             {lead.statusHistory.length > 0 && (
                                 <LeadStatusHistory history={lead.statusHistory} />
                             )}
+
+                            {/* 개인 메모 */}
+                            <div>
+                                <h2 className="text-lg font-bold text-content-primary mb-4 flex items-center gap-2">
+                                    <StickyNote className="w-5 h-5 text-amber-500" />
+                                    내 메모
+                                    <span className="text-xs font-normal text-gray-400">(나만 볼 수 있음)</span>
+                                </h2>
+                                {isMemoEditing || !lead.doctorMemo ? (
+                                    <div className="space-y-3">
+                                        <textarea
+                                            className="w-full min-h-[100px] px-3 py-2 text-sm text-content-primary border border-gray-200 bg-white rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-gray-400"
+                                            placeholder="이 문의에 대한 메모를 남겨보세요 (업체에게 보이지 않습니다)"
+                                            value={memoText}
+                                            onChange={(e) => setMemoText(e.target.value)}
+                                            maxLength={2000}
+                                        />
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-gray-400">{memoText.length}/2000</span>
+                                            <div className="flex gap-2">
+                                                {lead.doctorMemo && (
+                                                    <Button
+                                                        variant="ghostSecondary"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            setMemoText(lead.doctorMemo ?? "");
+                                                            setIsMemoEditing(false);
+                                                        }}
+                                                    >
+                                                        취소
+                                                    </Button>
+                                                )}
+                                                <Button
+                                                    variant="primary"
+                                                    size="sm"
+                                                    onClick={handleSaveMemo}
+                                                    isLoading={memoMutation.isPending}
+                                                    disabled={memoMutation.isPending}
+                                                >
+                                                    저장
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div
+                                        className="bg-amber-50 border border-amber-100 rounded-lg p-4 cursor-pointer hover:bg-amber-100 transition-colors"
+                                        onClick={() => setIsMemoEditing(true)}
+                                    >
+                                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{lead.doctorMemo}</p>
+                                        <p className="text-xs text-gray-400 mt-2">클릭하여 수정</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
 

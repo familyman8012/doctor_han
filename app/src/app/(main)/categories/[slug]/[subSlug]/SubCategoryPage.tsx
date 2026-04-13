@@ -12,8 +12,11 @@ import { VendorCard } from "../components/VendorCard";
 import { VendorFilter } from "../components/VendorFilter";
 import { SimplePagination } from "../components/SimplePagination";
 import { useFavoriteIds } from "../hooks/useFavoriteIds";
+import { useIsAuthenticated, useUserRole } from "@/stores/auth";
+import { ProductCard } from "@/components/widgets/ProductCard";
 import type { Category } from "@/lib/schema/category";
 import type { VendorListItem } from "@/lib/schema/vendor";
+import type { ProductListItem } from "@/lib/schema/product";
 
 const PAGE_SIZE = 12;
 
@@ -48,10 +51,26 @@ export default function SubCategoryPage({ slug, subSlug }: SubCategoryPageProps)
     const parentCategory = categories.find((c) => c.slug === slug && c.depth === 1);
     const currentCategory = categories.find((c) => c.slug === subSlug && c.parentId === parentCategory?.id);
     const siblingCategories = categories.filter((c) => c.parentId === parentCategory?.id);
+    const isProductListing = parentCategory?.listingType === "product";
 
     const { data: favorites = [] } = useFavoriteIds();
 
-    // 업체 리스트 조회
+    const isAuthenticated = useIsAuthenticated();
+    const role = useUserRole();
+    const canFetchFavorites = isAuthenticated && role === "doctor";
+
+    // 상품 찜 목록 (product-centric categories)
+    const { data: productFavorites = [] } = useQuery({
+        queryKey: ["product-favorites", "ids"],
+        queryFn: async (): Promise<string[]> => {
+            const response = await api.get<{ data: { items: { productId?: string; product?: { id: string } }[] } }>("/api/product-favorites");
+            return (response.data.data.items ?? []).map((item) => item.productId ?? item.product?.id ?? "").filter(Boolean);
+        },
+        staleTime: 60 * 1000,
+        enabled: isProductListing && canFetchFavorites,
+    });
+
+    // 업체 리스트 조회 (vendor-centric categories)
     const { data: vendorData, isLoading: isLoadingVendors } = useQuery({
         queryKey: ["vendors", currentCategory?.id, page, priceMin, priceMax, sort, regionPrimary, regionSecondary, ratingMin, hasReviews, badgeTypes],
         queryFn: async () => {
@@ -73,8 +92,32 @@ export default function SubCategoryPage({ slug, subSlug }: SubCategoryPageProps)
             }>(`/api/vendors?${params.toString()}`);
             return response.data.data;
         },
-        enabled: !!currentCategory,
+        enabled: !!currentCategory && !isProductListing,
     });
+
+    // 상품 리스트 조회 (product-centric categories)
+    const { data: productData, isLoading: isLoadingProducts } = useQuery({
+        queryKey: ["products", currentCategory?.id, page, priceMin, priceMax, sort],
+        queryFn: async () => {
+            const params = new URLSearchParams();
+            if (currentCategory?.id) params.set("categoryId", currentCategory.id);
+            if (page) params.set("page", String(page));
+            params.set("pageSize", String(PAGE_SIZE));
+            if (priceMin !== null) params.set("priceMin", String(priceMin));
+            if (priceMax !== null) params.set("priceMax", String(priceMax));
+            if (sort) params.set("sort", sort);
+
+            const response = await api.get<{
+                data: { items: ProductListItem[]; page: number; pageSize: number; total: number };
+            }>(`/api/products?${params.toString()}`);
+            return response.data.data;
+        },
+        enabled: !!currentCategory && isProductListing,
+    });
+
+    const listData = isProductListing ? productData : vendorData;
+    const isLoadingList = isProductListing ? isLoadingProducts : isLoadingVendors;
+    const listLabel = isProductListing ? "상품" : "업체";
 
     const handleReset = () => {
         setPriceMin(null);
@@ -150,7 +193,7 @@ export default function SubCategoryPage({ slug, subSlug }: SubCategoryPageProps)
                     {parentCategory.name} &middot; {currentCategory.name}
                 </h1>
                 <p className="text-gray-500">
-                    {vendorData?.total ?? 0}개의 업체가 있습니다
+                    {listData?.total ?? 0}개의 {listLabel}가 있습니다
                 </p>
             </div>
 
@@ -199,14 +242,14 @@ export default function SubCategoryPage({ slug, subSlug }: SubCategoryPageProps)
                 onSortChange={(v) => { setSort(v); setPage(1); }}
                 viewMode={viewMode}
                 onViewModeChange={(v) => { setViewMode(v); }}
-                totalCount={vendorData?.total}
+                totalCount={listData?.total}
                 onReset={handleReset}
                 isFiltered={isFiltered}
-                listingType="vendor"
+                listingType={parentCategory?.listingType}
             />
 
-            {/* 업체 리스트 */}
-            {isLoadingVendors ? (
+            {/* 리스트 */}
+            {isLoadingList ? (
                 <div className={viewMode === "list" ? "space-y-4" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"}>
                     {Array.from({ length: 8 }).map((_, i) => (
                         <div key={i} className={viewMode === "list" ? "flex gap-4 bg-white rounded-xl border border-gray-100 p-4" : "bg-white rounded-xl border border-gray-100 overflow-hidden"}>
@@ -220,60 +263,73 @@ export default function SubCategoryPage({ slug, subSlug }: SubCategoryPageProps)
                         </div>
                     ))}
                 </div>
-            ) : vendorData?.items.length === 0 ? (
+            ) : listData?.items.length === 0 ? (
                 <div className="py-12">
                     <Empty
                         illustration="/images/empty/empty-search.svg"
-                        title={isFiltered ? "필터 조건에 맞는 업체가 없습니다" : "등록된 업체가 없습니다"}
+                        title={isFiltered ? `필터 조건에 맞는 ${listLabel}가 없습니다` : `등록된 ${listLabel}가 없습니다`}
                         description={isFiltered ? "필터를 변경하거나 초기화해 보세요" : "다른 카테고리를 선택해 주세요"}
-                    />
-                    {isFiltered ? (
-                        <div className="flex justify-center mt-3">
-                            <Button variant="ghostSecondary" size="sm" onClick={handleReset}>
+                    >
+                        {isFiltered ? (
+                            <Button variant="ghostSecondary" size="sm" onClick={handleReset} className="mt-3">
                                 필터 초기화
                             </Button>
-                        </div>
-                    ) : (
-                        <div className="flex justify-center mt-3">
-                            <Link href="/categories" className="text-sm text-primary hover:underline">
+                        ) : (
+                            <Link href="/categories" className="mt-3 inline-block text-sm text-primary hover:underline">
                                 다른 카테고리 둘러보기
                             </Link>
-                        </div>
-                    )}
+                        )}
+                    </Empty>
                 </div>
             ) : (
                 <>
                     {viewMode === "list" ? (
                         <div className="space-y-4">
-                            {vendorData?.items.map((vendor) => (
-                                <VendorCard
-                                    key={vendor.id}
-                                    vendor={vendor}
-                                    variant="list"
-                                    categorySlug={slug}
-                                    isFavorited={favorites.includes(vendor.id)}
-                                />
-                            ))}
+                            {isProductListing
+                                ? productData?.items.map((product) => (
+                                      <ProductCard
+                                          key={product.id}
+                                          product={product}
+                                          isFavorited={productFavorites.includes(product.id)}
+                                      />
+                                  ))
+                                : vendorData?.items.map((vendor) => (
+                                      <VendorCard
+                                          key={vendor.id}
+                                          vendor={vendor}
+                                          variant="list"
+                                          categorySlug={slug}
+                                          isFavorited={favorites.includes(vendor.id)}
+                                      />
+                                  ))}
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {vendorData?.items.map((vendor) => (
-                                <VendorCard
-                                    key={vendor.id}
-                                    vendor={vendor}
-                                    categorySlug={slug}
-                                    isFavorited={favorites.includes(vendor.id)}
-                                />
-                            ))}
+                            {isProductListing
+                                ? productData?.items.map((product) => (
+                                      <ProductCard
+                                          key={product.id}
+                                          product={product}
+                                          isFavorited={productFavorites.includes(product.id)}
+                                      />
+                                  ))
+                                : vendorData?.items.map((vendor) => (
+                                      <VendorCard
+                                          key={vendor.id}
+                                          vendor={vendor}
+                                          categorySlug={slug}
+                                          isFavorited={favorites.includes(vendor.id)}
+                                      />
+                                  ))}
                         </div>
                     )}
 
                     {/* 페이지네이션 */}
-                    {vendorData && vendorData.total > PAGE_SIZE && (
+                    {listData && listData.total > PAGE_SIZE && (
                         <div className="flex justify-center mt-8">
                             <SimplePagination
                                 currentPage={page}
-                                totalPages={Math.ceil(vendorData.total / PAGE_SIZE)}
+                                totalPages={Math.ceil(listData.total / PAGE_SIZE)}
                                 onPageChange={setPage}
                             />
                         </div>

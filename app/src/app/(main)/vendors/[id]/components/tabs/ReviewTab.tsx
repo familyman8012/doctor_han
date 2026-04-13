@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Star } from "lucide-react";
+import { Camera, Star } from "lucide-react";
 import Link from "next/link";
 import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
@@ -10,6 +10,7 @@ import { Empty } from "@/components/ui/Empty/Empty";
 import { EMPTY_ILLUSTRATIONS } from "@/lib/constants/assets";
 import { SimplePagination } from "../../../../categories/[slug]/components/SimplePagination";
 import type { VendorReviewListItem, ReviewSort, RatingDistributionItem, SubRatingSummary } from "@/lib/schema/review";
+import { ImageLightbox } from "../gallery/ImageLightbox";
 import { ReviewReportModal } from "../modal/ReviewReportModal";
 import { RatingDistribution } from "../review/RatingDistribution";
 import { SubRatingSummary as SubRatingSummaryDisplay } from "../review/SubRatingSummary";
@@ -71,8 +72,17 @@ export function ReviewTab({ vendorId, ratingAvg, reviewCount, currentUserId }: R
         setPage(1);
     };
 
+    const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
+    const [showPhotoGrid, setShowPhotoGrid] = useState(false);
+
     const items = reviewData?.items ?? [];
     const hasPhotoReviews = (reviewData?.photoReviewCount ?? 0) > 0;
+
+    // 모든 리뷰의 사진을 모아서 갤러리용 배열 생성
+    const allPhotos = useMemo(
+        () => items.flatMap((r) => (r.photoUrls ?? []).map((url) => ({ url, alt: "리뷰 사진" }))),
+        [items],
+    );
 
     return (
         <div>
@@ -118,6 +128,55 @@ export function ReviewTab({ vendorId, ratingAvg, reviewCount, currentUserId }: R
                             <SubRatingSummaryDisplay summary={reviewData.subRatingSummary} />
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* 리뷰 사진 모아보기 */}
+            {allPhotos.length > 0 && (
+                <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                            <Camera className="w-4 h-4 text-gray-400" />
+                            리뷰 사진
+                            <span className="text-gray-400 font-normal">({allPhotos.length})</span>
+                        </h3>
+                        {allPhotos.length > 6 && (
+                            <button
+                                type="button"
+                                onClick={() => setShowPhotoGrid(true)}
+                                className="text-sm text-gray-500 hover:text-content-primary transition-colors"
+                            >
+                                전체보기
+                            </button>
+                        )}
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+                        {allPhotos.slice(0, 6).map((photo, i) => (
+                            <button
+                                key={`${photo.url}-${i}`}
+                                type="button"
+                                onClick={() => setGalleryIndex(i)}
+                                className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 shrink-0 hover:ring-2 hover:ring-primary transition-all"
+                            >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src={photo.url}
+                                    alt={photo.alt}
+                                    className="w-full h-full object-cover"
+                                />
+                            </button>
+                        ))}
+                        {allPhotos.length > 6 && (
+                            <button
+                                type="button"
+                                onClick={() => setShowPhotoGrid(true)}
+                                className="w-20 h-20 rounded-lg bg-gray-100 shrink-0 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+                            >
+                                <span className="text-lg font-bold">+{allPhotos.length - 6}</span>
+                                <span className="text-[10px]">더보기</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
             )}
 
@@ -178,6 +237,61 @@ export function ReviewTab({ vendorId, ratingAvg, reviewCount, currentUserId }: R
                 </Link>
                 을 확인해 주세요.
             </p>
+
+            {/* 사진 전체보기 모달 (바둑판) */}
+            {showPhotoGrid && (
+                <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setShowPhotoGrid(false)}>
+                    <div
+                        className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-bold text-content-primary flex items-center gap-2">
+                                <Camera className="w-5 h-5 text-gray-400" />
+                                리뷰 사진 전체보기
+                                <span className="text-sm font-normal text-gray-400">({allPhotos.length})</span>
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => setShowPhotoGrid(false)}
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                            {allPhotos.map((photo, i) => (
+                                <button
+                                    key={`grid-${photo.url}-${i}`}
+                                    type="button"
+                                    onClick={() => {
+                                        setShowPhotoGrid(false);
+                                        setGalleryIndex(i);
+                                    }}
+                                    className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:ring-2 hover:ring-primary transition-all"
+                                >
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={photo.url}
+                                        alt={photo.alt}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 사진 갤러리 Lightbox */}
+            {galleryIndex !== null && allPhotos.length > 0 && (
+                <ImageLightbox
+                    images={allPhotos}
+                    currentIndex={galleryIndex}
+                    onIndexChange={setGalleryIndex}
+                    onClose={() => setGalleryIndex(null)}
+                />
+            )}
 
             {/* Report modal */}
             {reportingReviewId && (

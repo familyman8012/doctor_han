@@ -151,8 +151,11 @@ export const PATCH = withApi(
         if (body.priceMax !== undefined) updateData.price_max = body.priceMax;
         if (body.priceUnit !== undefined) updateData.price_unit = body.priceUnit;
         if (body.sortOrder !== undefined) updateData.sort_order = body.sortOrder;
+        // 수정 시 관리자 재승인 로직:
+        // active 상품의 내용이 변경되면 자동으로 pending_review로 전환
+        const currentStatus = (currentProductRow as Record<string, unknown>).status as string;
+
         if (body.status !== undefined) {
-            const currentStatus = (currentProductRow as Record<string, unknown>).status as string;
             // Vendor는 active로 "변경"할 수 없고, 이미 active인 값을 그대로 보내는 경우만 허용한다.
             if (body.status === "active" && currentStatus !== "active") {
                 throw badRequest("상품 상태를 직접 변경할 수 없습니다. 관리자 승인을 요청하세요.");
@@ -160,6 +163,12 @@ export const PATCH = withApi(
             if (body.status !== currentStatus) {
                 updateData.status = body.status;
             }
+        }
+
+        // active 상품이 내용 변경되면 → pending_review로 자동 전환
+        const hasContentChange = Object.keys(updateData).some((k) => k !== "status") || body.images !== undefined || body.faqs !== undefined;
+        if (currentStatus === "active" && hasContentChange && updateData.status === undefined) {
+            updateData.status = "pending_review";
         }
 
         let updated: Record<string, unknown>;

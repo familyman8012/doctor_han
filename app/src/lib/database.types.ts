@@ -908,6 +908,8 @@ export type Database = {
           status: Database["public"]["Enums"]["verification_status"]
           updated_at: string
           user_id: string
+          work_type: string | null
+          work_type_other: string | null
         }
         Insert: {
           birth_date?: string | null
@@ -923,6 +925,8 @@ export type Database = {
           status?: Database["public"]["Enums"]["verification_status"]
           updated_at?: string
           user_id: string
+          work_type?: string | null
+          work_type_other?: string | null
         }
         Update: {
           birth_date?: string | null
@@ -938,6 +942,8 @@ export type Database = {
           status?: Database["public"]["Enums"]["verification_status"]
           updated_at?: string
           user_id?: string
+          work_type?: string | null
+          work_type_other?: string | null
         }
         Relationships: [
           {
@@ -1457,6 +1463,7 @@ export type Database = {
           contact_phone: string | null
           content: string | null
           created_at: string
+          doctor_memo: string | null
           doctor_user_id: string
           id: string
           preferred_channel: string | null
@@ -1475,6 +1482,7 @@ export type Database = {
           contact_phone?: string | null
           content?: string | null
           created_at?: string
+          doctor_memo?: string | null
           doctor_user_id: string
           id?: string
           preferred_channel?: string | null
@@ -1493,6 +1501,7 @@ export type Database = {
           contact_phone?: string | null
           content?: string | null
           created_at?: string
+          doctor_memo?: string | null
           doctor_user_id?: string
           id?: string
           preferred_channel?: string | null
@@ -2002,6 +2011,7 @@ export type Database = {
           marketing_opt_in_at: string | null
           marketing_opt_out_at: string | null
           phone: string | null
+          position: string | null
           privacy_agreed_at: string | null
           privacy_agreed_version: string | null
           role: Database["public"]["Enums"]["profile_role"]
@@ -2019,6 +2029,7 @@ export type Database = {
           marketing_opt_in_at?: string | null
           marketing_opt_out_at?: string | null
           phone?: string | null
+          position?: string | null
           privacy_agreed_at?: string | null
           privacy_agreed_version?: string | null
           role: Database["public"]["Enums"]["profile_role"]
@@ -2036,6 +2047,7 @@ export type Database = {
           marketing_opt_in_at?: string | null
           marketing_opt_out_at?: string | null
           phone?: string | null
+          position?: string | null
           privacy_agreed_at?: string | null
           privacy_agreed_version?: string | null
           role?: Database["public"]["Enums"]["profile_role"]
@@ -3381,6 +3393,7 @@ export type Database = {
           popularity_score: number
           price_max: number | null
           price_min: number | null
+          profile_image_url: string | null
           rating_avg: number | null
           region_primary: string | null
           region_secondary: string | null
@@ -3405,6 +3418,7 @@ export type Database = {
           popularity_score?: number
           price_max?: number | null
           price_min?: number | null
+          profile_image_url?: string | null
           rating_avg?: number | null
           region_primary?: string | null
           region_secondary?: string | null
@@ -3429,6 +3443,7 @@ export type Database = {
           popularity_score?: number
           price_max?: number | null
           price_min?: number | null
+          profile_image_url?: string | null
           rating_avg?: number | null
           region_primary?: string | null
           region_secondary?: string | null
@@ -3564,6 +3579,15 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_approved_doctor: { Args: never; Returns: boolean }
+      is_bid_project_doctor: {
+        Args: { p_project_id: string }
+        Returns: boolean
+      }
+      is_bid_project_vendor: {
+        Args: { p_project_id: string }
+        Returns: boolean
+      }
+      is_bid_vendor_owner: { Args: { p_vendor_id: string }; Returns: boolean }
       is_product_owner: { Args: { p_product_id: string }; Returns: boolean }
       is_vendor_approved: { Args: { vendor_id: string }; Returns: boolean }
       is_vendor_owner: { Args: { vendor_id: string }; Returns: boolean }

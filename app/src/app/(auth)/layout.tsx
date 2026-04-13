@@ -8,8 +8,13 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <header className="bg-white border-b border-gray-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center h-16">
-                        <Link href="/" className="text-xl font-bold text-content-primary">
-                            메디허브
+                        <Link href="/" className="flex items-center">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src="/images/logo-v1.png"
+                                alt="메디허브"
+                                className="h-8 w-auto"
+                            />
                         </Link>
                     </div>
                 </div>

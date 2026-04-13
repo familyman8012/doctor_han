@@ -173,7 +173,7 @@ export const POST = withApi(
                 price_max: body.priceMax ?? null,
                 price_unit: body.priceUnit ?? null,
                 sort_order: body.sortOrder ?? 0,
-                status: "pending_review",
+                status: body.status,
             })
             .select("*, categories!inner(slug)")
             .single();

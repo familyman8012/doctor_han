@@ -47,7 +47,7 @@ export async function calculateChargeAmount(
     const invalidCategoryIds = uniqueCategoryIds.filter((id) => !vendorCategoryIdSet.has(id));
 
     if (invalidCategoryIds.length > 0) {
-        throw badRequest("업체에 등록되지 않은 카테고리가 포함되어 있습니다.");
+        throw badRequest("현재 이 업체에서 취급하지 않는 서비스입니다.");
     }
 
     // Fetch vendor's active service prices
@@ -58,7 +58,7 @@ export async function calculateChargeAmount(
 
     // Every requested category must have an active price.
     if (matchingPrices.length !== uniqueCategoryIds.length) {
-        throw badRequest("단가가 설정되지 않은 카테고리가 포함되어 있습니다.");
+        throw badRequest("현재 이 업체는 문의를 받지 않고 있습니다. 다른 업체를 이용해주세요.");
     }
 
     if (matchingPrices.length === 0) {

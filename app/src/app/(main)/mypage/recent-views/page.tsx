@@ -1,12 +1,15 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { Clock } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Clock, Search, X } from "lucide-react";
 import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
 import { Button } from "@/components/ui/Button/button";
+import { Input } from "@/components/ui/Input/Input";
 import { ProductCard } from "@/components/widgets/ProductCard";
 import type { ProductListItem } from "@/lib/schema/product";
 
@@ -18,6 +21,8 @@ interface RecentViewItem {
 
 export default function MyRecentViewsPage() {
     const router = useRouter();
+    const queryClient = useQueryClient();
+    const [searchText, setSearchText] = useState("");
 
     const { data, isLoading } = useQuery({
         queryKey: ["product-recent-views"],
@@ -29,7 +34,27 @@ export default function MyRecentViewsPage() {
         },
     });
 
+    const deleteMutation = useMutation({
+        mutationFn: async (productId: string) => {
+            await api.delete("/api/product-recent-views", { data: { productId } });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["product-recent-views"] });
+            toast.success("삭제되었습니다");
+        },
+    });
+
     const items = data ?? [];
+
+    const filtered = useMemo(() => {
+        if (!searchText.trim()) return items;
+        const q = searchText.trim().toLowerCase();
+        return items.filter(
+            (item) =>
+                item.product.title.toLowerCase().includes(q) ||
+                item.product.vendor.name.toLowerCase().includes(q),
+        );
+    }, [items, searchText]);
 
     return (
         <div className="space-y-6">
@@ -43,6 +68,17 @@ export default function MyRecentViewsPage() {
                     {items.length}개의 상품을 최근에 확인했습니다
                 </p>
             </div>
+
+            {/* 검색 */}
+            {items.length > 0 && (
+                <Input
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    placeholder="상품명, 업체명으로 검색"
+                    size="sm"
+                    LeadingIcon={<Search className="w-4 h-4" />}
+                />
+            )}
 
             {isLoading && (
                 <div className="flex justify-center items-center py-20">
@@ -68,14 +104,34 @@ export default function MyRecentViewsPage() {
                 </div>
             )}
 
-            {!isLoading && items.length > 0 && (
+            {!isLoading && items.length > 0 && filtered.length === 0 && (
+                <Empty
+                    title="검색 결과가 없습니다"
+                    description="다른 키워드로 검색해보세요"
+                />
+            )}
+
+            {!isLoading && filtered.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {items.map((item) => (
-                        <ProductCard
-                            key={item.product.id}
-                            product={item.product}
-                            showFavoriteButton={false}
-                        />
+                    {filtered.map((item) => (
+                        <div key={item.product.id} className="relative group">
+                            <ProductCard
+                                product={item.product}
+                                showFavoriteButton={false}
+                            />
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    deleteMutation.mutate(item.product.id);
+                                }}
+                                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 hover:text-red-500 z-10"
+                                title="삭제"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
                     ))}
                 </div>
             )}

@@ -1,6 +1,6 @@
 import type { TablesUpdate } from "@/lib/database.types";
 import { VendorPatchBodySchema, VendorUpsertBodySchema } from "@/lib/schema/vendor";
-import { badRequest, conflict, internalServerError, notFound } from "@/server/api/errors";
+import { badRequest, conflict, forbidden, internalServerError, notFound } from "@/server/api/errors";
 import { created, ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { safeInsertAuditLog } from "@/server/audit/utils";
@@ -136,6 +136,22 @@ export const POST = withApi(
         const verificationStatus = await fetchVendorVerificationStatus(ctx);
         const initialStatus = verificationStatus === "approved" ? "active" : "draft";
 
+        // 프로필 이미지 처리
+        let profileImageUrl: string | null = null;
+        if (body.profileImageFileId) {
+            const { data: fileRow, error: fileError } = await ctx.supabase
+                .from("files")
+                .select("id, purpose")
+                .eq("id", body.profileImageFileId)
+                .maybeSingle();
+
+            if (fileError) throw internalServerError("파일을 확인할 수 없습니다.", { message: fileError.message });
+            if (!fileRow) throw notFound("프로필 이미지 파일을 찾을 수 없습니다.");
+            if (fileRow.purpose !== "avatar") throw forbidden("아바타 용도로 업로드된 파일만 사용할 수 있습니다.");
+
+            profileImageUrl = `/api/files/open?fileId=${fileRow.id}`;
+        }
+
         const { data: vendor, error } = await ctx.supabase
             .from("vendors")
             .insert({
@@ -153,6 +169,7 @@ export const POST = withApi(
                 longitude: body.longitude ?? null,
                 price_min: body.priceMin ?? null,
                 price_max: body.priceMax ?? null,
+                profile_image_url: profileImageUrl,
                 status: initialStatus,
             })
             .select("*")
@@ -230,6 +247,25 @@ export const PATCH = withApi(
         if (typeof body.priceMin !== "undefined") update.price_min = body.priceMin;
         if (typeof body.priceMax !== "undefined") update.price_max = body.priceMax;
         if (typeof body.status !== "undefined") update.status = body.status;
+
+        // 프로필 이미지 처리
+        if (typeof body.profileImageFileId !== "undefined") {
+            if (body.profileImageFileId === null) {
+                update.profile_image_url = null;
+            } else {
+                const { data: fileRow, error: fileError } = await ctx.supabase
+                    .from("files")
+                    .select("id, purpose")
+                    .eq("id", body.profileImageFileId)
+                    .maybeSingle();
+
+                if (fileError) throw internalServerError("파일을 확인할 수 없습니다.", { message: fileError.message });
+                if (!fileRow) throw notFound("프로필 이미지 파일을 찾을 수 없습니다.");
+                if (fileRow.purpose !== "avatar") throw forbidden("아바타 용도로 업로드된 파일만 사용할 수 있습니다.");
+
+                update.profile_image_url = `/api/files/open?fileId=${fileRow.id}`;
+            }
+        }
 
         const shouldUpdateVendor = Object.keys(update).length > 0;
         const vendor = shouldUpdateVendor

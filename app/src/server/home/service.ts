@@ -10,6 +10,7 @@ import { internalServerError } from "@/server/api/errors";
 import { mapCategoryRow } from "@/server/category/mapper";
 import { mapProductListItem } from "@/server/product/mapper";
 import { fetchProductThumbnailsByProductIds } from "@/server/product/repository";
+import { CATEGORY_ICON_PATHS } from "@/lib/constants/assets";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import { mapVendorListItem } from "@/server/vendor/mapper";
 import {
@@ -215,7 +216,9 @@ export async function buildHomeScreen(supabase: SupabaseClient<Database>): Promi
 
     const categories = (categoryRows ?? []).map(mapCategoryRow);
     const mainCategories = categories.filter((c) => c.depth === 1);
-    const gridCategories = mainCategories.slice(0, HOME_CATEGORY_GRID_SIZE);
+    const gridCategories = mainCategories
+        .filter((c) => c.slug in CATEGORY_ICON_PATHS)
+        .slice(0, HOME_CATEGORY_GRID_SIZE);
 
     // Fetch vendor counts per category for grid display
     const vendorCountMap = await fetchVendorCountsByCategory(supabase);

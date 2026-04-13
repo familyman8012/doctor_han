@@ -16,6 +16,7 @@ import { getSupabaseBrowserClient } from "@/server/supabase/browser";
 import type { VendorDetail } from "@/lib/schema/vendor";
 import type { FileSignedUploadResponse } from "@/lib/schema/file";
 import type { LeadCreateBody } from "@/lib/schema/lead";
+import { useAuthStore } from "@/stores/auth";
 
 interface InquiryFormProps {
     vendor: VendorDetail;
@@ -63,11 +64,20 @@ export function InquiryForm({ vendor }: InquiryFormProps) {
 
     const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
 
+    const profile = useAuthStore((s) => s.profile);
+    const user = useAuthStore((s) => s.user);
+
     const {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<InquiryFormData>();
+    } = useForm<InquiryFormData>({
+        defaultValues: {
+            contactName: profile?.displayName ?? "",
+            contactPhone: profile?.phone ?? user?.phone ?? "",
+            contactEmail: user?.email ?? "",
+        },
+    });
 
     const toggleCategory = (categoryId: string) => {
         setSelectedCategoryIds((prev) => {
@@ -245,7 +255,19 @@ export function InquiryForm({ vendor }: InquiryFormProps) {
                     placeholder="010-0000-0000"
                     error={errors.contactPhone?.message}
                     required
-                    {...register("contactPhone", { required: "연락처를 입력해주세요" })}
+                    {...register("contactPhone", {
+                        required: "연락처를 입력해주세요",
+                        onChange: (e) => {
+                            const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
+                            let formatted = digits;
+                            if (digits.length > 3 && digits.length <= 7) {
+                                formatted = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+                            } else if (digits.length > 7) {
+                                formatted = `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+                            }
+                            e.target.value = formatted;
+                        },
+                    })}
                 />
             </div>
 

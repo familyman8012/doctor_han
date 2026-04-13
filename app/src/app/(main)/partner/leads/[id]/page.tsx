@@ -167,6 +167,7 @@ export default function PartnerLeadDetailPage() {
     const tabs = [
         { title: "상세정보" },
         { title: "대화", label: unreadCount > 0 ? String(unreadCount) : undefined },
+        ...(lead.charge ? [{ title: "과금 정보" }] : []),
     ];
 
     return (
@@ -290,56 +291,6 @@ export default function PartnerLeadDetailPage() {
                                 </div>
                             </div>
 
-                            {/* 과금 정보 */}
-                            {lead.charge && (
-                                <div>
-                                    <h2 className="text-lg font-bold text-content-primary mb-4">과금 정보</h2>
-                                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm text-gray-500">상태</span>
-                                            <Badge
-                                                color={CHARGE_STATUS_CONFIG[lead.charge.status]?.color ?? "neutral"}
-                                                size="sm"
-                                            >
-                                                {CHARGE_STATUS_CONFIG[lead.charge.status]?.label ?? lead.charge.status}
-                                            </Badge>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm text-gray-500">총 과금액</span>
-                                            <span className="font-semibold text-content-primary">
-                                                {lead.charge.totalAmount.toLocaleString()}원
-                                            </span>
-                                        </div>
-                                        {lead.charge.priceBreakdown.length > 0 && (
-                                            <div className="border-t border-gray-200 pt-3">
-                                                <p className="text-xs text-gray-400 mb-2">서비스별 내역</p>
-                                                {lead.charge.priceBreakdown.map((item) => (
-                                                    <div
-                                                        key={item.categoryId}
-                                                        className="flex items-center justify-between text-sm"
-                                                    >
-                                                        <span className="text-gray-600">{item.categoryName}</span>
-                                                        <span className="text-gray-800">
-                                                            {item.price.toLocaleString()}원
-                                                        </span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                        {lead.charge.isDuplicate && (
-                                            <p className="text-xs text-amber-600">
-                                                30일 이내 중복 문의로 과금이 면제되었습니다
-                                            </p>
-                                        )}
-                                        {lead.charge.status === "refunded" && lead.charge.refundedAt && (
-                                            <p className="text-xs text-blue-600">
-                                                환불됨 ({dayjs(lead.charge.refundedAt).format("YYYY.MM.DD")})
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
                             {/* 문의 내용 */}
                             <div>
                                 <h2 className="text-lg font-bold text-content-primary mb-4 flex items-center gap-2">
@@ -374,6 +325,54 @@ export default function PartnerLeadDetailPage() {
 
                     {activeTabIndex === 1 && user?.id && (
                         <MessagesTab leadId={leadId} currentUserId={user.id} />
+                    )}
+
+                    {activeTabIndex === 2 && lead.charge && (
+                        <div className="space-y-4">
+                            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-500">상태</span>
+                                    <Badge
+                                        color={CHARGE_STATUS_CONFIG[lead.charge.status]?.color ?? "neutral"}
+                                        size="sm"
+                                    >
+                                        {CHARGE_STATUS_CONFIG[lead.charge.status]?.label ?? lead.charge.status}
+                                    </Badge>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-500">총 과금액</span>
+                                    <span className="font-semibold text-content-primary">
+                                        {lead.charge.totalAmount.toLocaleString()}원
+                                    </span>
+                                </div>
+                                {lead.charge.priceBreakdown.length > 0 && (
+                                    <div className="border-t border-gray-200 pt-3">
+                                        <p className="text-xs text-gray-400 mb-2">서비스별 내역</p>
+                                        {lead.charge.priceBreakdown.map((item) => (
+                                            <div
+                                                key={item.categoryId}
+                                                className="flex items-center justify-between text-sm"
+                                            >
+                                                <span className="text-gray-600">{item.categoryName}</span>
+                                                <span className="text-gray-800">
+                                                    {item.price.toLocaleString()}원
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                {lead.charge.isDuplicate && (
+                                    <p className="text-xs text-amber-600">
+                                        30일 이내 중복 문의로 과금이 면제되었습니다
+                                    </p>
+                                )}
+                                {lead.charge.status === "refunded" && lead.charge.refundedAt && (
+                                    <p className="text-xs text-blue-600">
+                                        환불됨 ({dayjs(lead.charge.refundedAt).format("YYYY.MM.DD")})
+                                    </p>
+                                )}
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>

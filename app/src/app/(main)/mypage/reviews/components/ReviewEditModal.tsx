@@ -250,10 +250,10 @@ export function ReviewEditModal({ review, onClose, onSuccess }: ReviewEditModalP
                         />
                     </div>
 
-                    {/* 시술일 */}
+                    {/* 작업일 */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            시술일 (선택)
+                            작업일 (선택)
                         </label>
                         <Input
                             {...register("workedAt")}

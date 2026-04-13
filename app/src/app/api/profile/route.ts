@@ -38,6 +38,7 @@ export const POST = withApi(
                 id: ctx.user.id,
                 role: body.role,
                 display_name: body.displayName,
+                position: body.position ?? null,
                 phone: body.phone ?? ctx.user.phone ?? null,
                 email: ctx.user.email ?? null,
                 terms_agreed_version: CURRENT_TERMS_VERSION,

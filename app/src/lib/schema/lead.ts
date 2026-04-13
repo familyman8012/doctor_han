@@ -35,6 +35,7 @@ export const LeadListItemSchema = z.object({
     preferredChannel: z.string().nullable(),
     preferredTime: z.string().nullable(),
     content: z.string().nullable(),
+    doctorMemo: z.string().nullable(),
     status: LeadStatusSchema,
     createdAt: z.string(),
     updatedAt: z.string(),
@@ -210,6 +211,7 @@ export type LeadCreateBody = z.infer<typeof LeadCreateBodySchema>;
 export const LeadListQuerySchema = z
     .object({
         status: LeadStatusSchema.optional(),
+        q: z.string().trim().min(1).optional(),
     })
     .merge(zPaginationQuery)
     .strict();
@@ -223,6 +225,14 @@ export const LeadStatusPatchBodySchema = z
     .strict();
 
 export type LeadStatusPatchBody = z.infer<typeof LeadStatusPatchBodySchema>;
+
+export const LeadMemoPatchBodySchema = z
+    .object({
+        memo: z.string().max(2000),
+    })
+    .strict();
+
+export type LeadMemoPatchBody = z.infer<typeof LeadMemoPatchBodySchema>;
 
 export const LeadListResponseSchema = z.object({
     code: z.literal(API_SUCCESS_CODE),

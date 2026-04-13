@@ -153,6 +153,7 @@ export const ProductCreateBodySchema = z
         sortOrder: z.number().int().min(0).optional(),
         images: z.array(ProductImageInputSchema).max(20).optional(),
         faqs: z.array(ProductFaqInputSchema).max(30).optional(),
+        status: z.enum(["draft", "pending_review"]).default("pending_review"),
     })
     .refine(
         (v) =>

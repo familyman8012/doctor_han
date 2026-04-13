@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, MapPin } from "lucide-react";
+import { Star, MapPin, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { VendorBadgeList } from "@/components/widgets/VendorBadgeList";
 import type { VendorDetail } from "@/lib/schema/vendor";
@@ -38,10 +38,24 @@ export function HeroInfo({ vendor }: HeroInfoProps) {
                 ))}
             </div>
 
-            {/* Vendor name */}
-            <h1 className="text-2xl font-bold text-content-primary mb-2">
-                {vendor.name}
-            </h1>
+            {/* Vendor profile image + name */}
+            <div className="flex items-center gap-3 mb-2">
+                {vendor.profileImageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                        src={vendor.profileImageUrl}
+                        alt={vendor.name}
+                        className="w-12 h-12 rounded-xl object-cover border border-gray-200 shrink-0"
+                    />
+                ) : (
+                    <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center border border-gray-200 shrink-0">
+                        <Building2 className="w-6 h-6 text-gray-400" />
+                    </div>
+                )}
+                <h1 className="text-2xl font-bold text-content-primary">
+                    {vendor.name}
+                </h1>
+            </div>
 
             {/* Vendor badges */}
             {vendor.badges.length > 0 && (

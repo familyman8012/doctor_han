@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Star, MoreVertical, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { Badge } from "@/components/ui/Badge/Badge";
@@ -156,11 +155,11 @@ export function ReviewCard({
                             key={fileId}
                             className="relative w-20 h-20 rounded-lg bg-gray-100 shrink-0 overflow-hidden"
                         >
-                            <Image
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
                                 src={`/api/files/open?fileId=${fileId}`}
                                 alt="리뷰 사진"
-                                fill
-                                className="object-cover"
+                                className="w-full h-full object-cover"
                             />
                         </div>
                     ))}
@@ -174,7 +173,7 @@ export function ReviewCard({
                     <span>이용 금액: {review.amount.toLocaleString()}원</span>
                 )}
                 {review.workedAt && (
-                    <span>시술일: {dayjs(review.workedAt).format("YYYY.MM.DD")}</span>
+                    <span>작업일: {dayjs(review.workedAt).format("YYYY.MM.DD")}</span>
                 )}
             </div>
         </div>

@@ -1,6 +1,7 @@
 import type { Tables } from "@/lib/database.types";
 import type { DoctorVerificationView, VendorVerificationView } from "@/lib/schema/verification";
 
+
 type DoctorVerificationRow = Tables<"doctor_verifications">;
 type VendorVerificationRow = Tables<"vendor_verifications">;
 
@@ -12,6 +13,8 @@ export function mapDoctorVerificationRow(row: DoctorVerificationRow): DoctorVeri
         fullName: row.full_name,
         birthDate: row.birth_date,
         clinicName: row.clinic_name,
+        workType: row.work_type as DoctorVerificationView["workType"],
+        workTypeOther: row.work_type_other,
         licenseFileId: row.license_file_id,
         status: row.status,
         reviewedBy: row.reviewed_by,

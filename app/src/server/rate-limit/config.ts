@@ -4,7 +4,6 @@ export const RATE_LIMIT_CONFIG: Record<RateLimitAction, RateLimitConfig> = {
     lead_create: {
         daily: 10,
         weekly: 50,
-        sameTargetCooldownHours: 12,
     },
     review_create: {
         daily: 10,

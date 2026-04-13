@@ -18,6 +18,7 @@ export const GET = withApi(
         const { searchParams } = new URL(ctx.req.url);
         const query = LeadListQuerySchema.parse({
             status: searchParams.get("status") ?? undefined,
+            q: searchParams.get("q") ?? undefined,
             page: searchParams.get("page") ?? undefined,
             pageSize: searchParams.get("pageSize") ?? undefined,
         });
@@ -29,6 +30,23 @@ export const GET = withApi(
 
         if (query.status) {
             qb = qb.eq("status", query.status);
+        }
+
+        // 검색: 서비스명, 문의내용, 업체명
+        if (query.q) {
+            const pattern = `%${query.q}%`;
+            const { data: matchingVendors } = await ctx.supabase
+                .from("vendors")
+                .select("id")
+                .ilike("name", pattern);
+
+            const vendorIds = (matchingVendors ?? []).map((v) => v.id);
+
+            if (vendorIds.length > 0) {
+                qb = qb.or(`service_name.ilike.${pattern},content.ilike.${pattern},vendor_id.in.(${vendorIds.join(",")})`);
+            } else {
+                qb = qb.or(`service_name.ilike.${pattern},content.ilike.${pattern}`);
+            }
         }
 
         qb = qb.order("created_at", { ascending: false });
@@ -75,7 +93,7 @@ export const POST = withApi(
         const rateCheck = await checkRateLimit(ctx.user.id, "lead_create", body.vendorId);
         if (!rateCheck.allowed) {
             await logRateLimitExceeded(ctx.user.id, "lead_create", { vendorId: body.vendorId });
-            throw tooManyRequests("리드 생성 횟수를 초과했습니다.", {
+            throw tooManyRequests("문의 횟수 한도를 초과했습니다. 내일 다시 시도해주세요.", {
                 resetAt: rateCheck.resetAt?.toISOString(),
                 retryAfter: rateCheck.retryAfterSeconds,
             });

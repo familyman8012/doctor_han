@@ -6,6 +6,33 @@ const zDateString = z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD 형식이어야 합니다.");
 
+export const DoctorWorkTypeSchema = z.enum([
+    "clinic_owner",       // 개원의
+    "employed",           // 봉직의
+    "substitute",         // 대진의
+    "public_health",      // 공보의
+    "resident",           // 수련의
+    "specialist_trainee", // 전공의
+    "graduate_student",   // 대학원생
+    "professor",          // 교수
+    "job_seeking",        // 구직중
+    "other",              // 기타 직접입력
+]);
+export type DoctorWorkType = z.infer<typeof DoctorWorkTypeSchema>;
+
+export const DOCTOR_WORK_TYPE_LABELS: Record<DoctorWorkType, string> = {
+    clinic_owner: "개원의",
+    employed: "봉직의",
+    substitute: "대진의",
+    public_health: "공보의",
+    resident: "수련의",
+    specialist_trainee: "전공의",
+    graduate_student: "대학원생",
+    professor: "교수",
+    job_seeking: "구직중",
+    other: "기타 직접입력",
+};
+
 export const VerificationStatusSchema = z.enum(["pending", "approved", "rejected"]);
 export type VerificationStatus = z.infer<typeof VerificationStatusSchema>;
 
@@ -16,6 +43,8 @@ export const DoctorVerificationViewSchema = z.object({
     fullName: zNonEmptyString,
     birthDate: zDateString.nullable(),
     clinicName: z.string().nullable(),
+    workType: DoctorWorkTypeSchema.nullable(),
+    workTypeOther: z.string().nullable(),
     licenseFileId: zUuid.nullable(),
     status: VerificationStatusSchema,
     reviewedBy: zUuid.nullable(),
@@ -52,6 +81,8 @@ export const DoctorVerificationUpsertBodySchema = z
         fullName: zNonEmptyString,
         birthDate: zDateString.optional().nullable(),
         clinicName: z.string().trim().min(1).optional().nullable(),
+        workType: DoctorWorkTypeSchema.optional().nullable(),
+        workTypeOther: z.string().trim().min(1).optional().nullable(),
         licenseFileId: zUuid.optional().nullable(),
     })
     .strict();

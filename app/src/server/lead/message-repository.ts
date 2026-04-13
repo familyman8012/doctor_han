@@ -255,10 +255,10 @@ export async function checkMessageRateLimit(
 export async function fetchLeadParticipants(
     supabase: SupabaseClient<Database>,
     leadId: string,
-): Promise<{ doctorUserId: string; vendorId: string } | null> {
+): Promise<{ doctorUserId: string; vendorId: string; status: string } | null> {
     const { data, error } = await supabase
         .from("leads")
-        .select("doctor_user_id, vendor_id")
+        .select("doctor_user_id, vendor_id, status")
         .eq("id", leadId)
         .maybeSingle();
 
@@ -276,6 +276,7 @@ export async function fetchLeadParticipants(
     return {
         doctorUserId: data.doctor_user_id,
         vendorId: data.vendor_id,
+        status: data.status,
     };
 }
 

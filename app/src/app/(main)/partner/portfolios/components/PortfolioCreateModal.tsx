@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import Image from "next/image";
 import { X, Camera, Trash2 } from "lucide-react";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
@@ -32,6 +31,8 @@ interface UploadedFile {
 export function PortfolioCreateModal({ onClose, onSuccess }: PortfolioCreateModalProps) {
     const queryClient = useQueryClient();
     const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+    const [tags, setTags] = useState<string[]>([]);
+    const [tagInput, setTagInput] = useState("");
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -53,6 +54,7 @@ export function PortfolioCreateModal({ onClose, onSuccess }: PortfolioCreateModa
             await api.post("/api/vendors/me/portfolio", {
                 title: data.title,
                 description: data.description || null,
+                tags: tags.length > 0 ? tags : undefined,
                 assets,
             });
         },
@@ -181,6 +183,49 @@ export function PortfolioCreateModal({ onClose, onSuccess }: PortfolioCreateModa
                         />
                     </div>
 
+                    {/* 태그 */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            태그 (선택)
+                            <span className="text-gray-400 font-normal ml-1">(최대 10개)</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                            {tags.map((tag) => (
+                                <span
+                                    key={tag}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-50 text-primary text-xs font-medium"
+                                >
+                                    {tag}
+                                    <button
+                                        type="button"
+                                        onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
+                                        className="hover:text-red-500"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </span>
+                            ))}
+                        </div>
+                        {tags.length < 10 && (
+                            <Input
+                                value={tagInput}
+                                onChange={(e) => setTagInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === ",") {
+                                        e.preventDefault();
+                                        const value = tagInput.trim().replace(/,/g, "");
+                                        if (value && !tags.includes(value)) {
+                                            setTags((prev) => [...prev, value]);
+                                        }
+                                        setTagInput("");
+                                    }
+                                }}
+                                placeholder="태그 입력 후 Enter (예: 인테리어, 한의원)"
+                            />
+                        )}
+                        <p className="text-xs text-gray-400 mt-1">Enter 또는 쉼표로 태그를 추가합니다</p>
+                    </div>
+
                     {/* 이미지 */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -191,12 +236,11 @@ export function PortfolioCreateModal({ onClose, onSuccess }: PortfolioCreateModa
                         <div className="grid grid-cols-4 gap-2">
                             {uploadedFiles.map((file) => (
                                 <div key={file.id} className="relative aspect-square rounded-lg overflow-hidden group">
-                                    <Image
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
                                         src={file.previewUrl}
                                         alt="포트폴리오 이미지"
-                                        fill
-                                        className="object-cover"
-                                        unoptimized
+                                        className="absolute inset-0 w-full h-full object-cover"
                                     />
                                     <button
                                         type="button"

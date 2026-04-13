@@ -24,6 +24,7 @@ export const VendorListItemSchema = z.object({
     priceMax: z.number().int().nullable(),
     ratingAvg: z.number().nullable(),
     reviewCount: z.number().int(),
+    profileImageUrl: z.string().nullable(),
     badges: z.array(VendorBadgeSchema).default([]),
 });
 
@@ -110,6 +111,7 @@ export const VendorUpsertBodySchema = z
         priceMin: z.number().int().min(0).optional().nullable(),
         priceMax: z.number().int().min(0).optional().nullable(),
         categoryIds: z.array(zUuid).max(50).optional(),
+        profileImageFileId: z.union([zUuid, z.null()]).optional(),
     })
     .refine(
         (value) =>
@@ -141,6 +143,7 @@ export const VendorPatchBodySchema = z
         priceMax: z.number().int().min(0).optional().nullable(),
         status: z.enum(["draft", "inactive"]).optional(),
         categoryIds: z.array(zUuid).max(50).optional(),
+        profileImageFileId: z.union([zUuid, z.null()]).optional(),
     })
     .refine(
         (value) =>
@@ -167,7 +170,8 @@ export const VendorPatchBodySchema = z
             value.priceMin !== undefined ||
             value.priceMax !== undefined ||
             value.status !== undefined ||
-            value.categoryIds !== undefined,
+            value.categoryIds !== undefined ||
+            value.profileImageFileId !== undefined,
         { message: "수정할 필드가 없습니다." },
     )
     .strict();

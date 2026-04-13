@@ -38,7 +38,7 @@ function ToggleItem({ icon, label, description, checked, onChange, disabled }: T
 				aria-label={`${label} ${checked ? "활성화됨" : "비활성화됨"}`}
 				disabled={disabled}
 				onClick={() => onChange(!checked)}
-				className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
+				className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
 					checked ? "bg-primary" : "bg-gray-200"
 				}`}
 			>
@@ -79,9 +79,22 @@ export default function NotificationSettingsPage() {
 			);
 			return res.data.data.settings;
 		},
+		onMutate: async (updates) => {
+			await queryClient.cancelQueries({ queryKey: ["notification-settings"] });
+			const previous = queryClient.getQueryData<NotificationSettingsView>(["notification-settings"]);
+			if (previous) {
+				queryClient.setQueryData(["notification-settings"], { ...previous, ...updates });
+			}
+			return { previous };
+		},
+		onError: (_err, _vars, context) => {
+			if (context?.previous) {
+				queryClient.setQueryData(["notification-settings"], context.previous);
+			}
+			toast.error("설정 변경에 실패했습니다");
+		},
 		onSuccess: (newSettings) => {
 			queryClient.setQueryData(["notification-settings"], newSettings);
-			toast.success("알림 설정이 변경되었습니다");
 		},
 	});
 
@@ -102,14 +115,7 @@ export default function NotificationSettingsPage() {
 	}
 
 	const handleToggle = (key: ToggleableKey, value: boolean) => {
-		const updates: Partial<Record<ToggleableKey, boolean>> = { [key]: value };
-
-		// 현재 카카오는 "인증 결과"만 지원하므로, 카카오 ON 시 인증 결과 알림도 같이 ON 처리
-		if (key === "kakaoEnabled" && value === true && !data.verificationResultEnabled) {
-			updates.verificationResultEnabled = true;
-		}
-
-		updateMutation.mutate(updates);
+		updateMutation.mutate({ [key]: value });
 	};
 
 	return (
@@ -129,14 +135,19 @@ export default function NotificationSettingsPage() {
 					disabled={updateMutation.isPending}
 				/>
 
-				<ToggleItem
-					icon={<Shield className="w-5 h-5 text-primary" />}
-					label="인증 결과 알림"
-					description="인증 승인/반려 결과 알림을 받습니다"
-					checked={data.verificationResultEnabled}
-					onChange={(v) => handleToggle("verificationResultEnabled", v)}
-					disabled={updateMutation.isPending}
-				/>
+				{/* 인증 결과 알림은 1회성 필수 알림이므로 토글 없이 안내만 */}
+				<div className="flex items-center justify-between py-4 border-b border-gray-100">
+					<div className="flex items-start gap-3">
+						<div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+							<Shield className="w-5 h-5 text-primary" />
+						</div>
+						<div>
+							<p className="font-medium text-content-primary">면허 인증 결과</p>
+							<p className="text-sm text-gray-500 mt-0.5">면허 인증 승인/반려 결과는 자동으로 발송됩니다</p>
+						</div>
+					</div>
+					<span className="text-xs text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">항상 수신</span>
+				</div>
 
 				<ToggleItem
 					icon={<MessageSquare className="w-5 h-5 text-primary" />}

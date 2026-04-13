@@ -34,6 +34,16 @@ export const POST = withApi(
             detail: body.detail ?? null,
         });
 
+        // 신고 접수 시 리드 상태를 자동으로 보류(hold)로 전환
+        const { error: statusError } = await admin
+            .from("leads")
+            .update({ status: "hold" })
+            .eq("id", leadId)
+            .not("status", "in", '("canceled","closed","contracted")');
+        if (statusError) {
+            console.error("[LeadReport] auto hold transition failed", statusError);
+        }
+
         return created({ report: mapLeadReportRow(report) });
     }),
 );

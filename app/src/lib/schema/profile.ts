@@ -49,6 +49,7 @@ export const ProfileViewSchema = z.object({
     role: ProfileRoleSchema,
     status: ProfileStatusSchema,
     displayName: z.string().nullable(),
+    position: z.string().nullable(),
     avatarUrl: z.string().nullable(),
     phone: z.string().nullable(),
     email: z.string().nullable(),
@@ -61,6 +62,7 @@ export type ProfileView = z.infer<typeof ProfileViewSchema>;
 export const ProfileCreateBodySchema = z.object({
     role: z.enum(["doctor", "vendor"]),
     displayName: zNonEmptyString,
+    position: z.string().trim().min(1).optional(),
     phone: z.string().trim().min(1).optional(),
     termsAgreed: z.literal(true),
     marketingAgreed: z.boolean().optional(),

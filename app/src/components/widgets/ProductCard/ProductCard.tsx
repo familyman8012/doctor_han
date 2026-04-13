@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+
 import { useRouter } from "next/navigation";
 import { Heart, Star } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -70,11 +70,11 @@ export function ProductCard({ product, isFavorited = false, showFavoriteButton =
             {/* Thumbnail */}
             <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
                 {thumbnailSrc ? (
-                    <Image
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
                         src={thumbnailSrc}
                         alt={product.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                 ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">

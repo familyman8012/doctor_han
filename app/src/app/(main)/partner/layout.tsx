@@ -31,9 +31,9 @@ const NAV_ITEMS = [
     { href: "/partner/leads", label: "받은 리드함", icon: Inbox },
     { href: "/partner/bids", label: "입찰 관리", icon: Gavel },
     { href: "/partner/credits", label: "크레딧", icon: Wallet },
+    { href: "/partner/subscriptions", label: "구독", icon: CalendarClock },
     { href: "/partner/pricing", label: "서비스 단가", icon: DollarSign },
     { href: "/partner/ads", label: "광고 관리", icon: Megaphone },
-    { href: "/partner/subscriptions", label: "구독", icon: CalendarClock },
     { href: "/partner/membership", label: "입점 멤버십", icon: Shield },
     { href: "/partner/portfolios", label: "포트폴리오", icon: FolderOpen },
     { href: "/partner/support", label: "고객지원", icon: MessageCircle },
@@ -77,7 +77,11 @@ export default function PartnerLayout({ children }: { children: ReactNode }) {
     }
 
     if (!isAuthenticated || role !== "vendor") {
-        return null;
+        return (
+            <div className="flex justify-center items-center py-20">
+                <Spinner size="lg" />
+            </div>
+        );
     }
 
     const isActive = (href: string, exact?: boolean) => {

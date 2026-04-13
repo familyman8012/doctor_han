@@ -156,6 +156,18 @@ export async function sendMessage(
         throw error;
     }
 
+    // 자동 상태 전환: 업체가 메시지를 보내면 → negotiating
+    if (isVendor && ["submitted", "in_progress", "quote_pending"].includes(lead.status)) {
+        const { error: statusError } = await supabase
+            .from("leads")
+            .update({ status: "negotiating" })
+            .eq("id", leadId)
+            .in("status", ["submitted", "in_progress", "quote_pending"]);
+        if (statusError) {
+            console.error("[sendMessage] auto status transition to negotiating failed", statusError);
+        }
+    }
+
     // 알림 발송 (비동기, 실패해도 메시지는 저장됨)
     const recipientUserId = isDoctor ? await getVendorOwnerUserId(lead.vendorId) : lead.doctorUserId;
     if (recipientUserId) {

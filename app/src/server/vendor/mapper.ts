@@ -24,6 +24,7 @@ export function mapVendorListItem(row: VendorRow): VendorListItem {
         priceMax: row.price_max,
         ratingAvg: row.rating_avg,
         reviewCount: row.review_count,
+        profileImageUrl: row.profile_image_url,
         badges: parseBadgesFromJson((row as Record<string, unknown>).badges),
     };
 }

@@ -71,6 +71,11 @@ export const leadsApi = {
         await api.patch(`/api/leads/${leadId}/messages/read`, payload);
     },
 
+    // 메모 저장
+    updateMemo: async (leadId: string, memo: string): Promise<void> => {
+        await api.patch(`/api/leads/${leadId}/memo`, { memo });
+    },
+
     // 허위 리드 신고
     reportLead: async (leadId: string, payload: LeadReportBody): Promise<LeadReportResponse> => {
         const response = await api.post<LeadReportResponse>(`/api/leads/${leadId}/report`, payload);

@@ -38,7 +38,7 @@ function ToggleItem({ icon, label, description, checked, onChange, disabled }: T
 				aria-label={`${label} ${checked ? "활성화됨" : "비활성화됨"}`}
 				disabled={disabled}
 				onClick={() => onChange(!checked)}
-				className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
+				className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
 					checked ? "bg-primary" : "bg-gray-200"
 				}`}
 			>
@@ -79,9 +79,22 @@ export default function PartnerNotificationSettingsPage() {
 			);
 			return res.data.data.settings;
 		},
+		onMutate: async (updates) => {
+			await queryClient.cancelQueries({ queryKey: ["notification-settings"] });
+			const previous = queryClient.getQueryData<NotificationSettingsView>(["notification-settings"]);
+			if (previous) {
+				queryClient.setQueryData(["notification-settings"], { ...previous, ...updates });
+			}
+			return { previous };
+		},
+		onError: (_err, _vars, context) => {
+			if (context?.previous) {
+				queryClient.setQueryData(["notification-settings"], context.previous);
+			}
+			toast.error("알림 설정 변경에 실패했습니다");
+		},
 		onSuccess: (newSettings) => {
 			queryClient.setQueryData(["notification-settings"], newSettings);
-			toast.success("알림 설정이 변경되었습니다");
 		},
 	});
 
@@ -131,17 +144,17 @@ export default function PartnerNotificationSettingsPage() {
 
 				<ToggleItem
 					icon={<Shield className="w-5 h-5 text-primary" />}
-					label="인증 결과 알림"
-					description="인증 승인/반려 결과 알림을 받습니다"
+					label="사업자 인증 결과"
+					description="사업자 인증 승인/반려 결과를 받습니다 (항상 수신)"
 					checked={data.verificationResultEnabled}
 					onChange={(v) => handleToggle("verificationResultEnabled", v)}
-					disabled={updateMutation.isPending}
+					disabled={true}
 				/>
 
 				<ToggleItem
 					icon={<MessageSquare className="w-5 h-5 text-primary" />}
-					label="리드 관련 알림"
-					description="새 문의 접수 및 리드 상태 변경 알림을 받습니다"
+					label="리드 · 상품 알림"
+					description="새 문의 접수, 리드 상태 변경, 상품 승인/반려 알림을 받습니다"
 					checked={data.leadEnabled}
 					onChange={(v) => handleToggle("leadEnabled", v)}
 					disabled={updateMutation.isPending || !data.emailEnabled}

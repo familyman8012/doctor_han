@@ -521,6 +521,16 @@ export async function markLeadViewed(supabase: SupabaseClient<Database>, leadId:
     if (error) {
         console.error("[markLeadViewed] failed", error);
     }
+
+    // 자동 상태 전환: 업체 열람 시 submitted → in_progress
+    const { error: statusError } = await supabase
+        .from("leads")
+        .update({ status: "in_progress" })
+        .eq("id", leadId)
+        .eq("status", "submitted");
+    if (statusError) {
+        console.error("[markLeadViewed] auto status transition failed", statusError);
+    }
 }
 
 export async function countUnviewedLeads(

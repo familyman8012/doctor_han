@@ -108,35 +108,43 @@ export default function InteriorCreatePage() {
                         />
                     </div>
 
-                    {/* 예산 */}
+                    {/* 예산 (백만원 단위 입력) */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                예산 최소 (원) <span className="text-red-500">*</span>
+                                예산 최소 <span className="text-red-500">*</span>
                             </label>
-                            <input
-                                type="number"
-                                value={form.budgetMin || ""}
-                                onChange={(e) => updateField("budgetMin", Number(e.target.value))}
-                                placeholder="0"
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                min={0}
-                                required
-                            />
+                            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent">
+                                <input
+                                    type="number"
+                                    value={form.budgetMin ? form.budgetMin / 1_000_000 : ""}
+                                    onChange={(e) => updateField("budgetMin", Number(e.target.value) * 1_000_000)}
+                                    placeholder="30"
+                                    className="w-20 px-4 py-2.5 text-sm text-right border-none focus:outline-none focus:ring-0"
+                                    min={0}
+                                    step={1}
+                                    required
+                                />
+                                <span className="text-sm text-gray-400 pr-4 select-none">,000,000 원</span>
+                            </div>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                예산 최대 (원) <span className="text-red-500">*</span>
+                                예산 최대 <span className="text-red-500">*</span>
                             </label>
-                            <input
-                                type="number"
-                                value={form.budgetMax || ""}
-                                onChange={(e) => updateField("budgetMax", Number(e.target.value))}
-                                placeholder="0"
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                min={0}
-                                required
-                            />
+                            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent">
+                                <input
+                                    type="number"
+                                    value={form.budgetMax ? form.budgetMax / 1_000_000 : ""}
+                                    onChange={(e) => updateField("budgetMax", Number(e.target.value) * 1_000_000)}
+                                    placeholder="50"
+                                    className="w-20 px-4 py-2.5 text-sm text-right border-none focus:outline-none focus:ring-0"
+                                    min={0}
+                                    step={1}
+                                    required
+                                />
+                                <span className="text-sm text-gray-400 pr-4 select-none">,000,000 원</span>
+                            </div>
                         </div>
                     </div>
 
