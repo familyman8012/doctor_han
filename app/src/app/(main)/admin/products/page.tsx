@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, Package, Star, ExternalLink, Check, X } from "lucide-react";
+import { Search, Package, Star, ExternalLink, Check, X, Filter } from "lucide-react";
 import dayjs from "dayjs";
-import Image from "next/image";
 import Link from "next/link";
 import api from "@/api-client/client";
+import { adminApi } from "@/api-client/admin";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
 import { Badge } from "@/components/ui/Badge/Badge";
@@ -48,8 +48,12 @@ const STATUS_OPTIONS: { value: ProductStatus | "all"; label: string }[] = [
     { value: "rejected", label: "반려" },
 ];
 
-function canReviewProduct(status: ProductStatus) {
-    return status === "draft" || status === "pending_review";
+function canApproveProduct(status: ProductStatus) {
+    return status === "draft" || status === "pending_review" || status === "rejected";
+}
+
+function canRejectProduct(status: ProductStatus) {
+    return status === "draft" || status === "pending_review" || status === "active";
 }
 
 function getStatusBadge(status: ProductStatus) {
@@ -70,16 +74,24 @@ function getStatusBadge(status: ProductStatus) {
 export default function AdminProductsPage() {
     const queryClient = useQueryClient();
     const [status, setStatus] = useState<ProductStatus | "all">("all");
+    const [categoryId, setCategoryId] = useState<string>("");
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [rejectingId, setRejectingId] = useState<string | null>(null);
     const [rejectionReason, setRejectionReason] = useState("");
 
+    const { data: categoriesData } = useQuery({
+        queryKey: ["admin", "categories"],
+        queryFn: () => adminApi.getCategories(),
+    });
+    const categories = categoriesData?.data?.items ?? [];
+
     const { data, isLoading } = useQuery({
-        queryKey: ["admin", "products", status, search, page],
+        queryKey: ["admin", "products", status, categoryId, search, page],
         queryFn: async () => {
             const params = new URLSearchParams();
             if (status !== "all") params.set("status", status);
+            if (categoryId) params.set("categoryId", categoryId);
             if (search) params.set("q", search);
             params.set("page", String(page));
             params.set("pageSize", String(PAGE_SIZE));
@@ -147,6 +159,24 @@ export default function AdminProductsPage() {
                             </Button>
                         ))}
                     </div>
+                    <div className="relative">
+                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <select
+                            value={categoryId}
+                            onChange={(e) => {
+                                setCategoryId(e.target.value);
+                                setPage(1);
+                            }}
+                            className="pl-9 pr-8 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary appearance-none"
+                        >
+                            <option value="">전체 카테고리</option>
+                            {categories.map((cat) => (
+                                <option key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                     <div className="flex-1 max-w-xs">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -175,7 +205,7 @@ export default function AdminProductsPage() {
                 ) : (
                     <>
                         {/* 테이블 헤더 - 데스크탑 */}
-                        <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_120px] gap-4 px-4 py-3 bg-gray-50 border-b border-gray-100 text-xs font-medium text-gray-500">
+                        <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1fr_1fr_1fr_1fr_120px] gap-4 px-4 py-3 bg-gray-50 border-b border-gray-100 text-xs font-medium text-gray-500">
                             <div>상품</div>
                             <div>업체</div>
                             <div>카테고리</div>
@@ -202,11 +232,9 @@ export default function AdminProductsPage() {
                                         </div>
                                         <div className="flex items-center gap-3">
                                             {product.thumbnail ? (
-                                                <Image
+                                                <img
                                                     src={product.thumbnail}
                                                     alt={product.title}
-                                                    width={48}
-                                                    height={48}
                                                     className="w-12 h-12 rounded-lg object-cover"
                                                 />
                                             ) : (
@@ -215,8 +243,8 @@ export default function AdminProductsPage() {
                                                 </div>
                                             )}
                                             <div className="min-w-0">
-                                                <p className="font-medium text-content-primary truncate">{product.title}</p>
-                                                <p className="text-xs text-gray-500">{product.vendorName}</p>
+                                                <Link href={`/products/${product.id}`} target="_blank" className="font-medium text-content-primary truncate hover:text-primary hover:underline block">{product.title}</Link>
+                                                <Link href={`/vendors/${product.vendorId}`} target="_blank" className="text-xs text-gray-500 hover:text-primary hover:underline">{product.vendorName}</Link>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3 text-sm text-gray-500">
@@ -228,37 +256,39 @@ export default function AdminProductsPage() {
                                                 </span>
                                             )}
                                         </div>
-                                        {canReviewProduct(product.status) && (
-                                            <div className="flex gap-2 pt-1">
-                                                <Button
-                                                    variant="primary"
-                                                    size="xs"
-                                                    onClick={() => approveMutation.mutate(product.id)}
-                                                    disabled={approveMutation.isPending}
-                                                >
-                                                    승인
-                                                </Button>
-                                                <Button
-                                                    variant="secondary"
-                                                    size="xs"
-                                                    onClick={() => setRejectingId(product.id)}
-                                                >
-                                                    반려
-                                                </Button>
+                                        {(canApproveProduct(product.status) || canRejectProduct(product.status)) && (
+                                            <div className="flex gap-2 pt-1 justify-end">
+                                                {canApproveProduct(product.status) && (
+                                                    <Button
+                                                        variant="primary"
+                                                        size="xs"
+                                                        onClick={() => approveMutation.mutate(product.id)}
+                                                        disabled={approveMutation.isPending}
+                                                    >
+                                                        승인
+                                                    </Button>
+                                                )}
+                                                {canRejectProduct(product.status) && (
+                                                    <Button
+                                                        variant="danger"
+                                                        size="xs"
+                                                        onClick={() => setRejectingId(product.id)}
+                                                    >
+                                                        반려
+                                                    </Button>
+                                                )}
                                             </div>
                                         )}
                                     </div>
 
                                     {/* 데스크탑 레이아웃 */}
-                                    <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_120px] gap-4 items-center">
+                                    <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1fr_1fr_1fr_1fr_120px] gap-4 items-center">
                                         <div className="min-w-0">
                                             <div className="flex items-center gap-3">
                                                 {product.thumbnail ? (
-                                                    <Image
+                                                    <img
                                                         src={product.thumbnail}
                                                         alt={product.title}
-                                                        width={40}
-                                                        height={40}
                                                         className="w-10 h-10 rounded-lg object-cover shrink-0"
                                                     />
                                                 ) : (
@@ -267,9 +297,9 @@ export default function AdminProductsPage() {
                                                     </div>
                                                 )}
                                                 <div className="min-w-0">
-                                                    <p className="font-medium text-content-primary truncate">
+                                                    <Link href={`/products/${product.id}`} target="_blank" className="font-medium text-content-primary truncate hover:text-primary hover:underline block">
                                                         {product.title}
-                                                    </p>
+                                                    </Link>
                                                     {product.summary && (
                                                         <p className="text-xs text-gray-500 truncate">
                                                             {product.summary}
@@ -278,8 +308,10 @@ export default function AdminProductsPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="text-sm text-gray-700 truncate">
-                                            {product.vendorName}
+                                        <div className="text-sm truncate">
+                                            <Link href={`/vendors/${product.vendorId}`} target="_blank" className="text-gray-700 hover:text-primary hover:underline">
+                                                {product.vendorName}
+                                            </Link>
                                         </div>
                                         <div>
                                             <Badge color="neutral" size="xs">{product.categoryName}</Badge>
@@ -300,26 +332,26 @@ export default function AdminProductsPage() {
                                             {dayjs(product.createdAt).format("YYYY.MM.DD")}
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            {canReviewProduct(product.status) && (
-                                                <>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => approveMutation.mutate(product.id)}
-                                                        disabled={approveMutation.isPending}
-                                                        className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors"
-                                                        title="승인"
-                                                    >
-                                                        <Check className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setRejectingId(product.id)}
-                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                                        title="반려"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </>
+                                            {canApproveProduct(product.status) && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => approveMutation.mutate(product.id)}
+                                                    disabled={approveMutation.isPending}
+                                                    className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors"
+                                                    title="승인"
+                                                >
+                                                    <Check className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                            {canRejectProduct(product.status) && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setRejectingId(product.id)}
+                                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                    title="반려"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
                                             )}
                                             <Link href={`/products/${product.id}`} target="_blank">
                                                 <Button

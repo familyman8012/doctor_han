@@ -82,6 +82,14 @@ export const adsApi = {
     },
 
     // ============================================
+    // Admin: Slots
+    // ============================================
+
+    getAdminSlots: async (): Promise<{ code: string; data: { items: { id: string; name: string; position: string; maxCampaigns: number }[] } }> => {
+        const response = await api.get("/api/admin/ads/slots");
+        return response.data;
+    },
+
     // Admin: Campaigns
     // ============================================
 

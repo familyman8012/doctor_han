@@ -9,8 +9,9 @@ const footerLinks = {
         { label: "리뷰", href: "/categories" },
     ],
     고객지원: [
-        { label: "헬프센터", href: "/help" },
+        { label: "고객센터", href: "/help" },
         { label: "자주 묻는 질문", href: "/help" },
+        { label: "공지사항", href: "/help?tab=notice" },
         { label: "문의하기", href: "/help" },
     ],
     법적고지: [

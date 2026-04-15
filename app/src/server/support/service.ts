@@ -375,9 +375,9 @@ export async function changeTicketStatus(
 	const currentStatus = ticketRow.status;
 	const newStatus = body.status;
 
-	// Invalid transitions
-	if (currentStatus === "closed" && newStatus !== "closed") {
-		throw badRequest("종료된 티켓의 상태는 변경할 수 없습니다.");
+	// Invalid transitions — closed → in_progress 재오픈은 허용
+	if (currentStatus === "closed" && newStatus !== "closed" && newStatus !== "in_progress") {
+		throw badRequest("종료된 티켓은 '처리중'으로만 재오픈할 수 있습니다.");
 	}
 
 	// Update ticket

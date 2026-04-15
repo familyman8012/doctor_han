@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Search, CheckCircle, XCircle, Clock, FileText, Building2 } from "lucide-react";
+import { Search, CheckCircle, XCircle, Clock, FileText, Building2, Users } from "lucide-react";
 import dayjs from "dayjs";
 import { adminApi } from "@/api-client/admin";
 import { Button } from "@/components/ui/Button/button";
@@ -19,7 +19,9 @@ import { VerificationDetailModal } from "./components/DetailModal";
 
 const PAGE_SIZE = 10;
 
-const TYPE_OPTIONS: { value: AdminVerificationType; label: string; icon: typeof FileText }[] = [
+type TypeFilterValue = AdminVerificationType | "all";
+const TYPE_OPTIONS: { value: TypeFilterValue; label: string; icon: typeof FileText }[] = [
+    { value: "all", label: "전체", icon: Users },
     { value: "doctor", label: "한의사", icon: FileText },
     { value: "vendor", label: "업체", icon: Building2 },
 ];
@@ -35,7 +37,7 @@ type VerificationListItem = AdminDoctorVerificationListItem | AdminVendorVerific
 
 export default function AdminVerificationsPage() {
     const queryClient = useQueryClient();
-    const [type, setType] = useState<AdminVerificationType>("doctor");
+    const [type, setType] = useState<TypeFilterValue>("all");
     const [status, setStatus] = useState<VerificationStatus | "all">("pending");
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
@@ -48,7 +50,7 @@ export default function AdminVerificationsPage() {
         queryKey: ["admin", "verifications", type, status, search, page],
         queryFn: () =>
             adminApi.getVerifications({
-                type,
+                type: type === "all" ? undefined : type,
                 status: status === "all" ? undefined : status,
                 q: search || undefined,
                 page,
@@ -75,9 +77,9 @@ export default function AdminVerificationsPage() {
         },
     });
 
-    const handleApprove = (id: string) => {
+    const handleApprove = (id: string, itemType: AdminVerificationType) => {
         if (confirm("승인하시겠습니까?")) {
-            approveMutation.mutate({ id, type });
+            approveMutation.mutate({ id, type: itemType });
         }
     };
 
@@ -92,7 +94,9 @@ export default function AdminVerificationsPage() {
     const searchPlaceholder =
         type === "doctor"
             ? "면허번호, 이름, 병원명으로 검색"
-            : "회사명, 사업자번호, 담당자, 연락처, 이메일로 검색";
+            : type === "vendor"
+            ? "회사명, 사업자번호, 담당자, 연락처, 이메일로 검색"
+            : "이름, 면허번호, 회사명, 사업자번호로 검색";
 
     const getStatusBadge = (status: VerificationStatus) => {
         switch (status) {
@@ -124,7 +128,7 @@ export default function AdminVerificationsPage() {
         <div className="space-y-6">
             {/* 헤더 */}
             <div>
-                <h1 className="text-xl font-bold text-content-primary">인증 승인 관리</h1>
+                <h1 className="text-xl font-bold text-content-primary">가입 인증 승인 관리</h1>
                 <p className="text-sm text-gray-500 mt-1">한의사 및 업체 인증 요청을 검토하고 승인/반려합니다.</p>
             </div>
 
@@ -217,13 +221,13 @@ export default function AdminVerificationsPage() {
                                             <p className="font-medium text-content-primary truncate">
                                                 {user.displayName ?? user.email ?? "이름 없음"}
                                             </p>
-                                            {type === "doctor" && "licenseNo" in verification && (
+                                            {"licenseNo" in verification && (
                                                 <p className="text-sm text-gray-500 mt-0.5">
                                                     면허번호: {verification.licenseNo} /{" "}
                                                     {verification.clinicName ?? "-"}
                                                 </p>
                                             )}
-                                            {type === "vendor" && "companyName" in verification && (
+                                            {"companyName" in verification && (
                                                 <p className="text-sm text-gray-500 mt-0.5">
                                                     {verification.companyName} / 사업자번호:{" "}
                                                     {verification.businessNo}
@@ -243,7 +247,7 @@ export default function AdminVerificationsPage() {
                                                 <Button
                                                     variant="primary"
                                                     size="xs"
-                                                    onClick={() => handleApprove(verification.id)}
+                                                    onClick={() => handleApprove(verification.id, item.type as AdminVerificationType)}
                                                     isLoading={approveMutation.isPending}
                                                     LeadingIcon={<CheckCircle />}
                                                 >
@@ -252,7 +256,7 @@ export default function AdminVerificationsPage() {
                                                 <Button
                                                     variant="danger"
                                                     size="xs"
-                                                    onClick={() => setRejectTarget({ id: verification.id, type })}
+                                                    onClick={() => setRejectTarget({ id: verification.id, type: item.type as AdminVerificationType })}
                                                     LeadingIcon={<XCircle />}
                                                 >
                                                     반려

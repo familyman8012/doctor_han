@@ -25,7 +25,7 @@ export function MessageList({ messages, currentUserId, isLoading }: MessageListP
         const prevLastMessageId = prevLastMessageIdRef.current;
 
         if (prevLastMessageId && lastMessageId && prevLastMessageId !== lastMessageId) {
-            bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+            bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
         prevLastMessageIdRef.current = lastMessageId;
     }, [messages]);
@@ -34,7 +34,7 @@ export function MessageList({ messages, currentUserId, isLoading }: MessageListP
     useEffect(() => {
         if (didInitialScrollRef.current) return;
         if (!isLoading && messages.length > 0) {
-            bottomRef.current?.scrollIntoView({ behavior: "instant" });
+            bottomRef.current?.scrollIntoView({ behavior: "instant", block: "nearest" });
             prevLastMessageIdRef.current = messages[messages.length - 1]?.id ?? null;
             didInitialScrollRef.current = true;
         }

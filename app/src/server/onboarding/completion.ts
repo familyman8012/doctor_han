@@ -101,7 +101,7 @@ export async function calculateDoctorCompletion(ctx: CompletionContext): Promise
         points: hasLeads ? 20 : 0,
         maxPoints: 20,
         status: hasLeads ? "completed" : "pending",
-        href: hasLeads ? undefined : "/vendors",
+        href: hasLeads ? undefined : "/categories",
     });
 
     const { score, totalPoints, maxPoints } = calculateScore(checklist);

@@ -29,7 +29,7 @@ import { cn } from "@/components/utils";
 
 const NAV_ITEMS = [
     { href: "/admin/dashboard", label: "대시보드", icon: BarChart3 },
-    { href: "/admin/verifications", label: "인증 승인 관리", icon: CheckCircle },
+    { href: "/admin/verifications", label: "가입 인증 승인 관리", icon: CheckCircle },
     { href: "/admin/reports", label: "리뷰 신고 관리", icon: Flag },
     { href: "/admin/lead-reports", label: "리드 신고 관리", icon: Flag },
     { href: "/admin/support", label: "고객지원", icon: MessageCircle },
@@ -37,7 +37,7 @@ const NAV_ITEMS = [
     { href: "/admin/vendors", label: "업체 관리", icon: Building2 },
     { href: "/admin/products", label: "상품 관리", icon: Package },
     { href: "/admin/categories", label: "카테고리 관리", icon: FolderTree },
-    { href: "/admin/help-center", label: "헬프센터 관리", icon: HelpCircle },
+    { href: "/admin/help-center", label: "고객센터 관리", icon: HelpCircle },
     { href: "/admin/audit-logs", label: "감사 로그", icon: FileText },
     { href: "/admin/ads", label: "광고 관리", icon: Megaphone },
     { href: "/admin/memberships", label: "입점 멤버십", icon: Crown },

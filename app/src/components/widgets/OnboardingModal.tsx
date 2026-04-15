@@ -15,7 +15,7 @@ interface OnboardingStep {
 const DOCTOR_STEPS: OnboardingStep[] = [
     { key: "profile_created", label: "프로필 작성", href: "/mypage", required: true },
     { key: "verification_submitted", label: "면허 인증 제출", href: "/verification/doctor", required: true },
-    { key: "first_lead_created", label: "첫 문의 생성", href: "/vendors", required: false },
+    { key: "first_lead_created", label: "첫 문의 생성", href: "/categories", required: false },
 ];
 
 const VENDOR_STEPS: OnboardingStep[] = [

@@ -91,7 +91,7 @@ function HelpCenterContent() {
         <div className="max-w-4xl mx-auto px-4 py-8">
             {/* Header */}
             <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-content-primary mb-2">헬프센터</h1>
+                <h1 className="text-3xl font-bold text-content-primary mb-2">고객센터</h1>
                 <p className="text-gray-500">궁금한 점이 있으신가요? 자주 묻는 질문과 공지사항을 확인해보세요.</p>
             </div>
 

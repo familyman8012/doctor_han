@@ -22,6 +22,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useIsAuthenticated, useUserRole, useAuthStore, useProfile } from "@/stores/auth";
 import { creditsApi } from "@/api-client/credits";
+import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { cn } from "@/components/utils";
 
@@ -56,6 +57,22 @@ export default function PartnerLayout({ children }: { children: ReactNode }) {
         staleTime: 30_000,
     });
     const creditBalance = creditData?.data?.account?.balance;
+
+    const { data: vendorData } = useQuery({
+        queryKey: ["partner", "my-vendor-categories"],
+        queryFn: async () => {
+            const res = await api.get<{ data: { vendor: { categories?: { slug: string }[] } | null } }>("/api/vendors/me");
+            return res.data.data.vendor?.categories ?? [];
+        },
+        enabled: isAuthenticated && role === "vendor",
+        staleTime: 60_000,
+    });
+    const hasInterior = (vendorData ?? []).some((cat) => cat.slug === "interior");
+
+    const navItems = NAV_ITEMS.filter((item) => {
+        if (item.href === "/partner/bids" && !hasInterior) return false;
+        return true;
+    });
 
     useEffect(() => {
         if (!isInitialized) return;
@@ -124,7 +141,7 @@ export default function PartnerLayout({ children }: { children: ReactNode }) {
                     <nav className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                         {/* 모바일: 가로 스크롤 */}
                         <div className="lg:hidden flex overflow-x-auto scrollbar-hide">
-                            {NAV_ITEMS.map((item) => {
+                            {navItems.map((item) => {
                                 const Icon = item.icon;
                                 const active = isActive(item.href, item.exact);
                                 return (
@@ -147,7 +164,7 @@ export default function PartnerLayout({ children }: { children: ReactNode }) {
 
                         {/* 데스크톱: 세로 리스트 */}
                         <div className="hidden lg:block">
-                            {NAV_ITEMS.map((item) => {
+                            {navItems.map((item) => {
                                 const Icon = item.icon;
                                 const active = isActive(item.href, item.exact);
                                 return (

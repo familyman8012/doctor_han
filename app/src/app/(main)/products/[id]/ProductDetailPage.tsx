@@ -8,6 +8,7 @@ import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
 import { useIsAuthenticated, useUser, useUserRole } from "@/stores/auth";
+import { RequireApproval } from "@/components/widgets/RequireApproval";
 import type { ProductDetail } from "@/lib/schema/product";
 import { ProductImageGallery } from "./components/ProductImageGallery";
 import { ProductFaqSection } from "./components/ProductFaqSection";
@@ -149,12 +150,14 @@ export default function ProductDetailPage({ productId }: ProductDetailPageProps)
                             <p className="text-primary-200 text-sm">
                                 지금 바로 문의하시면 빠르게 안내해 드립니다
                             </p>
-                            <Link
-                                href={`/products/${product.id}/inquiry`}
-                                className="block w-full text-center py-3 px-4 bg-white text-primary font-semibold rounded-lg hover:bg-gray-50 transition-colors"
-                            >
-                                문의하기
-                            </Link>
+                            <RequireApproval message="면허 인증 완료 후 문의할 수 있습니다.">
+                                <Link
+                                    href={`/products/${product.id}/inquiry`}
+                                    className="block w-full text-center py-3 px-4 bg-white text-primary font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    문의하기
+                                </Link>
+                            </RequireApproval>
                         </div>
 
                         {/* Enhanced vendor card */}

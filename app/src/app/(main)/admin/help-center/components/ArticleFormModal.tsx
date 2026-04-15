@@ -212,7 +212,7 @@ export function ArticleFormModal({
                             <textarea
                                 id="article-content"
                                 {...register("content", { required: type === "faq" ? "답변을 입력해주세요." : "내용을 입력해주세요." })}
-                                className="plain"
+                                className="w-full border border-gray-200 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                                 placeholder={type === "faq" ? "답변을 입력하세요" : "공지사항 내용을 입력하세요"}
                                 rows={6}
                             />

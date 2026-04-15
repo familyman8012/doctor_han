@@ -5,6 +5,7 @@ import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
 import { cn } from "@/components/utils";
 import { useIsAuthenticated, useUserRole } from "@/stores/auth";
+import { RequireApproval } from "@/components/widgets/RequireApproval";
 import { formatPriceCompact } from "@/lib/utils/format";
 import type { VendorDetail } from "@/lib/schema/vendor";
 
@@ -46,11 +47,13 @@ export function MobileCtaBar({ vendor, isFavorited, onFavoriteClick }: MobileCta
 
                 {/* Right: CTA */}
                 {canInquire ? (
-                    <Link href={`/vendors/${vendor.id}/inquiry`}>
-                        <Button variant="primary" size="md">
-                            문의하기
-                        </Button>
-                    </Link>
+                    <RequireApproval message="면허 인증 완료 후 문의할 수 있습니다.">
+                        <Link href={`/vendors/${vendor.id}/inquiry`}>
+                            <Button variant="primary" size="md">
+                                문의하기
+                            </Button>
+                        </Link>
+                    </RequireApproval>
                 ) : !isAuthenticated ? (
                     <Link href="/login">
                         <Button variant="primary" size="md">

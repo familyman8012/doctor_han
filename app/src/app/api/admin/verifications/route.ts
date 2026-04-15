@@ -23,6 +23,46 @@ export const GET = withApi(
         const from = (query.page - 1) * query.pageSize;
         const to = from + query.pageSize - 1;
 
+        // 전체 조회: 양쪽 테이블 합산
+        if (!query.type) {
+            let dqb = ctx.supabase.from("doctor_verifications").select(
+                `*, user:profiles!doctor_verifications_user_id_fkey(*)`,
+                { count: "exact" },
+            );
+            let vqb = ctx.supabase.from("vendor_verifications").select(
+                `*, user:profiles!vendor_verifications_user_id_fkey(*)`,
+                { count: "exact" },
+            );
+
+            if (query.status) {
+                dqb = dqb.eq("status", query.status);
+                vqb = vqb.eq("status", query.status);
+            }
+            if (query.q) {
+                const dFilter = buildOrIlikeFilter(["license_no", "full_name", "clinic_name"], query.q);
+                if (dFilter) dqb = dqb.or(dFilter);
+                const vFilter = buildOrIlikeFilter(["business_no", "company_name", "contact_name", "contact_phone", "contact_email"], query.q);
+                if (vFilter) vqb = vqb.or(vFilter);
+            }
+
+            dqb = dqb.order("created_at", { ascending: false });
+            vqb = vqb.order("created_at", { ascending: false });
+
+            const [dRes, vRes] = await Promise.all([dqb, vqb]);
+            if (dRes.error) throw internalServerError("조회 실패", { message: dRes.error.message });
+            if (vRes.error) throw internalServerError("조회 실패", { message: vRes.error.message });
+
+            const allItems = [
+                ...(dRes.data ?? []).map((row) => ({ ...mapAdminDoctorVerificationListItemRow(row), _createdAt: row.created_at })),
+                ...(vRes.data ?? []).map((row) => ({ ...mapAdminVendorVerificationListItemRow(row), _createdAt: row.created_at })),
+            ].sort((a, b) => new Date(b._createdAt).getTime() - new Date(a._createdAt).getTime());
+
+            const total = (dRes.count ?? 0) + (vRes.count ?? 0);
+            const paged = allItems.slice(from, to + 1).map(({ _createdAt, ...rest }) => rest);
+
+            return ok({ type: "all" as const, items: paged, page: query.page, pageSize: query.pageSize, total });
+        }
+
         if (query.type === "doctor") {
             let qb = ctx.supabase.from("doctor_verifications").select(
                 `

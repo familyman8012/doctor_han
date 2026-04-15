@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button/button";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { cn } from "@/components/utils";
 import api from "@/api-client/client";
+import { RequireApproval } from "@/components/widgets/RequireApproval";
 import { useIsAuthenticated, useUserRole } from "@/stores/auth";
 import { formatPrice } from "@/lib/utils/format";
 import type { VendorDetail } from "@/lib/schema/vendor";
@@ -98,16 +99,18 @@ export function StickyCtaPanel({ vendor, isFavorited }: StickyCtaPanelProps) {
                     지금 바로 문의하고 견적을 받아보세요
                 </p>
                 {canInquire ? (
-                    <Link href={`/vendors/${vendor.id}/inquiry`} className="block w-full">
-                        <Button
-                            variant="secondary"
-                            size="lg"
-                            LeadingIcon={<FileText className="w-5 h-5" />}
-                            className="w-full bg-primary text-content-primary hover:bg-primary-700"
-                        >
-                            문의하기
-                        </Button>
-                    </Link>
+                    <RequireApproval message="면허 인증 완료 후 문의할 수 있습니다.">
+                        <Link href={`/vendors/${vendor.id}/inquiry`} className="block w-full">
+                            <Button
+                                variant="secondary"
+                                size="lg"
+                                LeadingIcon={<FileText className="w-5 h-5" />}
+                                className="w-full bg-primary text-content-primary hover:bg-primary-700"
+                            >
+                                문의하기
+                            </Button>
+                        </Link>
+                    </RequireApproval>
                 ) : !isAuthenticated ? (
                     <Link href="/login" className="block w-full">
                         <Button

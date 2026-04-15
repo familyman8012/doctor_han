@@ -62,6 +62,11 @@ const TARGET_TYPE_LABELS: Record<string, string> = {
     file: "파일",
 };
 
+function getTargetName(log: AuditLogView): string | null {
+    const m = log.metadata;
+    return (m?.vendorName as string) ?? (m?.productTitle as string) ?? (m?.companyName as string) ?? null;
+}
+
 export default function AdminAuditLogsPage() {
     const [action, setAction] = useQueryState("action", parseAsString.withDefault("all"));
     const [targetType, setTargetType] = useQueryState("type", parseAsString.withDefault("all"));
@@ -247,6 +252,9 @@ export default function AdminAuditLogsPage() {
                                         대상유형
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        대상
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         행위자
                                     </th>
                                 </tr>
@@ -263,6 +271,9 @@ export default function AdminAuditLogsPage() {
                                         </td>
                                         <td className="px-4 py-3">{getActionBadge(item.action)}</td>
                                         <td className="px-4 py-3">{getTargetTypeBadge(item.targetType)}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-600">
+                                            {getTargetName(item) ?? (item.targetId ? item.targetId.slice(0, 8) + "…" : "-")}
+                                        </td>
                                         <td className="px-4 py-3 text-sm text-content-primary">
                                             <div>
                                                 <span className="font-medium">
@@ -319,6 +330,12 @@ export default function AdminAuditLogsPage() {
                             <p className="text-sm text-gray-500">대상유형</p>
                             <div className="mt-1">{getTargetTypeBadge(selectedLog.targetType)}</div>
                         </div>
+                        {getTargetName(selectedLog) && (
+                            <div>
+                                <p className="text-sm text-gray-500">대상명</p>
+                                <p className="text-content-primary font-medium">{getTargetName(selectedLog)}</p>
+                            </div>
+                        )}
                         {selectedLog.targetId && (
                             <div>
                                 <p className="text-sm text-gray-500">대상 ID</p>

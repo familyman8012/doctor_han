@@ -8,6 +8,7 @@ import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
 import { Badge } from "@/components/ui/Badge/Badge";
 import { useIsAuthenticated, useUserRole, useAuthStore } from "@/stores/auth";
+import { RequireApproval } from "@/components/widgets/RequireApproval";
 import { useQueryState } from "nuqs";
 import type { BidProjectStatus } from "@/lib/schema/bidding";
 
@@ -74,13 +75,15 @@ export default function InteriorPage() {
                     </h1>
                     <p className="text-gray-500 mt-1">총 {total}건</p>
                 </div>
-                <button
-                    onClick={() => router.push("/interior/create")}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-primary-900 text-white rounded-lg text-sm font-medium hover:bg-primary-900/90 transition-colors"
-                >
-                    <Plus className="w-4 h-4" />
-                    프로젝트 등록
-                </button>
+                <RequireApproval message="면허 인증 완료 후 프로젝트를 등록할 수 있습니다.">
+                    <button
+                        onClick={() => router.push("/interior/create")}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-primary-900 text-white rounded-lg text-sm font-medium hover:bg-primary-900/90 transition-colors"
+                    >
+                        <Plus className="w-4 h-4" />
+                        프로젝트 등록
+                    </button>
+                </RequireApproval>
             </div>
 
             {/* 상태 필터 */}

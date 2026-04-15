@@ -126,8 +126,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 !data.requiredConsents!.privacy.agreedAt
             );
 
-        const isLegalPage = pathname?.startsWith("/legal") ?? false;
-        const computedShowRequiredConsents = Boolean(needsRequiredConsents && !isLegalPage && !dismissalState.consentsDismissed);
+        const isExcludedPage = (pathname?.startsWith("/legal") || pathname?.startsWith("/verification") || pathname?.startsWith("/onboarding")) ?? false;
+        const computedShowRequiredConsents = Boolean(needsRequiredConsents && !isExcludedPage && !dismissalState.consentsDismissed);
 
         // 온보딩 모달 표시 조건:
         // - 프로필 있음 (onboardingRequired가 false)
@@ -142,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             !data.onboarding.skippedAt &&
             !data.onboarding.completedAt;
 
-        const computedShowOnboarding = Boolean(shouldShowModal && !needsRequiredConsents && !dismissalState.onboardingDismissed);
+        const computedShowOnboarding = Boolean(shouldShowModal && !needsRequiredConsents && !isExcludedPage && !dismissalState.onboardingDismissed);
 
         return {
             showRequiredConsentsModal: computedShowRequiredConsents,

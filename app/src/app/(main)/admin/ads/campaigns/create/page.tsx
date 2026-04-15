@@ -2,11 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { ArrowLeft, Plus, Trash2, Upload, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { adsApi } from "@/api-client/ads";
+import { adminApi } from "@/api-client/admin";
+import api from "@/api-client/client";
+import { Select, type IOption } from "@/components/ui/Select/Select";
+import { getSupabaseBrowserClient } from "@/server/supabase/browser";
+import type { FileSignedUploadResponse } from "@/lib/schema/file";
 import type { AdminCampaignCreateBody } from "@/lib/schema/ad";
 
 interface CreativeInput {
@@ -17,6 +22,19 @@ interface CreativeInput {
 
 export default function CreateCampaignPage() {
     const router = useRouter();
+
+    const { data: slotsData } = useQuery({
+        queryKey: ["admin", "ad-slots"],
+        queryFn: () => adsApi.getAdminSlots(),
+    });
+    const slots = slotsData?.data?.items ?? [];
+
+    const { data: vendorsData } = useQuery({
+        queryKey: ["admin", "vendors-all"],
+        queryFn: () => adminApi.getVendors({ status: "active", pageSize: 100 }),
+    });
+    const vendors = vendorsData?.data?.items ?? [];
+
     const [adSlotId, setAdSlotId] = useState("");
     const [advertiserName, setAdvertiserName] = useState("");
     const [vendorId, setVendorId] = useState("");
@@ -37,6 +55,28 @@ export default function CreateCampaignPage() {
             toast.error("캠페인 생성에 실패했습니다.");
         },
     });
+
+    const handleImageUpload = async (index: number, file: File) => {
+        try {
+            const signedRes = await api.post<FileSignedUploadResponse>("/api/files/signed-upload", {
+                purpose: "product_image",
+                fileName: file.name,
+                mimeType: file.type,
+                sizeBytes: file.size,
+            });
+            const { file: fileRecord, upload } = signedRes.data.data;
+            const supabase = getSupabaseBrowserClient();
+            const { error } = await supabase.storage
+                .from(upload.bucket)
+                .uploadToSignedUrl(upload.path, upload.token, file);
+            if (error) throw error;
+            const imageUrl = `/api/files/open?fileId=${fileRecord.id}`;
+            updateCreative(index, "imageUrl", imageUrl);
+            toast.success("이미지가 업로드되었습니다.");
+        } catch {
+            toast.error("이미지 업로드에 실패했습니다.");
+        }
+    };
 
     const addCreative = () => {
         setCreatives([...creatives, { title: "", imageUrl: "", clickUrl: "" }]);
@@ -82,16 +122,22 @@ export default function CreateCampaignPage() {
                     <h2 className="font-semibold text-content-primary">기본 정보</h2>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">슬롯 ID</label>
-                        <input
-                            type="text"
+                        <label className="block text-sm font-medium text-gray-700 mb-1">광고 슬롯</label>
+                        <Select
+                            options={[
+                                { value: "", label: "슬롯을 선택하세요" },
+                                ...slots.map((slot) => ({
+                                    value: slot.id,
+                                    label: `${slot.name} (${slot.position})`,
+                                })),
+                            ]}
                             value={adSlotId}
-                            onChange={(e) => setAdSlotId(e.target.value)}
-                            placeholder="슬롯 UUID"
-                            required
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            onChange={(opt) => {
+                                if (!opt || Array.isArray(opt)) return setAdSlotId("");
+                                setAdSlotId(String(opt.value));
+                            }}
+                            isSearchable
                         />
-                        <p className="text-xs text-gray-400 mt-1">메인 또는 서브 배너 슬롯의 ID</p>
                     </div>
 
                     <div>
@@ -106,13 +152,21 @@ export default function CreateCampaignPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">업체 ID (선택)</label>
-                        <input
-                            type="text"
+                        <label className="block text-sm font-medium text-gray-700 mb-1">연결 업체 (선택)</label>
+                        <Select
+                            options={[
+                                { value: "", label: "업체 없음" },
+                                ...vendors.map((v) => ({
+                                    value: v.id,
+                                    label: v.name,
+                                })),
+                            ]}
                             value={vendorId}
-                            onChange={(e) => setVendorId(e.target.value)}
-                            placeholder="연결할 업체 UUID (선택)"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            onChange={(opt) => {
+                                if (!opt || Array.isArray(opt)) return setVendorId("");
+                                setVendorId(String(opt.value));
+                            }}
+                            isSearchable
                         />
                     </div>
 
@@ -179,13 +233,39 @@ export default function CreateCampaignPage() {
                                 required
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             />
-                            <input
-                                type="url"
-                                value={creative.imageUrl}
-                                onChange={(e) => updateCreative(index, "imageUrl", e.target.value)}
-                                placeholder="이미지 URL (선택)"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
+                            <div>
+                                <label className="block text-xs text-gray-500 mb-1">배너 이미지</label>
+                                {creative.imageUrl ? (
+                                    <div className="relative group">
+                                        <img
+                                            src={creative.imageUrl}
+                                            alt="배너 미리보기"
+                                            className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => updateCreative(index, "imageUrl", "")}
+                                            className="absolute top-1 right-1 p-1 bg-white/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors">
+                                        <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                                        <span className="text-xs text-gray-500">클릭하여 이미지 업로드</span>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) handleImageUpload(index, file);
+                                            }}
+                                        />
+                                    </label>
+                                )}
+                            </div>
                             <input
                                 type="url"
                                 value={creative.clickUrl}

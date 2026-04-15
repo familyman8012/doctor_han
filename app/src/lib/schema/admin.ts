@@ -11,7 +11,7 @@ export type AdminVerificationType = z.infer<typeof AdminVerificationTypeSchema>;
 
 export const AdminVerificationListQuerySchema = z
     .object({
-        type: AdminVerificationTypeSchema,
+        type: AdminVerificationTypeSchema.optional(),
         status: VerificationStatusSchema.optional(),
         q: z.string().trim().min(1).optional(),
     })
@@ -144,6 +144,7 @@ export type AdminUserListResponse = z.infer<typeof AdminUserListResponseSchema>;
 export const AdminVendorListQuerySchema = z
     .object({
         status: VendorStatusSchema.optional(),
+        categoryId: zUuid.optional(),
         q: z.string().trim().min(1).optional(),
     })
     .merge(zPaginationQuery)

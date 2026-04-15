@@ -28,7 +28,7 @@ export const Tab: FC<TabProps> = ({ title, label, isActive = false, onClick, lay
     return (
         <div
             className={cn(
-                "flex items-center relative h-8 px-3 pb-2",
+                "flex items-center relative h-8 px-3 pb-2 shrink-0 whitespace-nowrap",
                 "text-sm font-medium cursor-pointer transition-colors",
                 isActive ? "text-content-primary" : "text-content-secondary hover:text-content-primary",
             )}
@@ -62,7 +62,7 @@ export const Tabs: FC<TabsProps> = ({ id, tabs, activeTabIndex, onTabChange, cla
 
     return (
         <LayoutGroup id={id}>
-            <div className={cn("flex relative border-b border-gray-200", className)}>
+            <div className={cn("flex relative border-b border-gray-200 overflow-x-auto scrollbar-hide", className)}>
                 {tabs.map((tab, index) => (
                     <Tab
                         key={`${id}-tab-${index}`}

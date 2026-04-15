@@ -1,9 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { Gavel } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Gavel, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { biddingApi } from "@/api-client/bidding";
+import api from "@/api-client/client";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
 import { Badge } from "@/components/ui/Badge/Badge";
@@ -36,7 +38,26 @@ const STATUS_COLORS: Record<BidProjectStatus, "green" | "blue" | "orange" | "red
 
 export default function AdminBidProjectsPage() {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const [statusFilter, setStatusFilter] = useQueryState("status");
+
+    const deleteMutation = useMutation({
+        mutationFn: async (id: string) => {
+            await api.delete(`/api/admin/bid-projects/${id}`);
+        },
+        onSuccess: () => {
+            toast.success("프로젝트가 삭제되었습니다.");
+            queryClient.invalidateQueries({ queryKey: ["admin", "bid-projects"] });
+        },
+        onError: () => toast.error("삭제에 실패했습니다."),
+    });
+
+    const handleDelete = (e: React.MouseEvent, id: string, title: string) => {
+        e.stopPropagation();
+        if (confirm(`"${title}" 프로젝트를 삭제하시겠습니까?\n입찰 응답도 함께 삭제됩니다.`)) {
+            deleteMutation.mutate(id);
+        }
+    };
 
     const { data, isLoading } = useQuery({
         queryKey: ["admin", "bid-projects", statusFilter],
@@ -99,6 +120,7 @@ export default function AdminBidProjectsPage() {
                                 <th className="px-4 py-3 text-left font-medium text-gray-600">예산</th>
                                 <th className="px-4 py-3 text-left font-medium text-gray-600">상태</th>
                                 <th className="px-4 py-3 text-left font-medium text-gray-600">등록일</th>
+                                <th className="px-4 py-3 w-16" />
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -122,6 +144,17 @@ export default function AdminBidProjectsPage() {
                                     </td>
                                     <td className="px-4 py-3 text-gray-400">
                                         {new Date(project.createdAt).toLocaleDateString("ko-KR")}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => handleDelete(e, project.id, project.title)}
+                                            disabled={deleteMutation.isPending}
+                                            className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                                            title="삭제"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

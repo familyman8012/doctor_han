@@ -123,7 +123,7 @@ export default function AdminHelpCenterPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-xl font-bold text-content-primary">헬프센터 관리</h1>
+                    <h1 className="text-xl font-bold text-content-primary">고객센터 관리</h1>
                     <p className="text-sm text-gray-500 mt-1">FAQ, 공지사항을 관리합니다.</p>
                 </div>
                 {currentTab !== "categories" ? (

@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { X, Download } from "lucide-react";
+import { X, Download, Eye } from "lucide-react";
 import dayjs from "dayjs";
 import { Button } from "@/components/ui/Button/button";
 import { Badge } from "@/components/ui/Badge/Badge";
@@ -20,6 +21,7 @@ interface VerificationDetailModalProps {
 
 export function VerificationDetailModal({ isOpen, onClose, item }: VerificationDetailModalProps) {
     const { verification, user, type } = item;
+    const [previewFileId, setPreviewFileId] = useState<string | null>(null);
 
     const downloadMutation = useMutation({
         mutationFn: async (fileId: string) => {
@@ -128,7 +130,15 @@ export function VerificationDetailModal({ isOpen, onClose, item }: VerificationD
                                         {verification.licenseFileId && (
                                             <div className="flex items-center pt-2">
                                                 <dt className="w-24 text-gray-500">면허증</dt>
-                                                <dd>
+                                                <dd className="flex gap-2">
+                                                    <Button
+                                                        variant="secondary"
+                                                        size="xs"
+                                                        onClick={() => setPreviewFileId(verification.licenseFileId!)}
+                                                        LeadingIcon={<Eye />}
+                                                    >
+                                                        미리보기
+                                                    </Button>
                                                     <Button
                                                         variant="secondary"
                                                         size="xs"
@@ -136,7 +146,7 @@ export function VerificationDetailModal({ isOpen, onClose, item }: VerificationD
                                                         isLoading={downloadMutation.isPending}
                                                         LeadingIcon={<Download />}
                                                     >
-                                                        파일 보기
+                                                        다운로드
                                                     </Button>
                                                 </dd>
                                             </div>
@@ -168,7 +178,15 @@ export function VerificationDetailModal({ isOpen, onClose, item }: VerificationD
                                         {verification.businessLicenseFileId && (
                                             <div className="flex items-center pt-2">
                                                 <dt className="w-24 text-gray-500">사업자등록증</dt>
-                                                <dd>
+                                                <dd className="flex gap-2">
+                                                    <Button
+                                                        variant="secondary"
+                                                        size="xs"
+                                                        onClick={() => setPreviewFileId(verification.businessLicenseFileId!)}
+                                                        LeadingIcon={<Eye />}
+                                                    >
+                                                        미리보기
+                                                    </Button>
                                                     <Button
                                                         variant="secondary"
                                                         size="xs"
@@ -178,7 +196,7 @@ export function VerificationDetailModal({ isOpen, onClose, item }: VerificationD
                                                         isLoading={downloadMutation.isPending}
                                                         LeadingIcon={<Download />}
                                                     >
-                                                        파일 보기
+                                                        다운로드
                                                     </Button>
                                                 </dd>
                                             </div>
@@ -219,6 +237,29 @@ export function VerificationDetailModal({ isOpen, onClose, item }: VerificationD
                     </Button>
                 </div>
             </div>
+
+            {/* 이미지 미리보기 팝업 */}
+            {previewFileId && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70"
+                    onClick={() => setPreviewFileId(null)}
+                >
+                    <div className="relative max-w-[90vw] max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+                        <button
+                            type="button"
+                            onClick={() => setPreviewFileId(null)}
+                            className="absolute -top-3 -right-3 z-10 p-1.5 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+                        >
+                            <X className="w-4 h-4 text-gray-600" />
+                        </button>
+                        <img
+                            src={`/api/files/open?fileId=${previewFileId}`}
+                            alt="첨부파일 미리보기"
+                            className="max-w-[85vw] max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

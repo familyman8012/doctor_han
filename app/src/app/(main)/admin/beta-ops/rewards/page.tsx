@@ -9,7 +9,10 @@ import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
 import { toast } from "sonner";
 import type { AdminCreditAdjustType } from "@/lib/schema/credit";
-import { CheckCircle, Gift, MinusCircle, PlusCircle } from "lucide-react";
+import { CheckCircle, Gift, MinusCircle, PlusCircle, Search } from "lucide-react";
+import { Input } from "@/components/ui/Input/Input";
+import { Select } from "@/components/ui/Select/Select";
+import Pagination from "@/components/widgets/Pagination/Pagination";
 
 const GRADE_BADGE_MAP: Record<string, "success" | "warning" | "error"> = {
     A: "success",
@@ -38,6 +41,9 @@ const ADJUST_TYPE_LABELS: Record<string, string> = {
 
 export default function BetaOpsRewardsPage() {
     const queryClient = useQueryClient();
+    const [searchQuery, setSearchQuery] = useState("");
+    const [page, setPage] = useState(1);
+    const PAGE_SIZE = 20;
     const [manualVendorId, setManualVendorId] = useState("");
     const [manualAmount, setManualAmount] = useState("");
     const [manualReason, setManualReason] = useState("");
@@ -48,7 +54,13 @@ export default function BetaOpsRewardsPage() {
         queryFn: () => adminApi.getBetaOpsRewards(),
     });
 
-    const items = data?.data?.items ?? [];
+    const allItems = data?.data?.items ?? [];
+    const filteredItems = searchQuery
+        ? allItems.filter((item) => item.vendorName.toLowerCase().includes(searchQuery.toLowerCase()))
+        : allItems;
+    const totalFiltered = filteredItems.length;
+    const paginatedItems = filteredItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    const items = allItems; // keep for manual vendor selector
 
     const adjustMutation = useMutation({
         mutationFn: (params: { vendorId: string; amount: number; reason: string; adjustType: AdminCreditAdjustType }) =>
@@ -127,6 +139,15 @@ export default function BetaOpsRewardsPage() {
                     <p className="text-xs text-gray-500 mt-0.5">
                         초기 100,000원 / 조건 충족 시 보너스 150,000원 (응답률 ≥80%, 평균 응답 ≤24h, 리드 ≥1건)
                     </p>
+                    <div className="relative mt-2 max-w-xs">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input
+                            placeholder="업체명으로 검색"
+                            value={searchQuery}
+                            onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+                            className="pl-9"
+                        />
+                    </div>
                 </div>
 
                 {isLoading ? (
@@ -142,6 +163,7 @@ export default function BetaOpsRewardsPage() {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-gray-200 bg-gray-50">
+                                    <th className="text-left px-4 py-3 font-medium text-gray-600 w-12">#</th>
                                     <th className="text-left px-4 py-3 font-medium text-gray-600">업체명</th>
                                     <th className="text-left px-4 py-3 font-medium text-gray-600">등급</th>
                                     <th className="text-left px-4 py-3 font-medium text-gray-600">응답률</th>
@@ -154,8 +176,9 @@ export default function BetaOpsRewardsPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {items.map((item) => (
+                                {paginatedItems.map((item, idx) => (
                                     <tr key={item.vendorId} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                        <td className="px-4 py-3 text-gray-400 text-xs">{(page - 1) * PAGE_SIZE + idx + 1}</td>
                                         <td className="px-4 py-3 font-medium">{item.vendorName}</td>
                                         <td className="px-4 py-3">
                                             <Badge color={GRADE_BADGE_MAP[item.grade] ?? "neutral"}>{item.grade}</Badge>
@@ -221,6 +244,22 @@ export default function BetaOpsRewardsPage() {
                         </table>
                     </div>
                 )}
+
+                {/* 페이지네이션 */}
+                {totalFiltered > PAGE_SIZE && (
+                    <div className="border-t border-gray-100 py-4">
+                        <Pagination
+                            pageInfo={[page, PAGE_SIZE]}
+                            totalCount={totalFiltered}
+                            handlePageChange={setPage}
+                        />
+                    </div>
+                )}
+
+                {/* 통계 */}
+                <div className="text-xs text-gray-400 text-center py-2">
+                    {searchQuery ? `검색 결과: ${totalFiltered}건` : `전체: ${allItems.length}건`}
+                </div>
             </div>
 
             {/* Manual Credit Adjust Form */}
@@ -241,18 +280,21 @@ export default function BetaOpsRewardsPage() {
                         {/* Vendor selector */}
                         <div className="flex flex-col gap-1">
                             <label className="text-xs font-medium text-gray-600">업체 선택</label>
-                            <select
+                            <Select
+                                options={[
+                                    { value: "", label: "업체를 선택하세요" },
+                                    ...items.map((item) => ({
+                                        value: item.vendorId,
+                                        label: `${item.vendorName} (잔액: ${item.balance.toLocaleString()}원)`,
+                                    })),
+                                ]}
                                 value={manualVendorId}
-                                onChange={(e) => setManualVendorId(e.target.value)}
-                                className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                            >
-                                <option value="">업체를 선택하세요</option>
-                                {items.map((item) => (
-                                    <option key={item.vendorId} value={item.vendorId}>
-                                        {item.vendorName} (잔액: {item.balance.toLocaleString()}원)
-                                    </option>
-                                ))}
-                            </select>
+                                onChange={(opt) => {
+                                    if (!opt || Array.isArray(opt)) return setManualVendorId("");
+                                    setManualVendorId(String(opt.value));
+                                }}
+                                isSearchable
+                            />
                         </div>
 
                         {/* Adjust type */}

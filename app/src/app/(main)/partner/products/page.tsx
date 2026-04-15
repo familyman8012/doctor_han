@@ -11,6 +11,7 @@ import { Empty } from "@/components/ui/Empty/Empty";
 import { cn } from "@/components/utils";
 import type { ProductListItem } from "@/lib/schema/product";
 import { formatProductPrice } from "@/lib/utils/product-price";
+import { RequireApproval } from "@/components/widgets/RequireApproval";
 
 const STATUS_LABELS: Record<string, string> = {
     draft: "임시저장",
@@ -78,11 +79,13 @@ export default function PartnerProductsPage() {
                     </h1>
                     <p className="text-gray-500 mt-1">총 {products.length}개의 상품</p>
                 </div>
-                <Link href="/partner/products/new">
-                    <Button variant="primary" LeadingIcon={<Plus />}>
-                        새 상품 등록
-                    </Button>
-                </Link>
+                <RequireApproval message="사업자 인증 완료 후 상품을 등록할 수 있습니다.">
+                    <Link href="/partner/products/new">
+                        <Button variant="primary" LeadingIcon={<Plus />}>
+                            새 상품 등록
+                        </Button>
+                    </Link>
+                </RequireApproval>
             </div>
 
             {/* Product List */}

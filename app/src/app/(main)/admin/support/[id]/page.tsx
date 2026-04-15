@@ -100,7 +100,6 @@ export default function AdminSupportDetailPage() {
         );
     }
 
-    const canChangeStatus = ticket.status !== "closed";
     const isClosed = ticket.status === "closed";
     const inputPlaceholder = isClosed ? "종료된 문의입니다" : "메시지를 입력하세요...";
 
@@ -176,7 +175,18 @@ export default function AdminSupportDetailPage() {
                 </div>
 
                 {/* Status Change */}
-                {canChangeStatus && (
+                {isClosed ? (
+                    <div className="flex gap-3 pt-3 border-t border-gray-100">
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleStatusChange("in_progress")}
+                            isLoading={changeStatusMutation.isPending}
+                        >
+                            처리중으로 재오픈
+                        </Button>
+                    </div>
+                ) : (
                     <div className="flex flex-col sm:flex-row gap-3 pt-3 border-t border-gray-100">
                         <input
                             type="text"

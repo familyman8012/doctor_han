@@ -26,8 +26,8 @@ export default function AdminCategoriesPage() {
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
     const { data, isLoading } = useQuery({
-        queryKey: ["categories"],
-        queryFn: adminApi.getCategories,
+        queryKey: ["admin", "categories-tree"],
+        queryFn: () => adminApi.getCategories(),
     });
 
     const deleteMutation = useMutation({

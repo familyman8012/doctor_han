@@ -12,12 +12,12 @@ type VendorVerificationRow = Tables<"vendor_verifications">;
 export const GET = withApi(
     withRole(["admin"], async (ctx) => {
         const { searchParams } = new URL(ctx.req.url);
-        const query = AdminVendorListQuerySchema.parse({
-            status: searchParams.get("status") ?? undefined,
-            q: searchParams.get("q") ?? undefined,
-            page: searchParams.get("page") ?? undefined,
-            pageSize: searchParams.get("pageSize") ?? undefined,
-        });
+        const raw: Record<string, string> = {};
+        for (const key of ["status", "categoryId", "q", "page", "pageSize"]) {
+            const val = searchParams.get(key);
+            if (val !== null) raw[key] = val;
+        }
+        const query = AdminVendorListQuerySchema.parse(raw);
 
         const from = (query.page - 1) * query.pageSize;
         const to = from + query.pageSize - 1;
@@ -35,6 +35,19 @@ export const GET = withApi(
 
         if (query.status) {
             qb = qb.eq("status", query.status);
+        }
+
+        if (query.categoryId) {
+            // vendor_categories를 통해 특정 카테고리에 속한 업체만 필터
+            const { data: vcRows } = await ctx.supabase
+                .from("vendor_categories")
+                .select("vendor_id")
+                .eq("category_id", query.categoryId);
+            const vendorIds = (vcRows ?? []).map((r) => r.vendor_id);
+            if (vendorIds.length === 0) {
+                return ok({ items: [], page: query.page, pageSize: query.pageSize, total: 0 });
+            }
+            qb = qb.in("id", vendorIds);
         }
 
         if (query.q) {

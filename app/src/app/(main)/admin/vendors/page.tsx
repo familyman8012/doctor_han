@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Building2, Star, MapPin, ExternalLink } from "lucide-react";
+import { Search, Building2, Star, MapPin, ExternalLink, Filter } from "lucide-react";
 import dayjs from "dayjs";
 import Link from "next/link";
 import { adminApi } from "@/api-client/admin";
@@ -26,14 +26,22 @@ const STATUS_OPTIONS: { value: VendorStatus | "all"; label: string }[] = [
 
 export default function AdminVendorsPage() {
     const [status, setStatus] = useState<VendorStatus | "all">("all");
+    const [categoryId, setCategoryId] = useState<string>("");
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
 
+    const { data: categoriesData } = useQuery({
+        queryKey: ["admin", "categories"],
+        queryFn: () => adminApi.getCategories(),
+    });
+    const categories = categoriesData?.data?.items ?? [];
+
     const { data, isLoading } = useQuery({
-        queryKey: ["admin", "vendors", status, search, page],
+        queryKey: ["admin", "vendors", status, categoryId, search, page],
         queryFn: () =>
             adminApi.getVendors({
                 status: status === "all" ? undefined : status,
+                categoryId: categoryId || undefined,
                 q: search || undefined,
                 page,
                 pageSize: PAGE_SIZE,
@@ -82,6 +90,24 @@ export default function AdminVendorsPage() {
                                 {opt.label}
                             </Button>
                         ))}
+                    </div>
+                    <div className="relative">
+                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <select
+                            value={categoryId}
+                            onChange={(e) => {
+                                setCategoryId(e.target.value);
+                                setPage(1);
+                            }}
+                            className="pl-9 pr-8 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary appearance-none"
+                        >
+                            <option value="">전체 카테고리</option>
+                            {categories.map((cat) => (
+                                <option key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                     <div className="flex-1 max-w-xs">
                         <div className="relative">
@@ -135,7 +161,7 @@ export default function AdminVendorsPage() {
                                                 {dayjs(vendor.createdAt).format("YYYY.MM.DD")}
                                             </span>
                                         </div>
-                                        <p className="font-medium text-content-primary">{vendor.name}</p>
+                                        <Link href={`/vendors/${vendor.id}`} target="_blank" className="font-medium text-content-primary hover:text-primary hover:underline">{vendor.name}</Link>
                                         {vendor.summary && (
                                             <p className="text-sm text-gray-500 line-clamp-1">{vendor.summary}</p>
                                         )}
@@ -176,9 +202,9 @@ export default function AdminVendorsPage() {
                                                     <Building2 className="w-5 h-5 text-gray-400" />
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="font-medium text-content-primary truncate">
+                                                    <Link href={`/vendors/${vendor.id}`} target="_blank" className="font-medium text-content-primary truncate hover:text-primary hover:underline block">
                                                         {vendor.name}
-                                                    </p>
+                                                    </Link>
                                                     {vendor.summary && (
                                                         <p className="text-xs text-gray-500 truncate">
                                                             {vendor.summary}
