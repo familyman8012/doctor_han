@@ -61,16 +61,16 @@ export function ProfileCompletionBanner({ completion }: ProfileCompletionBannerP
                 </p>
             </div>
 
-            {/* 체크리스트 */}
+            {/* 체크리스트 — 미완료 먼저, 완료는 아래로 */}
             <ul className="divide-y divide-gray-100">
-                {checklist.map((item) => {
+                {[...checklist].sort((a, b) => (a.completed === b.completed ? 0 : a.completed ? 1 : -1)).map((item) => {
                     const statusText = getStatusText(item.status);
                     const isClickable = item.status === "pending" && item.href;
 
                     const content = (
                         <div className="flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors">
                             {getStatusIcon(item.status)}
-                            <span className={`flex-1 text-sm ${item.completed ? "text-gray-400 line-through" : "text-content-primary"}`}>
+                            <span className={`flex-1 text-sm ${item.completed ? "text-gray-400" : "text-content-primary"}`}>
                                 {item.label}
                             </span>
                             {statusText && (

@@ -46,7 +46,7 @@ export function ArticleFormModal({
         control,
         handleSubmit,
         reset,
-        formState: { errors },
+        formState: { errors, isDirty },
     } = useForm<FormData>({
         defaultValues: {
             title: "",
@@ -320,7 +320,7 @@ export function ArticleFormModal({
                         <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
                             취소
                         </Button>
-                        <Button type="submit" variant="primary" isLoading={isLoading}>
+                        <Button type="submit" variant="primary" isLoading={isLoading} disabled={isLoading || !isDirty}>
                             {mode === "create" ? "추가" : "저장"}
                         </Button>
                     </div>

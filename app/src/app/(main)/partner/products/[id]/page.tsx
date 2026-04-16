@@ -187,7 +187,7 @@ function ProductEditForm({
     const {
         register,
         handleSubmit,
-        formState: { errors },
+        formState: { errors, isDirty },
     } = useForm<ProductFormData>({
         defaultValues: {
             title: product.title,
@@ -528,7 +528,7 @@ function ProductEditForm({
                     <Button
                         type="submit"
                         isLoading={updateMutation.isPending}
-                        disabled={updateMutation.isPending}
+                        disabled={updateMutation.isPending || !isDirty}
                     >
                         {product.status === "active" ? "수정 후 검토 요청" : "저장"}
                     </Button>

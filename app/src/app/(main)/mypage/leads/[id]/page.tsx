@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import dayjs from "dayjs";
-import { ArrowLeft, Building2, Phone, Mail, Clock, FileText, XCircle, StickyNote } from "lucide-react";
+import { ArrowLeft, Building2, Phone, Mail, Clock, FileText, XCircle, StickyNote, Star } from "lucide-react";
+import { ReviewCreateModal } from "./components/ReviewCreateModal";
 import { leadsApi } from "@/api-client/leads";
 import { Button } from "@/components/ui/Button/button";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
@@ -128,6 +129,8 @@ export default function LeadDetailPage() {
 
     const [memoText, setMemoText] = useState(lead.doctorMemo ?? "");
     const [isMemoEditing, setIsMemoEditing] = useState(false);
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const canWriteReview = lead.status === "contracted" && role === "doctor";
 
     const memoMutation = useMutation({
         mutationFn: (memo: string) => leadsApi.updateMemo(leadId, memo),
@@ -170,17 +173,29 @@ export default function LeadDetailPage() {
                             <p className="text-gray-500 mt-1">{lead.serviceName}</p>
                         )}
                     </div>
-                    {canCancel && (
-                        <Button
-                            variant="danger"
-                            size="sm"
-                            onClick={handleCancel}
-                            isLoading={cancelMutation.isPending}
-                            LeadingIcon={<XCircle className="w-4 h-4" />}
-                        >
-                            문의 취소
-                        </Button>
-                    )}
+                    <div className="flex gap-2">
+                        {canWriteReview && (
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={() => setShowReviewModal(true)}
+                                LeadingIcon={<Star className="w-4 h-4" />}
+                            >
+                                리뷰 쓰기
+                            </Button>
+                        )}
+                        {canCancel && (
+                            <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={handleCancel}
+                                isLoading={cancelMutation.isPending}
+                                LeadingIcon={<XCircle className="w-4 h-4" />}
+                            >
+                                문의 취소
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
                 <p className="text-xs text-gray-400">
@@ -307,7 +322,7 @@ export default function LeadDetailPage() {
                                                     size="sm"
                                                     onClick={handleSaveMemo}
                                                     isLoading={memoMutation.isPending}
-                                                    disabled={memoMutation.isPending}
+                                                    disabled={memoMutation.isPending || memoText === (lead.doctorMemo ?? "")}
                                                 >
                                                     저장
                                                 </Button>
@@ -332,6 +347,20 @@ export default function LeadDetailPage() {
                     )}
                 </div>
             </div>
+            {/* 리뷰 작성 모달 */}
+            {showReviewModal && lead.vendor && (
+                <ReviewCreateModal
+                    vendorId={lead.vendorId}
+                    vendorName={lead.vendor.name}
+                    leadId={leadId}
+                    productId={lead.productId ?? undefined}
+                    onClose={() => setShowReviewModal(false)}
+                    onSuccess={() => {
+                        setShowReviewModal(false);
+                        queryClient.invalidateQueries({ queryKey: ["lead", leadId] });
+                    }}
+                />
+            )}
         </div>
     );
 }

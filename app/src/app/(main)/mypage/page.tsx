@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { Camera, User, Mail, Phone, Shield, CheckCircle, Clock, XCircle } from "lucide-react";
+import { Camera, User, CheckCircle, Clock, XCircle } from "lucide-react";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
@@ -29,6 +29,14 @@ export default function MyProfilePage() {
     const profileCompletion = useProfileCompletion();
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const profileCardRef = useRef<HTMLDivElement>(null);
+
+    // 프로필 완성도 100%면 프로필 섹션으로 자동 스크롤
+    useEffect(() => {
+        if (profileCompletion?.score === 100 && profileCardRef.current) {
+            profileCardRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }, [profileCompletion?.score]);
 
     const { register, handleSubmit, formState: { errors, isDirty } } = useForm<ProfileFormData>({
         defaultValues: {
@@ -153,7 +161,7 @@ export default function MyProfilePage() {
             )}
 
             {/* 프로필 카드 */}
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div ref={profileCardRef} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 {/* 아바타 섹션 */}
                 <div className="p-6 border-b border-gray-100">
                     <div className="flex items-center gap-6">
@@ -209,14 +217,10 @@ export default function MyProfilePage() {
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                             이름 <span className="text-red-500">*</span>
                         </label>
-                        <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <Input
-                                {...register("displayName", { required: "이름을 입력해주세요" })}
-                                placeholder="이름을 입력하세요"
-                                className="pl-10"
-                            />
-                        </div>
+                        <Input
+                            {...register("displayName", { required: "이름을 입력해주세요" })}
+                            placeholder="이름을 입력하세요"
+                        />
                         {errors.displayName && (
                             <p className="text-sm text-red-500 mt-1">{errors.displayName.message}</p>
                         )}
@@ -227,14 +231,11 @@ export default function MyProfilePage() {
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                             이메일
                         </label>
-                        <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <Input
-                                value={user?.email ?? ""}
-                                disabled
-                                className="pl-10 bg-gray-50"
-                            />
-                        </div>
+                        <Input
+                            value={user?.email ?? ""}
+                            disabled
+                            className="bg-gray-50"
+                        />
                         <p className="text-xs text-gray-500 mt-1">이메일은 변경할 수 없습니다</p>
                     </div>
 
@@ -243,14 +244,10 @@ export default function MyProfilePage() {
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                             연락처
                         </label>
-                        <div className="relative">
-                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <Input
-                                {...register("phone")}
-                                placeholder="010-0000-0000"
-                                className="pl-10"
-                            />
-                        </div>
+                        <Input
+                            {...register("phone")}
+                            placeholder="010-0000-0000"
+                        />
                     </div>
 
                     {/* 역할 (읽기 전용) */}
@@ -258,14 +255,11 @@ export default function MyProfilePage() {
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                             회원 유형
                         </label>
-                        <div className="relative">
-                            <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <Input
                                 value="한의사"
                                 disabled
-                                className="pl-10 bg-gray-50"
+                                className="bg-gray-50"
                             />
-                        </div>
                     </div>
 
                     {/* 제출 버튼 */}

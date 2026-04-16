@@ -33,7 +33,7 @@ export function ReviewEditModal({ review, onClose, onSuccess }: ReviewEditModalP
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const { register, handleSubmit, control, formState: { errors } } = useForm<FormData>({
+    const { register, handleSubmit, control, formState: { errors, isDirty } } = useForm<FormData>({
         defaultValues: {
             rating: review.rating,
             content: review.content,
@@ -276,7 +276,7 @@ export function ReviewEditModal({ review, onClose, onSuccess }: ReviewEditModalP
                             type="submit"
                             variant="primary"
                             size="lg"
-                            disabled={updateMutation.isPending}
+                            disabled={updateMutation.isPending || !isDirty}
                             isLoading={updateMutation.isPending}
                             className="flex-1"
                         >

@@ -105,7 +105,7 @@ export function StickyCtaPanel({ vendor, isFavorited }: StickyCtaPanelProps) {
                                 variant="secondary"
                                 size="lg"
                                 LeadingIcon={<FileText className="w-5 h-5" />}
-                                className="w-full bg-primary text-content-primary hover:bg-primary-700"
+                                className="w-full bg-white text-primary-900 hover:bg-gray-100 font-bold"
                             >
                                 문의하기
                             </Button>
@@ -116,7 +116,7 @@ export function StickyCtaPanel({ vendor, isFavorited }: StickyCtaPanelProps) {
                         <Button
                             variant="secondary"
                             size="lg"
-                            className="w-full bg-primary text-content-primary hover:bg-primary-700"
+                            className="w-full bg-white text-primary-900 hover:bg-gray-100 font-bold"
                         >
                             로그인하고 문의하기
                         </Button>

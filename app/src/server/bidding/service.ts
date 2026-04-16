@@ -1,5 +1,6 @@
 import "server-only";
 
+import { ApiError } from "@/server/api/errors";
 import type { Database } from "@/lib/database.types";
 import type {
     BidProjectCreateBody,
@@ -48,6 +49,16 @@ export async function createBidProject(
     body: BidProjectCreateBody,
 ): Promise<BidProjectDetail> {
     const admin = createSupabaseAdminClient();
+
+    // 활성 프로젝트 중복 체크 (한 번에 한 건만 등록 가능)
+    const { count } = await admin
+        .from("bid_projects")
+        .select("*", { count: "exact", head: true })
+        .eq("doctor_user_id", doctorUserId)
+        .not("status", "in", '("completed","settled","canceled")');
+    if (count && count > 0) {
+        throw new ApiError({ status: 409, code: "4090", message: "이미 진행 중인 인테리어 프로젝트가 있습니다. 기존 프로젝트가 종료된 후 새로 등록할 수 있습니다." });
+    }
 
     // 프로젝트 생성
     const projectRow = await insertBidProject(admin, {

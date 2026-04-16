@@ -48,7 +48,7 @@ export function CategoryFormModal({
         reset,
         watch,
         setValue,
-        formState: { errors },
+        formState: { errors, isDirty },
     } = useForm<FormData>({
         defaultValues: {
             name: "",
@@ -312,7 +312,7 @@ export function CategoryFormModal({
                         <Button type="button" variant="secondary" onClick={onClose}>
                             취소
                         </Button>
-                        <Button type="submit" variant="primary" isLoading={isLoading}>
+                        <Button type="submit" variant="primary" isLoading={isLoading} disabled={isLoading || !isDirty}>
                             {mode === "create" ? "추가" : "저장"}
                         </Button>
                     </div>

@@ -182,7 +182,7 @@ export default function PartnerPricingPage() {
                                                 <Button
                                                     size="sm"
                                                     onClick={handleUpdate}
-                                                    disabled={updateMutation.isPending || editPrice === undefined}
+                                                    disabled={updateMutation.isPending || editPrice === undefined || (editPrice === item.price && editDailyLimit === (item.dailyBudgetLimit ?? undefined))}
                                                 >
                                                     {updateMutation.isPending ? "저장 중..." : "저장"}
                                                 </Button>
