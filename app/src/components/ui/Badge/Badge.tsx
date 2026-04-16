@@ -117,7 +117,7 @@ export const Badge: FC<BadgeProps> = ({
         <span
             className={cn(
                 badgeVariants({ type, size, color, fill, hasBorder }),
-                hasIcon ? "inline-flex items-center" : "inline-block",
+                "inline-flex items-center",
                 dot &&
                     "before:inline-block before:content-[''] before:w-[6px] before:h-[6px] before:mr-[4px] before:rounded-full before:bg-current",
                 className,

@@ -155,7 +155,7 @@ export function Header({ onMenuToggle, isMobileMenuOpen }: HeaderProps) {
                                 <button
                                     type="button"
                                     onClick={() => setShowUserMenu(!showUserMenu)}
-                                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50"
+                                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
                                 >
                                     <div className="w-8 h-8 rounded-full overflow-hidden bg-primary-100 flex items-center justify-center">
                                         {profile?.avatarUrl ? (
