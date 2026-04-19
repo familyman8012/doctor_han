@@ -6,3 +6,9 @@
 .vscode/
 .vercel
 .env*.local
+
+# Dependencies (모노레포 루트에 실수로 설치되는 경우 방지)
+node_modules/
+
+# OS
+.DS_Store
