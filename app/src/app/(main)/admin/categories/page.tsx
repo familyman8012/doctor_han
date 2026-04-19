@@ -34,7 +34,12 @@ export default function AdminCategoriesPage() {
         mutationFn: adminApi.deleteCategory,
         onSuccess: () => {
             toast.success("카테고리가 삭제되었습니다.");
+            queryClient.invalidateQueries({ queryKey: ["admin", "categories-tree"] });
             queryClient.invalidateQueries({ queryKey: ["categories"] });
+        },
+        onError: (error: unknown) => {
+            const message = error instanceof Error ? error.message : "삭제에 실패했습니다.";
+            toast.error(message);
         },
     });
 

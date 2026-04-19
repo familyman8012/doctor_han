@@ -173,10 +173,10 @@ export default function AdminVendorsPage() {
                                                     <span className="text-gray-400">({vendor.reviewCount})</span>
                                                 </span>
                                             )}
-                                            {vendor.regionPrimary && (
+                                            {vendor.regionPrimary && vendor.regionPrimary.length > 0 && (
                                                 <span className="flex items-center gap-1">
                                                     <MapPin className="w-3.5 h-3.5" />
-                                                    {vendor.regionPrimary}
+                                                    {vendor.regionPrimary.join(", ")}
                                                 </span>
                                             )}
                                         </div>

@@ -8,11 +8,10 @@ import type { BidProjectRow, BidProjectScoreRow } from "./mapper";
 import { insertBidProjectScores, insertBidResponses } from "./repository";
 
 const WEIGHTS = {
-    region: 0.30,
+    region: 0.35,
     rating: 0.25,
-    response: 0.20,
-    portfolio: 0.15,
-    price: 0.10,
+    response: 0.22,
+    portfolio: 0.18,
 } as const;
 
 const RECOMMEND_COUNT = 3;
@@ -21,13 +20,11 @@ const MIN_CREDIT_BALANCE = 500_000;
 
 interface VendorCandidate {
     vendorId: string;
-    regionPrimary: string | null;
+    regionPrimary: string[] | null;
     ratingAvg: number;
     responseRate: number;
     portfolioCount: number;
     creditBalance: number;
-    priceMin: number | null;
-    priceMax: number | null;
 }
 
 /**
@@ -61,25 +58,21 @@ export async function scoreAndMatchVendors(
 
     // 4. 개별 점수 계산
     const scored = filtered.map((v) => {
-        const regionScore = v.regionPrimary && project.location.includes(v.regionPrimary) ? 1 : 0;
-        const ratingScore = v.ratingAvg / 5.0;
-        const responseScore = Math.min(v.responseRate, 1);
-        const portfolioScore = Math.min(v.portfolioCount, 10) / 10;
-        const priceScore = hasBudgetOverlap(
-            project.budget_min,
-            project.budget_max,
-            v.priceMin,
-            v.priceMax,
+        // 서비스 지역 매칭: "전국" 포함 또는 프로젝트 지역과 겹치면 점수 부여
+        const regionScore = v.regionPrimary?.some(
+            (r) => r === "전국" || project.location.includes(r) || project.location.includes(r.replace(/(특별자치도|특별자치시|특별시|광역시|도|시)$/, "")),
         )
             ? 1
             : 0;
+        const ratingScore = v.ratingAvg / 5.0;
+        const responseScore = Math.min(v.responseRate, 1);
+        const portfolioScore = Math.min(v.portfolioCount, 10) / 10;
 
         const totalScore =
             WEIGHTS.region * regionScore +
             WEIGHTS.rating * ratingScore +
             WEIGHTS.response * responseScore +
-            WEIGHTS.portfolio * portfolioScore +
-            WEIGHTS.price * priceScore;
+            WEIGHTS.portfolio * portfolioScore;
 
         return {
             vendorId: v.vendorId,
@@ -87,7 +80,7 @@ export async function scoreAndMatchVendors(
             ratingScore,
             responseScore,
             portfolioScore,
-            priceScore,
+            priceScore: 0,
             totalScore,
         };
     });
@@ -167,7 +160,7 @@ async function getEligibleVendors(
     // 업체 기본 정보
     const { data: vendors, error: vError } = await supabase
         .from("vendors")
-        .select("id, region_primary, rating_avg, price_min, price_max")
+        .select("id, region_primary, rating_avg")
         .in("id", vendorIds)
         .eq("status", "active");
 
@@ -249,29 +242,5 @@ async function getEligibleVendors(
         responseRate: responseRateMap.get(v.id) ?? 0,
         portfolioCount: portfolioCountMap.get(v.id) ?? 0,
         creditBalance: creditMap.get(v.id) ?? 0,
-        priceMin: v.price_min,
-        priceMax: v.price_max,
     }));
-}
-
-function hasBudgetOverlap(
-    budgetMin: number,
-    budgetMax: number,
-    vendorPriceMin: number | null,
-    vendorPriceMax: number | null,
-): boolean {
-    if (budgetMin === 0 && budgetMax === 0) {
-        return true;
-    }
-
-    if (vendorPriceMin == null && vendorPriceMax == null) {
-        return false;
-    }
-
-    const projectMin = budgetMin > 0 ? budgetMin : 0;
-    const projectMax = budgetMax > 0 ? budgetMax : Number.MAX_SAFE_INTEGER;
-    const vendorMin = vendorPriceMin ?? 0;
-    const vendorMax = vendorPriceMax ?? Number.MAX_SAFE_INTEGER;
-
-    return vendorMin <= projectMax && vendorMax >= projectMin;
 }

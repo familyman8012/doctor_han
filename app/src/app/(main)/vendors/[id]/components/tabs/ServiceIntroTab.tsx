@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { CATEGORY_ICON_PATHS } from "@/lib/constants/assets";
+import { RichContent } from "@/components/ui/RichEditor/RichContent";
 import type { VendorDetail } from "@/lib/schema/vendor";
 
 interface ServiceIntroTabProps {
@@ -15,9 +16,7 @@ export function ServiceIntroTab({ vendor }: ServiceIntroTabProps) {
 
             {/* Description */}
             {vendor.description ? (
-                <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                    {vendor.description}
-                </p>
+                <RichContent html={vendor.description} className="text-gray-700 leading-relaxed" />
             ) : (
                 <p className="text-gray-400">등록된 서비스 소개가 없습니다.</p>
             )}

@@ -6,6 +6,7 @@ import { internalServerError } from "@/server/api/errors";
 import { buildOrIlikeFilter } from "@/server/api/postgrest";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
+import { getCategoryWithDescendantIds } from "@/server/category/helpers";
 import { mapVendorListItem } from "@/server/vendor/mapper";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import { createSupabaseServerClient } from "@/server/supabase/server";
@@ -26,25 +27,15 @@ function applyFiltersAndSort<T>(qb: T, query: ParsedQuery): T {
         }
     }
 
-    if (typeof query.priceMin !== "undefined") {
-        result = result.gte("price_max", query.priceMin);
-    }
-
-    if (typeof query.priceMax !== "undefined") {
-        result = result.lte("price_min", query.priceMax);
-    }
-
-    // 지역 필터
+    // 지역 필터: region_primary는 TEXT[] 배열 → overlaps로 매칭
+    // 업체가 "전국" 선택한 경우도 모든 지역 필터에 매칭되도록 포함
     if (query.regionPrimary) {
         const regionFilterValues = getRegionFilterValues(query.regionPrimary);
-        if (regionFilterValues.length === 1) {
-            result = result.eq("region_primary", regionFilterValues[0]);
-        } else if (regionFilterValues.length > 1) {
-            result = result.in("region_primary", regionFilterValues);
-        }
+        const overlapsValues = Array.from(new Set([...regionFilterValues, "전국"]));
+        result = result.overlaps("region_primary", overlapsValues);
     }
     if (query.regionSecondary) {
-        result = result.eq("region_secondary", query.regionSecondary);
+        result = result.ilike("region_secondary", `%${query.regionSecondary}%`);
     }
 
     // 평점 필터
@@ -93,8 +84,6 @@ export const GET = withApi(async (req: NextRequest) => {
     const query = VendorListQuerySchema.parse({
         q: searchParams.get("q") ?? undefined,
         categoryId: searchParams.get("categoryId") ?? undefined,
-        priceMin: searchParams.get("priceMin") ?? undefined,
-        priceMax: searchParams.get("priceMax") ?? undefined,
         regionPrimary: searchParams.get("regionPrimary") ?? undefined,
         regionSecondary: searchParams.get("regionSecondary") ?? undefined,
         ratingMin: searchParams.get("ratingMin") ?? undefined,
@@ -110,12 +99,18 @@ export const GET = withApi(async (req: NextRequest) => {
     const from = (query.page - 1) * query.pageSize;
     const to = from + query.pageSize - 1;
 
+    // 상위 카테고리 선택 시 하위 카테고리까지 포함
+    let categoryIds: string[] | null = null;
+    if (query.categoryId) {
+        categoryIds = await getCategoryWithDescendantIds(supabase, query.categoryId);
+    }
+
     // categoryId가 있으면 vendor_categories와 inner join
-    const baseQuery = query.categoryId
+    const baseQuery = categoryIds
         ? supabase
               .from("vendors")
               .select("*, vendor_categories!inner(category_id)", { count: "exact" })
-              .eq("vendor_categories.category_id", query.categoryId)
+              .in("vendor_categories.category_id", categoryIds)
         : supabase.from("vendors").select("*", { count: "exact" });
 
     // 공통 필터 및 정렬 적용

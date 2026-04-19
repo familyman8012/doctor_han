@@ -108,6 +108,9 @@ export const PATCH = withApi(
         if (typeof body.displayName !== "undefined") {
             update.display_name = body.displayName;
         }
+        if (typeof body.position !== "undefined") {
+            update.position = body.position;
+        }
         if (typeof body.phone !== "undefined") {
             update.phone = body.phone;
         }

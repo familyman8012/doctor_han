@@ -41,7 +41,7 @@ export type ProfileCompletion = z.infer<typeof ProfileCompletionSchema>;
 export const ProfileRoleSchema = z.enum(["doctor", "vendor", "admin"]);
 export type ProfileRole = z.infer<typeof ProfileRoleSchema>;
 
-export const ProfileStatusSchema = z.enum(["active", "inactive", "banned"]);
+export const ProfileStatusSchema = z.enum(["active", "suspended", "banned", "inactive"]);
 export type ProfileStatus = z.infer<typeof ProfileStatusSchema>;
 
 export const ProfileViewSchema = z.object({
@@ -53,6 +53,9 @@ export const ProfileViewSchema = z.object({
     avatarUrl: z.string().nullable(),
     phone: z.string().nullable(),
     email: z.string().nullable(),
+    suspendedUntil: z.string().nullable(),
+    statusReason: z.string().nullable(),
+    statusChangedAt: z.string().nullable(),
     createdAt: z.string(),
     updatedAt: z.string(),
 });
@@ -73,14 +76,21 @@ export type ProfileCreateBody = z.infer<typeof ProfileCreateBodySchema>;
 export const ProfilePatchBodySchema = z
     .object({
         displayName: zNonEmptyString.optional(),
+        position: z.union([z.string().trim().min(1), z.null()]).optional(),
         phone: z.union([z.string().trim().min(1), z.null()]).optional(),
         avatarFileId: z.union([zUuid, z.null()]).optional(),
         termsAgreed: z.literal(true).optional(),
     })
     .strict()
-    .refine((value) => value.displayName !== undefined || value.phone !== undefined || value.avatarFileId !== undefined || value.termsAgreed !== undefined, {
-        message: "수정할 필드가 없습니다.",
-    });
+    .refine(
+        (value) =>
+            value.displayName !== undefined ||
+            value.position !== undefined ||
+            value.phone !== undefined ||
+            value.avatarFileId !== undefined ||
+            value.termsAgreed !== undefined,
+        { message: "수정할 필드가 없습니다." },
+    );
 
 export type ProfilePatchBody = z.infer<typeof ProfilePatchBodySchema>;
 

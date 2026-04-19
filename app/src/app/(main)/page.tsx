@@ -46,6 +46,14 @@ export default function HomePage() {
     const newestSection = vendorSections.find((s) => s.id === "newest");
     const categorySections = vendorSections.filter((s) => s.id.startsWith("category:"));
 
+    // 상품 섹션 분해: 전역 섹션(신상품/고평점/급상승)과 카테고리별 섹션 분리
+    const globalNewest = productSections.find((s) => s.id === "product-global:newest");
+    const globalTopRated = productSections.find((s) => s.id === "product-global:top-rated");
+    const globalTrending = productSections.find((s) => s.id === "product-global:trending");
+    const productCategorySections = productSections.filter((s) =>
+        s.id.startsWith("product-category:"),
+    );
+
     if (isLoading) {
         return <HomePageSkeleton />;
     }
@@ -58,23 +66,63 @@ export default function HomePage() {
                 {categorySection && <CategoryScroller categories={categorySection.items} />}
             </div>
 
-            {/* 신뢰 구간 — 통계 (일단 숨김) */}
-            {/* <PromoBanner variant="stats" /> */}
-
-            {/* 메인 광고 배너 */}
-            <AdBanner position="main" />
-
-            {/* 추천 파트너 */}
+            {/* ─── 섹션 1: 업체 덩어리 ─────────────────────── */}
+            {/* 추천 파트너 (업체 캐러셀) */}
             {recommendedSection && <VendorSection section={recommendedSection} />}
 
-            {/* 인기 업체 (그리드) */}
+            {/* 이번 달 인기 (업체 그리드) */}
             {popularSection && <VendorSection section={popularSection} variant="grid" />}
+
+            {/* 🟦 메인 광고 — 업체 덩어리 마무리 후 전환 지점 */}
+            <AdBanner position="main" />
+
+            {/* ─── 섹션 2: 상품 + 업체 교차 ──────────────── */}
+            {/* 이번 주 신상품 (전역 상품) */}
+            {globalNewest && <ProductSection section={globalNewest} variant="carousel" />}
+
+            {/* 리뷰로 검증 (업체) */}
+            {reviewedSection && <VendorSection section={reviewedSection} />}
+
+            {/* 상품 카테고리 1~2번째 */}
+            {productCategorySections[0] && (
+                <ProductSection section={productCategorySections[0]} variant="grid" />
+            )}
 
             {/* 전문가 쇼케이스 */}
             <ExpertShowcase />
 
-            {/* 상품 섹션들 */}
-            {productSections.map((section, index) => (
+            {/* 고평점 상품 (전역) */}
+            {globalTopRated && <ProductSection section={globalTopRated} variant="carousel" />}
+
+            {/* 신규 입점 (업체) */}
+            {newestSection && <VendorSection section={newestSection} />}
+
+            {/* 🟦 서브 광고 — 상품/업체 혼재 구간 지나고 두 번째 전환 */}
+            <AdBanner position="sub" />
+
+            {/* 상품 카테고리 3~4번째 */}
+            {productCategorySections[1] && (
+                <ProductSection section={productCategorySections[1]} variant="carousel" />
+            )}
+
+            {productCategorySections[2] && (
+                <ProductSection section={productCategorySections[2]} variant="grid" />
+            )}
+
+            {/* 조회수 급상승 상품 (전역) */}
+            {globalTrending && <ProductSection section={globalTrending} variant="carousel" />}
+
+            {/* 카테고리별 업체 추천 */}
+            {categorySections.map((section, index) => (
+                <VendorSection
+                    key={section.id}
+                    section={section}
+                    variant={index % 2 === 0 ? "carousel" : "grid"}
+                />
+            ))}
+
+            {/* 남은 상품 카테고리 (5번 이상) */}
+            {productCategorySections.slice(3).map((section, index) => (
                 <ProductSection
                     key={section.id}
                     section={section}
@@ -87,24 +135,6 @@ export default function HomePage() {
 
             {/* 업체/의사 CTA */}
             <PromoBanner variant="vendor-cta" />
-
-            {/* 서브 광고 배너 */}
-            <AdBanner position="sub" />
-
-            {/* 리뷰로 검증 */}
-            {reviewedSection && <VendorSection section={reviewedSection} />}
-
-            {/* 신규 입점 */}
-            {newestSection && <VendorSection section={newestSection} />}
-
-            {/* 카테고리별 추천 */}
-            {categorySections.map((section, index) => (
-                <VendorSection
-                    key={section.id}
-                    section={section}
-                    variant={index % 2 === 0 ? "carousel" : "grid"}
-                />
-            ))}
         </div>
     );
 }

@@ -1,10 +1,12 @@
 import "server-only";
 
 import type { Database, Json } from "@/lib/database.types";
-import type { MembershipPlan, VendorMembership } from "@/lib/schema/vendor-membership";
+import type { MembershipPlan, MembershipPrepareResponse, VendorMembership } from "@/lib/schema/vendor-membership";
 import { badRequest, forbidden, internalServerError, notFound } from "@/server/api/errors";
 import { fetchNotificationSettings, insertNotificationDelivery } from "@/server/notification/repository";
 import { RESEND_FROM_EMAIL, resend } from "@/server/notification/resend";
+import { createPayment } from "@/server/payment/repository";
+import { getClientKey } from "@/server/payment/toss-client";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -201,6 +203,74 @@ export async function purchaseMembership(
     return {
         membership: mapVendorMembershipRow(normalizedRow, plan),
         creditBalance: purchaseRow.new_balance,
+    };
+}
+
+/**
+ * 토스 즉시결제 준비 (멤버십)
+ */
+export async function prepareMembershipPayment(
+    _supabase: SupabaseClient<Database>,
+    userId: string,
+    vendorId: string,
+    body: { planId: string; autoRenew?: boolean },
+    customerName: string,
+): Promise<MembershipPrepareResponse> {
+    const admin = createSupabaseAdminClient();
+
+    const { data: planRow } = await admin
+        .from("membership_plans")
+        .select("id, name, price, promo_price, promo_expires_at, is_active")
+        .eq("id", body.planId)
+        .maybeSingle();
+
+    if (!planRow || !planRow.is_active) {
+        throw notFound("멤버십 플랜을 찾을 수 없습니다.");
+    }
+
+    // S등급 업체 검증
+    const { data: sGradeRow } = await admin
+        .from("vendor_categories")
+        .select("category_id, categories!inner(tier)")
+        .eq("vendor_id", vendorId)
+        .eq("categories.tier", "s_grade")
+        .limit(1)
+        .maybeSingle();
+
+    if (!sGradeRow) {
+        throw forbidden("S등급 카테고리에 등록된 업체만 멤버십을 구매할 수 있습니다.");
+    }
+
+    // 프로모션 가격 결정
+    const now = Date.now();
+    const promoValid =
+        planRow.promo_price &&
+        (!planRow.promo_expires_at || new Date(planRow.promo_expires_at).getTime() > now);
+    const effectivePrice = promoValid ? (planRow.promo_price as number) : planRow.price;
+
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const randomPart = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+    const orderId = `MDHB-${dateStr}-${randomPart}`;
+
+    const payment = await createPayment(admin, {
+        orderId,
+        vendorId,
+        userId,
+        amount: effectivePrice,
+        metadata: {
+            purpose: "membership",
+            planId: body.planId,
+            autoRenew: body.autoRenew ?? false,
+        },
+    });
+
+    return {
+        orderId,
+        amount: effectivePrice,
+        paymentId: payment.id,
+        clientKey: getClientKey(),
+        customerName,
+        orderName: `메디허브 입점 멤버십: ${planRow.name}`,
     };
 }
 

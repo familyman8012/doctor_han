@@ -1,5 +1,5 @@
 import { zUuid } from "@/lib/schema/common";
-import { internalServerError, notFound } from "@/server/api/errors";
+import { forbidden, internalServerError, notFound } from "@/server/api/errors";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { parseBadgesFromJson } from "@/server/badge/mapper";
@@ -16,7 +16,7 @@ export const GET = withApi(async (_req: NextRequest, routeCtx: { params: Promise
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: productRow, error: productError } = await (supabase as any)
         .from("products")
-        .select("*, vendors!inner(id, name, rating_avg, review_count, badges), categories!inner(slug, name)")
+        .select("*, vendors!inner(id, name, owner_user_id, rating_avg, review_count, badges), categories!inner(slug, name)")
         .eq("id", productId)
         .maybeSingle();
 
@@ -29,6 +29,30 @@ export const GET = withApi(async (_req: NextRequest, routeCtx: { params: Promise
 
     if (!productRow) {
         throw notFound("상품을 찾을 수 없습니다.");
+    }
+
+    // 비공개 상품(active가 아님)은 소유자 또는 admin만 접근 가능
+    const productStatus = (productRow as Record<string, unknown>).status as string;
+    if (productStatus !== "active") {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            throw notFound("상품을 찾을 수 없습니다.");
+        }
+
+        const ownerUserId = (productRow.vendors as { owner_user_id: string } | null)?.owner_user_id ?? null;
+        const isOwner = ownerUserId === user.id;
+
+        if (!isOwner) {
+            const { data: profileRow } = await supabase
+                .from("profiles")
+                .select("role")
+                .eq("id", user.id)
+                .maybeSingle();
+            const isAdmin = profileRow?.role === "admin";
+            if (!isAdmin) {
+                throw forbidden("이 상품은 현재 공개되지 않았습니다.");
+            }
+        }
     }
 
     const vendor = productRow.vendors as { id: string; name: string; rating_avg: number | null; review_count: number; badges: unknown } | null;

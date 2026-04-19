@@ -99,8 +99,13 @@ export function CategoryFormModal({
         mutationFn: (data: AdminCategoryCreateBody) => adminApi.createCategory(data),
         onSuccess: () => {
             toast.success("카테고리가 생성되었습니다.");
+            queryClient.invalidateQueries({ queryKey: ["admin", "categories-tree"] });
             queryClient.invalidateQueries({ queryKey: ["categories"] });
             onClose();
+        },
+        onError: (error: unknown) => {
+            const message = error instanceof Error ? error.message : "생성에 실패했습니다.";
+            toast.error(message);
         },
     });
 
@@ -109,8 +114,13 @@ export function CategoryFormModal({
             adminApi.updateCategory(id, data),
         onSuccess: () => {
             toast.success("카테고리가 수정되었습니다.");
+            queryClient.invalidateQueries({ queryKey: ["admin", "categories-tree"] });
             queryClient.invalidateQueries({ queryKey: ["categories"] });
             onClose();
+        },
+        onError: (error: unknown) => {
+            const message = error instanceof Error ? error.message : "수정에 실패했습니다.";
+            toast.error(message);
         },
     });
 

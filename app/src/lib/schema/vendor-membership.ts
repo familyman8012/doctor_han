@@ -58,6 +58,16 @@ export const MembershipPurchaseBodySchema = z
     .strict();
 export type MembershipPurchaseBody = z.input<typeof MembershipPurchaseBodySchema>;
 
+export const MembershipPrepareResponseSchema = z.object({
+    orderId: z.string(),
+    amount: z.number().int().positive(),
+    paymentId: zUuid,
+    clientKey: z.string(),
+    customerName: z.string(),
+    orderName: z.string(),
+});
+export type MembershipPrepareResponse = z.infer<typeof MembershipPrepareResponseSchema>;
+
 // ============================================
 // Response Schemas
 // ============================================

@@ -141,6 +141,44 @@ export const AdminUserListResponseSchema = z.object({
 
 export type AdminUserListResponse = z.infer<typeof AdminUserListResponseSchema>;
 
+// === 유저 상태 변경 ===
+
+export const AdminUserStatusPatchBodySchema = z
+    .discriminatedUnion("status", [
+        // 정상 복구
+        z.object({
+            status: z.literal("active"),
+            reason: z.string().trim().max(500).optional(),
+        }),
+        // 임시정지 (기간 필수)
+        z.object({
+            status: z.literal("suspended"),
+            suspendedUntil: z.string().datetime(),
+            reason: zNonEmptyString.max(500),
+        }),
+        // 영구정지
+        z.object({
+            status: z.literal("banned"),
+            reason: zNonEmptyString.max(500),
+        }),
+        // 탈퇴 처리 (관리자가 강제 탈퇴 처리)
+        z.object({
+            status: z.literal("inactive"),
+            reason: zNonEmptyString.max(500),
+        }),
+    ]);
+
+export type AdminUserStatusPatchBody = z.infer<typeof AdminUserStatusPatchBodySchema>;
+
+export const AdminUserDeleteBodySchema = z
+    .object({
+        reason: zNonEmptyString.max(500),
+        confirmEmail: z.string().email(),
+    })
+    .strict();
+
+export type AdminUserDeleteBody = z.infer<typeof AdminUserDeleteBodySchema>;
+
 export const AdminVendorListQuerySchema = z
     .object({
         status: VendorStatusSchema.optional(),
@@ -158,10 +196,8 @@ export const AdminVendorListItemSchema = z.object({
     owner: ProfileViewSchema,
     name: z.string(),
     summary: z.string().nullable(),
-    regionPrimary: z.string().nullable(),
+    regionPrimary: z.array(z.string()).nullable(),
     regionSecondary: z.string().nullable(),
-    priceMin: z.number().int().nullable(),
-    priceMax: z.number().int().nullable(),
     status: VendorStatusSchema,
     ratingAvg: z.number().nullable(),
     reviewCount: z.number().int(),

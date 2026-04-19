@@ -1,17 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Check, Wallet } from "lucide-react";
-import { toast } from "sonner";
+import { useEffect, useRef, useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { ArrowLeft, Check } from "lucide-react";
 import Link from "next/link";
 import api from "@/api-client/client";
 import { adsApi } from "@/api-client/ads";
-import { creditsApi } from "@/api-client/credits";
 import type { CategoryView } from "@/lib/schema/category";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { cn } from "@/components/utils";
+import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 
 const TIER_INFO: Record<string, { label: string; description: string; color: string; badgeColor: string }> = {
     premium: {
@@ -41,11 +39,13 @@ const TIER_INFO: Record<string, { label: string; description: string; color: str
 };
 
 export default function PurchaseAdPage() {
-    const router = useRouter();
-    const queryClient = useQueryClient();
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
     const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
     const [showConfirm, setShowConfirm] = useState(false);
+    const [paymentError, setPaymentError] = useState<string | null>(null);
+    const widgetsRef = useRef<Awaited<
+        ReturnType<Awaited<ReturnType<typeof loadTossPayments>>["widgets"]>
+    > | null>(null);
 
     const { data: categoriesData } = useQuery({
         queryKey: ["categories"],
@@ -66,27 +66,59 @@ export default function PurchaseAdPage() {
 
     const slots = slotsData?.data?.slots ?? [];
 
-    const { data: creditData } = useQuery({
-        queryKey: ["credits", "balance"],
-        queryFn: () => creditsApi.getBalance(),
-        staleTime: 30_000,
-    });
-    const creditBalance = creditData?.data?.account?.balance ?? 0;
-
     const selectedSlot = slots.find((s) => s.slot.id === selectedSlotId);
 
-    const purchaseMutation = useMutation({
-        mutationFn: () => adsApi.purchasePrioritySlot({ prioritySlotId: selectedSlotId! }),
-        onSuccess: () => {
-            toast.success("광고 구매가 완료되었습니다!");
-            queryClient.invalidateQueries({ queryKey: ["credits"] });
-            queryClient.invalidateQueries({ queryKey: ["vendor", "ads"] });
-            router.push("/partner/ads");
-        },
-        onError: () => {
-            toast.error("광고 구매에 실패했습니다. 크레딧 잔액을 확인해주세요.");
-        },
+    const prepareMutation = useMutation({
+        mutationFn: () => adsApi.preparePrioritySlot({ prioritySlotId: selectedSlotId! }),
     });
+
+    useEffect(() => {
+        if (!showConfirm || !selectedSlotId) return;
+        setPaymentError(null);
+        widgetsRef.current = null;
+
+        prepareMutation.mutate(undefined, {
+            onSuccess: async (res) => {
+                try {
+                    const { clientKey, orderId, amount } = res.data;
+                    const tossPayments = await loadTossPayments(clientKey);
+                    const widgets = tossPayments.widgets({ customerKey: orderId });
+                    await widgets.setAmount({ currency: "KRW", value: amount });
+                    await widgets.renderPaymentMethods({
+                        selector: "#ad-payment-widget",
+                        variantKey: "DEFAULT",
+                    });
+                    widgetsRef.current = widgets;
+                } catch (err) {
+                    setPaymentError(err instanceof Error ? err.message : "결제 위젯 초기화 실패");
+                }
+            },
+            onError: (err) => {
+                const msg =
+                    (err as { response?: { data?: { message?: string } }; message?: string })
+                        .response?.data?.message ?? (err as Error).message ?? "결제 준비 실패";
+                setPaymentError(msg);
+            },
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [showConfirm, selectedSlotId]);
+
+    const handlePay = async () => {
+        if (!widgetsRef.current || !prepareMutation.data) return;
+        const { orderId, orderName, customerName } = prepareMutation.data.data;
+        try {
+            await widgetsRef.current.requestPayment({
+                orderId,
+                orderName,
+                customerName,
+                successUrl: `${window.location.origin}/partner/payments/success`,
+                failUrl: `${window.location.origin}/partner/payments/fail`,
+            });
+        } catch (err) {
+            if ((err as { code?: string }).code === "USER_CANCEL") return;
+            setPaymentError(err instanceof Error ? err.message : "결제 요청 실패");
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -95,13 +127,6 @@ export default function PurchaseAdPage() {
                     <ArrowLeft className="w-5 h-5 text-gray-500" />
                 </Link>
                 <h1 className="text-2xl font-bold text-content-primary">우선순위 광고 구매</h1>
-            </div>
-
-            {/* Credit balance */}
-            <div className="bg-primary-900 rounded-xl p-4 text-white flex items-center gap-3">
-                <Wallet className="w-5 h-5 text-primary" />
-                <span className="text-sm">보유 크레딧</span>
-                <span className="font-bold text-primary">{creditBalance.toLocaleString()}C</span>
             </div>
 
             {/* Step 1: Category selection */}
@@ -193,42 +218,48 @@ export default function PurchaseAdPage() {
                             <span className="text-gray-500">금액</span>
                             <span className="font-medium">{selectedSlot.slot.priceWeekly.toLocaleString()}원</span>
                         </div>
-                        <hr className="my-2" />
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-500">차감 후 잔액</span>
-                            <span className={cn("font-medium", creditBalance < selectedSlot.slot.priceWeekly && "text-red-500")}>
-                                {(creditBalance - selectedSlot.slot.priceWeekly).toLocaleString()}C
-                            </span>
-                        </div>
                     </div>
 
-                    {creditBalance < selectedSlot.slot.priceWeekly ? (
-                        <div className="text-sm text-red-500">
-                            크레딧이 부족합니다. <Link href="/partner/credits" className="underline">충전하기</Link>
-                        </div>
-                    ) : showConfirm ? (
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => purchaseMutation.mutate()}
-                                disabled={purchaseMutation.isPending}
-                                className="flex-1 py-3 text-sm font-medium text-white bg-primary-900 hover:bg-primary-900/90 rounded-lg transition-colors disabled:opacity-50"
-                            >
-                                {purchaseMutation.isPending ? "처리 중..." : "결제 확인"}
-                            </button>
-                            <button
-                                onClick={() => setShowConfirm(false)}
-                                className="px-4 py-3 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                            >
-                                취소
-                            </button>
-                        </div>
-                    ) : (
+                    {!showConfirm ? (
                         <button
                             onClick={() => setShowConfirm(true)}
                             className="w-full py-3 text-sm font-medium text-white bg-primary-900 hover:bg-primary-900/90 rounded-lg transition-colors"
                         >
-                            구매하기
+                            결제 진행
                         </button>
+                    ) : (
+                        <div className="space-y-3">
+                            <div className="bg-white border border-gray-200 rounded-xl p-5">
+                                <p className="text-sm font-medium mb-3">결제 수단 선택</p>
+                                {prepareMutation.isPending && (
+                                    <div className="flex justify-center py-6">
+                                        <Spinner />
+                                    </div>
+                                )}
+                                <div id="ad-payment-widget" />
+                            </div>
+                            {paymentError && (
+                                <p className="text-sm text-red-500">{paymentError}</p>
+                            )}
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={handlePay}
+                                    disabled={prepareMutation.isPending || !prepareMutation.data}
+                                    className={cn(
+                                        "flex-1 py-3 text-sm font-medium text-white bg-primary-900 hover:bg-primary-900/90 rounded-lg transition-colors",
+                                        (prepareMutation.isPending || !prepareMutation.data) && "opacity-50",
+                                    )}
+                                >
+                                    {selectedSlot.slot.priceWeekly.toLocaleString()}원 결제하기
+                                </button>
+                                <button
+                                    onClick={() => setShowConfirm(false)}
+                                    className="px-4 py-3 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                >
+                                    취소
+                                </button>
+                            </div>
+                        </div>
                     )}
                 </div>
             )}

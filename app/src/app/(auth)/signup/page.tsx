@@ -235,16 +235,16 @@ function SignupForm() {
                     />
 
                     <Input
-                        label={role === "vendor" ? "회사명" : "닉네임"}
+                        label={role === "vendor" ? "담당자 이름" : "닉네임"}
                         type="text"
-                        placeholder={role === "vendor" ? "회사명을 입력하세요" : "사용할 닉네임을 입력하세요"}
+                        placeholder={role === "vendor" ? "예: 홍길동" : "사용할 닉네임을 입력하세요"}
                         error={errors.nickname?.message}
                         required
                         {...register("nickname", {
-                            required: role === "vendor" ? "회사명을 입력해주세요" : "닉네임을 입력해주세요",
+                            required: role === "vendor" ? "담당자 이름을 입력해주세요" : "닉네임을 입력해주세요",
                             minLength: {
                                 value: 2,
-                                message: role === "vendor" ? "회사명은 2자 이상이어야 합니다" : "닉네임은 2자 이상이어야 합니다",
+                                message: role === "vendor" ? "담당자 이름은 2자 이상이어야 합니다" : "닉네임은 2자 이상이어야 합니다",
                             },
                         })}
                     />

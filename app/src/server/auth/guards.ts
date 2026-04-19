@@ -101,9 +101,48 @@ export function withAuth<TParams = Record<string, string>>(
     handler: (ctx: AuthedContext<TParams>) => Promise<Response>,
 ): (req: NextRequest, routeCtx: NextRouteContext<TParams>) => Promise<Response> {
     return withUser(async (ctx) => {
-        const profile = await requireProfile(ctx.supabase, ctx.user.id);
+        let profile = await requireProfile(ctx.supabase, ctx.user.id);
+
+        // suspended 자동 해제: suspended_until이 지났으면 active로 복구
+        if (profile.status === "suspended") {
+            const row = profile as ProfileRow & { suspended_until?: string | null };
+            if (row.suspended_until && new Date(row.suspended_until).getTime() <= Date.now()) {
+                const { data: updated } = await ctx.supabase
+                    .from("profiles")
+                    .update({
+                        status: "active",
+                        suspended_until: null,
+                        status_reason: null,
+                        status_changed_at: new Date().toISOString(),
+                    })
+                    .eq("id", profile.id)
+                    .select("*")
+                    .single();
+                if (updated) {
+                    profile = updated;
+                }
+            }
+        }
+
         if (profile.status !== "active") {
-            throw forbidden(profile.status === "banned" ? "정지된 계정입니다." : "비활성 계정입니다.");
+            const row = profile as ProfileRow & {
+                suspended_until?: string | null;
+                status_reason?: string | null;
+            };
+            const reason = row.status_reason ? ` 사유: ${row.status_reason}` : "";
+            if (profile.status === "banned") {
+                throw forbidden(`영구 정지된 계정입니다.${reason}`);
+            }
+            if (profile.status === "suspended") {
+                const until = row.suspended_until
+                    ? ` (해제 예정: ${new Date(row.suspended_until).toLocaleString("ko-KR")})`
+                    : "";
+                throw forbidden(`일시 정지된 계정입니다.${until}${reason}`);
+            }
+            if (profile.status === "inactive") {
+                throw forbidden(`탈퇴 처리된 계정입니다.${reason}`);
+            }
+            throw forbidden("비활성 계정입니다.");
         }
         return handler({ ...ctx, profile });
     });

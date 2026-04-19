@@ -1,10 +1,12 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
     turbopack: {
-        root: process.cwd(),
+        root: path.resolve(__dirname),
     },
+    serverExternalPackages: ["isomorphic-dompurify", "jsdom"],
     images: {
         dangerouslyAllowSVG: true,
         contentDispositionType: "attachment",

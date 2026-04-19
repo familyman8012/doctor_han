@@ -1,8 +1,15 @@
 import "server-only";
 
 import type { Database } from "@/lib/database.types";
-import type { AdPriorityPurchase, AdPrioritySlot, PriorityVendor } from "@/lib/schema/ad";
+import type {
+    AdPriorityPurchase,
+    AdPrioritySlot,
+    PriorityPrepareResponse,
+    PriorityVendor,
+} from "@/lib/schema/ad";
 import { badRequest, internalServerError, notFound } from "@/server/api/errors";
+import { createPayment } from "@/server/payment/repository";
+import { getClientKey } from "@/server/payment/toss-client";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { mapAdPriorityPurchaseRow, mapAdPrioritySlotRow } from "./priority-mapper";
@@ -122,6 +129,71 @@ export async function purchasePrioritySlot(
     }
 
     return mapAdPriorityPurchaseRow(purchase);
+}
+
+/**
+ * 토스 즉시결제 준비 (광고 우선순위 슬롯)
+ */
+export async function preparePrioritySlotPayment(
+    _supabase: SupabaseClient<Database>,
+    userId: string,
+    vendorId: string,
+    prioritySlotId: string,
+    customerName: string,
+): Promise<PriorityPrepareResponse> {
+    const admin = createSupabaseAdminClient();
+    await expirePriorityPurchases(admin, vendorId);
+
+    const { data: slotRow, error } = await admin
+        .from("ad_priority_slots")
+        .select("id, tier, price_weekly, is_active, max_slots")
+        .eq("id", prioritySlotId)
+        .maybeSingle();
+
+    if (error) {
+        throw internalServerError("슬롯 조회에 실패했습니다.");
+    }
+    if (!slotRow) {
+        throw notFound("우선순위 슬롯을 찾을 수 없습니다.");
+    }
+    if (!slotRow.is_active) {
+        throw badRequest("비활성화된 슬롯입니다.");
+    }
+
+    const { count: activeCount } = await admin
+        .from("ad_priority_purchases")
+        .select("id", { count: "exact", head: true })
+        .eq("priority_slot_id", prioritySlotId)
+        .eq("status", "active")
+        .gt("ends_at", new Date().toISOString());
+
+    if ((activeCount ?? 0) >= slotRow.max_slots) {
+        throw badRequest("이 슬롯의 구매 가능 수량을 초과했습니다.");
+    }
+
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const randomPart = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+    const orderId = `MDHB-${dateStr}-${randomPart}`;
+
+    const payment = await createPayment(admin, {
+        orderId,
+        vendorId,
+        userId,
+        amount: slotRow.price_weekly,
+        metadata: {
+            purpose: "ad_priority",
+            prioritySlotId,
+        },
+    });
+
+    return {
+        orderId,
+        amount: slotRow.price_weekly,
+        paymentId: payment.id,
+        clientKey: getClientKey(),
+        customerName,
+        orderName: `메디허브 광고 우선순위: ${slotRow.tier} (7일)`,
+    };
 }
 
 /**

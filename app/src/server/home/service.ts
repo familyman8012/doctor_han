@@ -487,6 +487,44 @@ export async function buildHomeScreen(supabase: SupabaseClient<Database>): Promi
         }
     }
 
+    // 전역 상품 섹션: 카테고리 무관 (신상품 / 고평점 / 조회수 급상승)
+    const globalProductSpecs: Array<{ id: string; title: string; sort: string }> = [
+        { id: "product-global:newest", title: "이번 주 신상품", sort: "newest" },
+        { id: "product-global:top-rated", title: "고평점 상품", sort: "rating" },
+        { id: "product-global:trending", title: "조회수 급상승", sort: "popular" },
+    ];
+
+    const globalProductResults = await Promise.all(
+        globalProductSpecs.map((spec) =>
+            fetchHomeProducts(supabase, {
+                sort: spec.sort,
+                limit: HOME_PRODUCT_SECTION_SIZE,
+            }),
+        ),
+    );
+
+    for (let i = 0; i < globalProductSpecs.length; i++) {
+        const spec = globalProductSpecs[i]!;
+        const { rows, categorySlugMap, thumbnailMap } = globalProductResults[i]!;
+
+        const items: ProductListItem[] = rows.map((row) => {
+            const vendorData = row.vendors as Record<string, unknown>;
+            const vendor = { id: vendorData.id as string, name: vendorData.name as string };
+            const categorySlug = categorySlugMap.get(row.category_id as string) ?? null;
+            const thumbnail = thumbnailMap.get(row.id as string) ?? null;
+            return mapProductListItem(row, vendor, categorySlug, thumbnail);
+        });
+
+        if (items.length === 0) continue;
+
+        sections.push({
+            id: spec.id,
+            type: "product_carousel",
+            title: spec.title,
+            items,
+        });
+    }
+
     return {
         version: HOME_VERSION,
         generatedAt: new Date().toISOString(),

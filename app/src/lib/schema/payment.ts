@@ -29,6 +29,42 @@ export const PaymentMethodSchema = z.enum([
 
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
 
+/**
+ * 결제 목적 (payments.metadata.purpose 에 저장)
+ * - credit_charge: 크레딧 충전
+ * - subscription: 구독 구매 (카테고리별)
+ * - membership: S등급 멤버십 구매
+ * - ad_priority: 광고 우선순위 슬롯 구매
+ */
+export const PaymentPurposeSchema = z.enum([
+    "credit_charge",
+    "subscription",
+    "membership",
+    "ad_priority",
+]);
+export type PaymentPurpose = z.infer<typeof PaymentPurposeSchema>;
+
+/** 구독 결제 metadata */
+export const SubscriptionPaymentMetadataSchema = z.object({
+    purpose: z.literal("subscription"),
+    planId: zUuid,
+    categoryId: zUuid,
+    autoRenew: z.boolean().default(false),
+});
+
+/** 멤버십 결제 metadata */
+export const MembershipPaymentMetadataSchema = z.object({
+    purpose: z.literal("membership"),
+    planId: zUuid,
+    autoRenew: z.boolean().default(false),
+});
+
+/** 광고 우선순위 결제 metadata */
+export const AdPriorityPaymentMetadataSchema = z.object({
+    purpose: z.literal("ad_priority"),
+    prioritySlotId: zUuid,
+});
+
 // ============================================
 // Entity
 // ============================================

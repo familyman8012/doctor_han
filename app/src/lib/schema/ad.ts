@@ -239,6 +239,16 @@ export const PriorityPurchaseBodySchema = z
     .strict();
 export type PriorityPurchaseBody = z.infer<typeof PriorityPurchaseBodySchema>;
 
+export const PriorityPrepareResponseSchema = z.object({
+    orderId: z.string(),
+    amount: z.number().int().positive(),
+    paymentId: zUuid,
+    clientKey: z.string(),
+    customerName: z.string(),
+    orderName: z.string(),
+});
+export type PriorityPrepareResponse = z.infer<typeof PriorityPrepareResponseSchema>;
+
 export const VendorAdsQuerySchema = z
     .object({
         status: AdPriorityPurchaseStatusSchema.optional(),

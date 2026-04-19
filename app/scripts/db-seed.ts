@@ -634,10 +634,6 @@ async function main() {
 
 		const regionPrimary = pick(seedRng, REGION_PRIMARY);
 		const regionSecondary = pick(seedRng, REGION_SECONDARY);
-		const price = flavor.priceRange;
-		const variance = 0.75 + seedRng() * 0.5;
-		const priceMin = Math.round(price.min * variance);
-		const priceMax = Math.max(priceMin + 10000, Math.round(price.max * variance));
 
 		const vendorId = crypto.randomUUID();
 
@@ -647,10 +643,8 @@ async function main() {
 			name: vendorName,
 			summary: flavor.tagline,
 			description: `${flavor.tagline}\n\n- 상담/견적: 빠른 회신\n- 진행 방식: 일정·산출물 공유\n- A/S: 운영 지원`,
-			region_primary: regionPrimary,
+			region_primary: [regionPrimary],
 			region_secondary: regionSecondary,
-			price_min: priceMin,
-			price_max: priceMax,
 			status: "active",
 		});
 
@@ -897,6 +891,133 @@ async function main() {
 
 	await insertAll(supabase, "favorites", favoriteRows);
 	await insertAll(supabase, "recent_views", recentViewRows);
+
+	// =============================
+	// Ad campaigns + 30일치 노출/클릭 데이터 (리포트 페이지 테스트용)
+	// =============================
+	console.info("🌱 Seeding ad campaigns + impressions...");
+
+	const { data: adSlotRows } = await supabase
+		.from("ad_slots")
+		.select("id, position")
+		.eq("is_active", true);
+
+	const adSlots = (adSlotRows ?? []) as Array<{ id: string; position: string }>;
+
+	if (adSlots.length > 0) {
+		const advertiserSamples = [
+			"블루한약 서비스",
+			"그린약침 프로",
+			"메디라이트 의료기기",
+			"퍼스트 인테리어",
+			"원케어 마케팅",
+		];
+
+		const now = new Date();
+		const campaignRows: TablesInsert<"ad_campaigns">[] = [];
+		for (let i = 0; i < advertiserSamples.length; i += 1) {
+			const slot = adSlots[i % adSlots.length]!;
+			const vendor = pick(seedRng, vendorsMeta);
+			const startsAt = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+			const endsAt = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
+			campaignRows.push({
+				ad_slot_id: slot.id,
+				vendor_id: vendor.vendorId,
+				advertiser_name: advertiserSamples[i]!,
+				status: i < 4 ? "active" : "paused",
+				starts_at: startsAt.toISOString(),
+				ends_at: endsAt.toISOString(),
+				monthly_price: 500_000 + i * 100_000,
+				created_by: adminUser.user.id,
+			});
+		}
+
+		const { data: insertedCampaigns, error: campaignError } = await supabase
+			.from("ad_campaigns")
+			.insert(campaignRows)
+			.select("id");
+
+		if (campaignError) {
+			console.warn("⚠️ ad_campaigns seed failed:", campaignError.message);
+		} else if (insertedCampaigns) {
+			// 각 캠페인에 크리에이티브 1개씩 생성 (이미지 배너)
+			const creativeImagePool = [
+				"https://picsum.photos/seed/ad-medihub-1/1200/300",
+				"https://picsum.photos/seed/ad-medihub-2/1200/300",
+				"https://picsum.photos/seed/ad-medihub-3/1200/300",
+				"https://picsum.photos/seed/ad-medihub-4/1200/300",
+				"https://picsum.photos/seed/ad-medihub-5/1200/300",
+			];
+
+			const creativeRows: TablesInsert<"ad_creatives">[] = (insertedCampaigns as Array<{ id: string }>).map(
+				(campaign, idx) => ({
+					campaign_id: campaign.id,
+					type: "image",
+					title: advertiserSamples[idx] ?? "광고",
+					image_url: creativeImagePool[idx % creativeImagePool.length]!,
+					click_url: "/",
+					is_active: true,
+					sort_order: 0,
+				}),
+			);
+
+			await insertAll(supabase, "ad_creatives", creativeRows);
+			console.info(`   → ${creativeRows.length} creatives`);
+
+			// 지난 30일치 노출/클릭 일별 집계
+			const impressionRows: TablesInsert<"ad_impressions">[] = [];
+			let totalImpressionsSum = 0;
+			let totalClicksSum = 0;
+			const aggregateByCampaign = new Map<string, { impressions: number; clicks: number }>();
+
+			for (const campaign of insertedCampaigns as Array<{ id: string }>) {
+				let campaignImp = 0;
+				let campaignClk = 0;
+				for (let d = 29; d >= 0; d -= 1) {
+					const date = new Date(now.getTime() - d * 24 * 60 * 60 * 1000);
+					const dateStr = date.toISOString().slice(0, 10);
+					// 평일/주말 패턴: 평일 400~900, 주말 200~500
+					const day = date.getDay();
+					const isWeekday = day !== 0 && day !== 6;
+					const impBase = isWeekday ? 400 : 200;
+					const impRange = isWeekday ? 500 : 300;
+					const impressions = impBase + Math.floor(seedRng() * impRange);
+					// CTR 1~3%
+					const clicks = Math.floor(impressions * (0.01 + seedRng() * 0.02));
+					impressionRows.push({
+						campaign_id: campaign.id,
+						date: dateStr,
+						impressions,
+						clicks,
+					});
+					campaignImp += impressions;
+					campaignClk += clicks;
+				}
+				aggregateByCampaign.set(campaign.id, { impressions: campaignImp, clicks: campaignClk });
+				totalImpressionsSum += campaignImp;
+				totalClicksSum += campaignClk;
+			}
+
+			await insertAll(supabase, "ad_impressions", impressionRows);
+
+			// 캠페인의 total_impressions / total_clicks 컬럼도 업데이트 (집계 캐시)
+			for (const [campaignId, agg] of aggregateByCampaign) {
+				await supabase
+					.from("ad_campaigns")
+					.update({
+						total_impressions: agg.impressions,
+						total_clicks: agg.clicks,
+					})
+					.eq("id", campaignId);
+			}
+
+			console.info(
+				`   → ${insertedCampaigns.length} campaigns, ${impressionRows.length} impression rows (총 노출 ${totalImpressionsSum.toLocaleString()}, 클릭 ${totalClicksSum.toLocaleString()})`,
+			);
+		}
+	} else {
+		console.info("   → ad_slots 없음, 광고 시드 스킵");
+	}
 
 	console.info("✅ Seed complete.");
 	console.info("");

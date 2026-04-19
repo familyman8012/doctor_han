@@ -36,7 +36,7 @@ export type RankedVendorRow = {
     id: string;
     name: string;
     summary: string | null;
-    region_primary: string | null;
+    region_primary: string[] | null;
     region_secondary: string | null;
     road_address: string | null;
     jibun_address: string | null;
@@ -44,8 +44,6 @@ export type RankedVendorRow = {
     zonecode: string | null;
     latitude: number | null;
     longitude: number | null;
-    price_min: number | null;
-    price_max: number | null;
     rating_avg: number | null;
     review_count: number;
     profile_image_url: string | null;
@@ -58,8 +56,6 @@ export async function searchVendorsRanked(
     params: {
         query: string;
         categoryId?: string;
-        priceMin?: number;
-        priceMax?: number;
         sort: string;
         limit: number;
         offset: number;
@@ -68,8 +64,6 @@ export async function searchVendorsRanked(
     const { data, error } = await supabase.rpc("search_vendors_ranked" as never, {
         p_query: params.query,
         p_category_id: params.categoryId ?? null,
-        p_price_min: params.priceMin ?? null,
-        p_price_max: params.priceMax ?? null,
         p_sort: params.sort,
         p_limit: params.limit,
         p_offset: params.offset,

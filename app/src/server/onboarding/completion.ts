@@ -153,8 +153,9 @@ export async function calculateVendorCompletion(ctx: CompletionContext): Promise
             });
         }
 
+        const hasRegion = Array.isArray(vendor.region_primary) && vendor.region_primary.length > 0;
         hasVendorInfo = Boolean(
-            vendor.name && vendor.description && vendor.region_primary && (categoryCount ?? 0) > 0
+            vendor.name && vendor.description && hasRegion && (categoryCount ?? 0) > 0
         );
     }
     checklist.push({

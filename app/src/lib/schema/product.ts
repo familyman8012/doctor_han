@@ -92,6 +92,18 @@ export const ProductDetailSchema = ProductListItemSchema.extend({
     inquiryCount: z.number().int(),
     sortOrder: z.number().int(),
     publishedAt: z.string().nullable(),
+    firstPublishedAt: z.string().nullable(),
+    resubmitReason: z.string().nullable(),
+    /** 관리자 전용: 직전 active 시점 대비 변경된 필드 명세 */
+    resubmitChangedFields: z
+        .array(
+            z.object({
+                field: z.string(),
+                before: z.unknown().nullable(),
+                after: z.unknown().nullable(),
+            }),
+        )
+        .optional(),
     createdAt: z.string(),
     updatedAt: z.string(),
     images: z.array(ProductImageSchema),
@@ -177,6 +189,8 @@ export const ProductPatchBodySchema = z
         status: z.enum(["draft", "pending_review", "active", "inactive"]).optional(),
         images: z.array(ProductImageInputSchema).max(20).optional(),
         faqs: z.array(ProductFaqInputSchema).max(30).optional(),
+        /** 이미 활성(active)된 상품을 재수정할 때 업체가 작성하는 변경 사유 */
+        resubmitReason: z.string().trim().min(1).max(1000).optional(),
     })
     .refine(
         (v) =>

@@ -192,6 +192,9 @@ export type ReviewReplyPatchBody = z.infer<typeof ReviewReplyPatchBodySchema>;
 export const VendorReviewListItemSchema = ReviewViewSchema.extend({
     reply: ReviewReplyViewSchema.nullable(),
     photoUrls: z.array(z.string()).optional(),
+    productName: z.string().nullable().optional(),
+    leadServiceName: z.string().nullable().optional(),
+    categoryName: z.string().nullable().optional(),
 });
 
 export type VendorReviewListItem = z.infer<typeof VendorReviewListItemSchema>;

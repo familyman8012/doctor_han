@@ -11,6 +11,7 @@ export const FilePurposeSchema = z.enum([
     "review_photo",
     "lead_message_attachment",
     "product_image",
+    "rich_content",
 ]);
 
 export type FilePurpose = z.infer<typeof FilePurposeSchema>;

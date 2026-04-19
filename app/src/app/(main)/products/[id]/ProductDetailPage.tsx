@@ -9,6 +9,7 @@ import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
 import { useIsAuthenticated, useUser, useUserRole } from "@/stores/auth";
 import { RequireApproval } from "@/components/widgets/RequireApproval";
+import { RichContent } from "@/components/ui/RichEditor/RichContent";
 import type { ProductDetail } from "@/lib/schema/product";
 import { ProductImageGallery } from "./components/ProductImageGallery";
 import { ProductFaqSection } from "./components/ProductFaqSection";
@@ -84,8 +85,31 @@ export default function ProductDetailPage({ productId }: ProductDetailPageProps)
     const product = data.product;
     const isFavorited = productFavorites.includes(product.id);
 
+    const previewBanner = (() => {
+        switch (product.status) {
+            case "draft":
+                return { label: "임시저장", desc: "아직 등록 요청 전입니다. 외부에는 공개되지 않습니다.", tone: "bg-gray-100 border-gray-300 text-gray-700" };
+            case "pending_review":
+                return { label: "심사중", desc: "관리자 검토를 기다리는 중입니다. 외부에는 공개되지 않습니다.", tone: "bg-yellow-50 border-yellow-300 text-yellow-800" };
+            case "rejected":
+                return { label: "반려", desc: "관리자 반려로 공개되지 않습니다. 상품 수정 후 재요청할 수 있습니다.", tone: "bg-red-50 border-red-300 text-red-800" };
+            case "inactive":
+                return { label: "비활성", desc: "현재 외부에 공개되지 않는 상태입니다.", tone: "bg-gray-100 border-gray-300 text-gray-700" };
+            default:
+                return null;
+        }
+    })();
+
     return (
         <div className="space-y-6">
+            {/* 비공개 상품 미리보기 배너 */}
+            {previewBanner && (
+                <div className={`border rounded-lg px-4 py-3 text-sm ${previewBanner.tone}`}>
+                    <span className="font-semibold">미리보기 ({previewBanner.label})</span>
+                    <span className="ml-2">{previewBanner.desc}</span>
+                </div>
+            )}
+
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-sm text-gray-500">
                 <Link href="/categories" className="hover:text-content-primary">
@@ -121,9 +145,7 @@ export default function ProductDetailPage({ productId }: ProductDetailPageProps)
                     {product.description && (
                         <section>
                             <h2 className="text-lg font-bold text-content-primary mb-4">상세 설명</h2>
-                            <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">
-                                {product.description}
-                            </div>
+                            <RichContent html={product.description} className="text-gray-700" />
                         </section>
                     )}
 

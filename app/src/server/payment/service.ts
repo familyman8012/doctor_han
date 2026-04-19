@@ -15,8 +15,8 @@ import {
     updatePaymentStatus,
 } from "./repository";
 import { confirmPayment as tossConfirmPayment, verifyWebhookSignature } from "./toss-client";
-import { completeCharge } from "@/server/credit/service";
 import { getPendingTransactionByPaymentId } from "@/server/credit/repository";
+import { dispatchPaymentFulfillment, getPaymentPurpose } from "./purpose-dispatcher";
 
 function mapTossMethodToEnum(method: string): Database["public"]["Enums"]["payment_method"] {
     const methodMap: Record<string, Database["public"]["Enums"]["payment_method"]> = {
@@ -30,13 +30,19 @@ function mapTossMethodToEnum(method: string): Database["public"]["Enums"]["payme
 }
 
 /**
- * 결제 승인 (TossPayments confirm + DB 업데이트 + 크레딧 적립)
+ * 결제 승인 (TossPayments confirm + DB 업데이트 + purpose별 후처리)
+ * purpose = credit_charge | subscription | membership | ad_priority
  */
 export async function confirmPaymentAndCredit(
     _supabase: SupabaseClient<Database>,
     params: { paymentKey: string; orderId: string; amount: number },
     userId: string,
-): Promise<{ payment: Payment; creditBalance: number }> {
+): Promise<{
+    payment: Payment;
+    creditBalance: number;
+    purpose: string;
+    resultId: string | null;
+}> {
     const admin = createSupabaseAdminClient();
 
     // 1. 결제 레코드 조회
@@ -45,43 +51,52 @@ export async function confirmPaymentAndCredit(
         throw notFound("결제 정보를 찾을 수 없습니다.");
     }
 
-    // 본인 결제 확인
     if (paymentRow.user_id !== userId) {
         throw badRequest("본인의 결제만 승인할 수 있습니다.");
     }
 
-    // 이미 완료된 결제면 멱등하게 현재 상태 반환
+    const purpose = getPaymentPurpose(paymentRow);
+
+    // 이미 완료된 결제 → 멱등 처리
     if (paymentRow.status === "done") {
         return {
             payment: mapPaymentRow(paymentRow),
-            creditBalance: await completeCharge(admin, paymentRow.id, paymentRow.vendor_id),
+            creditBalance:
+                purpose === "credit_charge"
+                    ? await getCurrentBalance(admin, paymentRow.vendor_id)
+                    : await getCurrentBalance(admin, paymentRow.vendor_id),
+            purpose,
+            resultId: null,
         };
     }
 
-    // 금액 검증
     if (paymentRow.amount !== params.amount) {
         throw badRequest("결제 금액이 일치하지 않습니다.");
     }
 
-    // 크레딧 적립은 완료됐지만 결제 상태 업데이트만 실패한 케이스 복구
-    const chargeTx = await getPendingTransactionByPaymentId(admin, paymentRow.id);
-    if (chargeTx?.status === "completed") {
-        const updatedRow = await updatePaymentStatus(admin, paymentRow.id, "done", params.paymentKey);
-        return {
-            payment: mapPaymentRow(updatedRow),
-            creditBalance: await getCurrentBalance(admin, paymentRow.vendor_id),
-        };
+    // 크레딧 충전 전용: 적립은 이미 됐지만 상태 업데이트 실패 복구
+    if (purpose === "credit_charge") {
+        const chargeTx = await getPendingTransactionByPaymentId(admin, paymentRow.id);
+        if (chargeTx?.status === "completed") {
+            const updatedRow = await updatePaymentStatus(admin, paymentRow.id, "done", params.paymentKey);
+            return {
+                payment: mapPaymentRow(updatedRow),
+                creditBalance: await getCurrentBalance(admin, paymentRow.vendor_id),
+                purpose,
+                resultId: null,
+            };
+        }
     }
 
-    // 2. TossPayments API 승인 호출
+    // 2. TossPayments API 승인
     const tossResult = await tossConfirmPayment({
         paymentKey: params.paymentKey,
         orderId: params.orderId,
         amount: params.amount,
     });
 
-    // 3. 크레딧 적립 (먼저 처리하고, 결제 상태는 뒤에서 업데이트)
-    const creditBalance = await completeCharge(admin, paymentRow.id, paymentRow.vendor_id);
+    // 3. purpose별 fulfillment
+    const { resultId } = await dispatchPaymentFulfillment(admin, paymentRow);
 
     // 4. payment 상태 업데이트
     const method = mapTossMethodToEnum(tossResult.method);
@@ -93,9 +108,13 @@ export async function confirmPaymentAndCredit(
         method,
     );
 
+    const creditBalance = await getCurrentBalance(admin, paymentRow.vendor_id);
+
     return {
         payment: mapPaymentRow(updatedRow),
         creditBalance,
+        purpose,
+        resultId,
     };
 }
 
@@ -145,13 +164,11 @@ export async function handleWebhook(
         if (eventType === "PAYMENT_STATUS_CHANGED" && paymentKey) {
             const status = body.data?.status;
             if (status === "DONE") {
-                // confirm 전에 브라우저가 닫힌 경우 웹훅으로 크레딧 적립
+                // confirm 전에 브라우저가 닫힌 경우 웹훅으로 purpose별 fulfillment
                 const payment = await getPaymentByOrderId(admin, body.data?.orderId);
-                if (payment) {
-                    await completeCharge(admin, payment.id, payment.vendor_id);
-                    if (payment.status !== "done") {
-                        await updatePaymentStatus(admin, payment.id, "done", paymentKey);
-                    }
+                if (payment && payment.status !== "done") {
+                    await dispatchPaymentFulfillment(admin, payment);
+                    await updatePaymentStatus(admin, payment.id, "done", paymentKey);
                 }
             }
         }

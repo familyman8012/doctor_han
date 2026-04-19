@@ -65,6 +65,17 @@ export const SubscriptionPurchaseBodySchema = z
 
 export type SubscriptionPurchaseBody = z.infer<typeof SubscriptionPurchaseBodySchema>;
 
+/** 토스 즉시결제 준비 응답 */
+export const SubscriptionPrepareResponseSchema = z.object({
+    orderId: z.string(),
+    amount: z.number().int().positive(),
+    paymentId: zUuid,
+    clientKey: z.string(),
+    customerName: z.string(),
+    orderName: z.string(),
+});
+export type SubscriptionPrepareResponse = z.infer<typeof SubscriptionPrepareResponseSchema>;
+
 export const SubscriptionAutoRenewBodySchema = z
     .object({
         autoRenew: z.boolean(),

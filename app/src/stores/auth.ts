@@ -2,16 +2,20 @@ import { create } from "zustand";
 import type { OnboardingState, ProfileCompletion } from "@/lib/schema/profile";
 
 export type UserRole = "guest" | "doctor" | "vendor" | "admin";
-export type ProfileStatus = "active" | "inactive" | "banned";
+export type ProfileStatus = "active" | "suspended" | "banned" | "inactive";
 
 export interface Profile {
     id: string;
     role: Exclude<UserRole, "guest">;
     status: ProfileStatus;
     displayName: string | null;
+    position: string | null;
     avatarUrl: string | null;
     phone: string | null;
     email: string | null;
+    suspendedUntil: string | null;
+    statusReason: string | null;
+    statusChangedAt: string | null;
     createdAt: string;
     updatedAt: string;
 }

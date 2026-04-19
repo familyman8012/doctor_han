@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { cn } from "@/components/utils";
-import { formatPriceCompact } from "@/lib/utils/format";
 import { VendorCardThumbnail } from "./VendorCardThumbnail";
 import { VendorCardBadges } from "./VendorCardBadges";
 import { VendorCardFavoriteButton } from "./VendorCardFavoriteButton";
@@ -76,18 +75,13 @@ export function VendorCard({
                             </div>
                         )}
                     </div>
-                    <div className="flex items-center gap-4 mt-2 pt-2 border-t border-gray-50">
-                        {vendor.ratingAvg && (
-                            <div className="flex items-center gap-1 text-xs text-gray-500">
-                                <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                                <span>{vendor.ratingAvg.toFixed(1)}</span>
-                                <span>({vendor.reviewCount})</span>
-                            </div>
-                        )}
-                        <div className="ml-auto font-bold text-base text-content-primary">
-                            {formatPriceCompact(vendor.priceMin, vendor.priceMax)}
+                    {vendor.ratingAvg && (
+                        <div className="flex items-center gap-1 text-xs text-gray-500 mt-2 pt-2 border-t border-gray-50">
+                            <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                            <span>{vendor.ratingAvg.toFixed(1)}</span>
+                            <span>({vendor.reviewCount})</span>
                         </div>
-                    </div>
+                    )}
                 </div>
             </Link>
         );
@@ -159,13 +153,6 @@ export function VendorCard({
                     </div>
                 )}
 
-                {/* Price */}
-                <div className={cn(
-                    "font-bold text-content-primary",
-                    isCarousel ? "text-sm" : "text-base",
-                )}>
-                    {formatPriceCompact(vendor.priceMin, vendor.priceMax)}
-                </div>
             </div>
         </Link>
     );

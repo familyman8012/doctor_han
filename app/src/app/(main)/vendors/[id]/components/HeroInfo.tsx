@@ -10,7 +10,12 @@ interface HeroInfoProps {
 }
 
 export function HeroInfo({ vendor }: HeroInfoProps) {
-    const getRegion = () => {
+    const regionPrimaryList = vendor.regionPrimary ?? [];
+    const regionPrimaryLabel = regionPrimaryList.length > 0
+        ? regionPrimaryList.map((r) => r.replace(/(특별자치도|특별자치시|특별시|광역시|도|시)$/, "")).join(" · ")
+        : null;
+
+    const getAddress = () => {
         if (vendor.roadAddress) {
             return vendor.addressDetail
                 ? `${vendor.roadAddress} ${vendor.addressDetail}`
@@ -21,11 +26,15 @@ export function HeroInfo({ vendor }: HeroInfoProps) {
                 ? `${vendor.jibunAddress} ${vendor.addressDetail}`
                 : vendor.jibunAddress;
         }
-        if (vendor.regionPrimary && vendor.regionSecondary) {
-            return `${vendor.regionPrimary} ${vendor.regionSecondary}`;
-        }
-        return vendor.regionPrimary || vendor.regionSecondary || "전국";
+        return null;
     };
+
+    const addressLabel = getAddress();
+    const serviceAreaLabel = regionPrimaryLabel
+        ? vendor.regionSecondary
+            ? `${regionPrimaryLabel} (${vendor.regionSecondary})`
+            : regionPrimaryLabel
+        : vendor.regionSecondary ?? null;
 
     return (
         <div>
@@ -86,11 +95,31 @@ export function HeroInfo({ vendor }: HeroInfoProps) {
                 )}
             </div>
 
-            {/* Region */}
-            <div className="flex items-center gap-2 text-gray-600">
-                <MapPin className="w-4 h-4 flex-shrink-0" />
-                <span>{getRegion()}</span>
-            </div>
+            {/* 업체 주소 (사업장 위치) */}
+            {addressLabel && (
+                <div className="flex items-center gap-2 text-gray-600 mb-1.5">
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <span>{addressLabel}</span>
+                </div>
+            )}
+
+            {/* 서비스 가능 지역 */}
+            {serviceAreaLabel && (
+                <div className="flex items-start gap-2 text-gray-600">
+                    <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <div>
+                        <span className="text-xs font-medium text-gray-500 mr-1">서비스 지역</span>
+                        <span>{serviceAreaLabel}</span>
+                    </div>
+                </div>
+            )}
+
+            {!addressLabel && !serviceAreaLabel && (
+                <div className="flex items-center gap-2 text-gray-600">
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <span>전국</span>
+                </div>
+            )}
         </div>
     );
 }

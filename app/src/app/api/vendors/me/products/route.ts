@@ -1,6 +1,7 @@
 import { zPaginationQuery } from "@/lib/schema/common";
-import { ProductCreateBodySchema } from "@/lib/schema/product";
+import { ProductCreateBodySchema, ProductStatusSchema } from "@/lib/schema/product";
 import { badRequest, internalServerError, notFound } from "@/server/api/errors";
+import { buildOrIlikeFilter } from "@/server/api/postgrest";
 import { created, ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withRole } from "@/server/auth/guards";
@@ -19,6 +20,9 @@ export const GET = withApi(
             page: searchParams.get("page") ?? undefined,
             pageSize: searchParams.get("pageSize") ?? undefined,
         });
+        const statusParam = searchParams.get("status") ?? undefined;
+        const status = statusParam ? ProductStatusSchema.parse(statusParam) : undefined;
+        const q = searchParams.get("q")?.trim() || undefined;
 
         // Find vendor by current user
         const { data: vendor, error: vendorError } = await ctx.supabase
@@ -43,13 +47,25 @@ export const GET = withApi(
 
         // Owner can see all statuses (RLS policy: products_select_owner)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error, count } = await (ctx.supabase as any)
+        let qb = (ctx.supabase as any)
             .from("products")
             .select("*, categories!inner(slug)", { count: "exact" })
-            .eq("vendor_id", vendor.id)
+            .eq("vendor_id", vendor.id);
+
+        if (status) {
+            qb = qb.eq("status", status);
+        }
+
+        if (q) {
+            const orFilter = buildOrIlikeFilter(["title", "summary"], q);
+            if (orFilter) qb = qb.or(orFilter);
+        }
+
+        qb = qb
             .order("sort_order", { ascending: true })
-            .order("created_at", { ascending: false })
-            .range(from, to);
+            .order("created_at", { ascending: false });
+
+        const { data, error, count } = await qb.range(from, to);
 
         if (error) {
             throw internalServerError("상품 목록을 조회할 수 없습니다.", {
@@ -93,12 +109,17 @@ export const GET = withApi(
 
         const items = rows.map((row) => {
             const category = row.categories as { slug: string } | null;
-            return mapProductListItem(
+            const base = mapProductListItem(
                 row,
                 { id: vendor.id, name: vendor.name },
                 category?.slug ?? null,
                 thumbnailMap.get(row.id as string) ?? null,
             );
+            return {
+                ...base,
+                status: (row.status as string) ?? "draft",
+                createdAt: (row.created_at as string) ?? "",
+            };
         });
 
         return ok({

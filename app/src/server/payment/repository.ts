@@ -12,6 +12,7 @@ export async function createPayment(
         vendorId: string;
         userId: string;
         amount: number;
+        metadata?: Record<string, unknown>;
     },
 ): Promise<PaymentRow> {
     const { data, error } = await supabase
@@ -22,6 +23,7 @@ export async function createPayment(
             user_id: payload.userId,
             amount: payload.amount,
             status: "ready",
+            metadata: (payload.metadata ?? {}) as Database["public"]["Tables"]["payments"]["Insert"]["metadata"],
         })
         .select("*")
         .single();

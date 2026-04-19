@@ -1,7 +1,6 @@
 "use client";
 
 import dayjs from "dayjs";
-import { History } from "lucide-react";
 import { Badge, type BadgeColor } from "@/components/ui/Badge/Badge";
 import type { LeadStatusHistory as StatusHistoryType, LeadStatus } from "@/lib/schema/lead";
 
@@ -22,48 +21,49 @@ interface LeadStatusHistoryProps {
 
 export function LeadStatusHistory({ history }: LeadStatusHistoryProps) {
     const sortedHistory = [...history].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
 
     return (
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
-            <h2 className="text-lg font-bold text-content-primary mb-4 flex items-center gap-2">
-                <History className="w-5 h-5 text-gray-400" />
-                상태 변경 이력
-            </h2>
+        <ol className="relative ml-2 space-y-5 border-l-2 border-gray-100 pl-6">
+            {sortedHistory.map((item, idx) => {
+                const toConfig = STATUS_CONFIG[item.toStatus];
+                const fromConfig = item.fromStatus ? STATUS_CONFIG[item.fromStatus] : null;
+                const isLatest = idx === 0;
 
-            <div className="space-y-4">
-                {sortedHistory.map((item) => {
-                    const toConfig = STATUS_CONFIG[item.toStatus];
-                    const fromConfig = item.fromStatus ? STATUS_CONFIG[item.fromStatus] : null;
-
-                    return (
-                        <div
-                            key={item.id}
-                            className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-0"
+                return (
+                    <li key={item.id} className="relative">
+                        {/* 타임라인 점 */}
+                        <span
+                            className={`absolute -left-[29px] top-1 flex h-4 w-4 items-center justify-center rounded-full border-2 ${
+                                isLatest
+                                    ? "border-primary bg-primary"
+                                    : "border-gray-300 bg-white"
+                            }`}
+                            aria-hidden
                         >
-                            <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                    {fromConfig && (
-                                        <>
-                                            <Badge color={fromConfig.color} size="xs">
-                                                {fromConfig.label}
-                                            </Badge>
-                                            <span className="text-gray-400">→</span>
-                                        </>
-                                    )}
-                                    <Badge color={toConfig.color} size="xs">
-                                        {toConfig.label}
+                            {isLatest && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                        </span>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                            {fromConfig && (
+                                <>
+                                    <Badge color={fromConfig.color} size="xs">
+                                        {fromConfig.label}
                                     </Badge>
-                                </div>
-                            </div>
-                            <span className="text-sm text-gray-400">
-                                {dayjs(item.createdAt).format("MM.DD HH:mm")}
+                                    <span className="text-gray-300">→</span>
+                                </>
+                            )}
+                            <Badge color={toConfig.color} size="xs">
+                                {toConfig.label}
+                            </Badge>
+                            <span className="ml-auto text-xs text-gray-400">
+                                {dayjs(item.createdAt).format("YYYY.MM.DD HH:mm")}
                             </span>
                         </div>
-                    );
-                })}
-            </div>
-        </div>
+                    </li>
+                );
+            })}
+        </ol>
     );
 }

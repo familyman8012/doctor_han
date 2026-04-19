@@ -3,9 +3,10 @@ import type {
     SubscriptionDetailResponse,
     SubscriptionListResponse,
     SubscriptionPlanListResponse,
+    SubscriptionPrepareResponse,
     SubscriptionPurchaseBody,
-    SubscriptionPurchaseResponse,
 } from "@/lib/schema/subscription";
+import type { ApiSuccessResponse } from "@/lib/api/types";
 import api from "./client";
 
 export const subscriptionsApi = {
@@ -30,9 +31,12 @@ export const subscriptionsApi = {
         return response.data;
     },
 
-    purchase: async (body: SubscriptionPurchaseBody): Promise<SubscriptionPurchaseResponse> => {
-        const response = await api.post<SubscriptionPurchaseResponse>(
-            "/api/vendors/me/subscriptions",
+    /** 토스 즉시결제 준비 (orderId/clientKey 반환) */
+    prepare: async (
+        body: SubscriptionPurchaseBody,
+    ): Promise<ApiSuccessResponse<SubscriptionPrepareResponse>> => {
+        const response = await api.post<ApiSuccessResponse<SubscriptionPrepareResponse>>(
+            "/api/vendors/me/subscriptions/prepare",
             body,
         );
         return response.data;

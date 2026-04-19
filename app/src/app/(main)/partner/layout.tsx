@@ -18,6 +18,7 @@ import {
     Gavel,
     MessageCircle,
     Package,
+    Star,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useIsAuthenticated, useUserRole, useAuthStore, useProfile } from "@/stores/auth";
@@ -37,6 +38,7 @@ const NAV_ITEMS = [
     { href: "/partner/ads", label: "광고 관리", icon: Megaphone },
     { href: "/partner/membership", label: "입점 멤버십", icon: Shield },
     { href: "/partner/portfolios", label: "포트폴리오", icon: FolderOpen },
+    { href: "/partner/reviews", label: "리뷰 관리", icon: Star },
     { href: "/partner/support", label: "고객지원", icon: MessageCircle },
     { href: "/partner/notifications", label: "알림 설정", icon: Bell },
     { href: "/partner/settings", label: "계정 설정", icon: Settings },

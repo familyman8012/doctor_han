@@ -12,7 +12,7 @@ export const VendorListItemSchema = z.object({
     id: zUuid,
     name: z.string(),
     summary: z.string().nullable(),
-    regionPrimary: z.string().nullable(),
+    regionPrimary: z.array(z.string()).nullable(),
     regionSecondary: z.string().nullable(),
     roadAddress: z.string().nullable(),
     jibunAddress: z.string().nullable(),
@@ -20,8 +20,7 @@ export const VendorListItemSchema = z.object({
     zonecode: z.string().nullable(),
     latitude: z.number().nullable(),
     longitude: z.number().nullable(),
-    priceMin: z.number().int().nullable(),
-    priceMax: z.number().int().nullable(),
+    contactPhoneSecondary: z.string().nullable(),
     ratingAvg: z.number().nullable(),
     reviewCount: z.number().int(),
     profileImageUrl: z.string().nullable(),
@@ -73,8 +72,6 @@ export const VendorListQuerySchema = z
     .object({
         q: z.string().trim().min(1).optional(),
         categoryId: zUuid.optional(),
-        priceMin: z.coerce.number().int().min(0).optional(),
-        priceMax: z.coerce.number().int().min(0).optional(),
         regionPrimary: z.string().trim().min(1).optional(),
         regionSecondary: z.string().trim().min(1).optional(),
         ratingMin: z.coerce.number().min(0).max(5).optional(),
@@ -87,10 +84,6 @@ export const VendorListQuerySchema = z
         sort: z.enum(["newest", "rating", "reviewCount", "popular"]).default("newest"),
     })
     .merge(zPaginationQuery)
-    .refine((value) => value.priceMin === undefined || value.priceMax === undefined || value.priceMin <= value.priceMax, {
-        message: "priceMin은 priceMax보다 클 수 없습니다.",
-        path: ["priceMin"],
-    })
     .strict();
 
 export type VendorListQuery = z.infer<typeof VendorListQuerySchema>;
@@ -100,7 +93,7 @@ export const VendorUpsertBodySchema = z
         name: zNonEmptyString,
         summary: z.string().trim().min(1).optional().nullable(),
         description: z.string().trim().min(1).optional().nullable(),
-        regionPrimary: z.string().trim().min(1).optional().nullable(),
+        regionPrimary: z.array(z.string().trim().min(1)).max(18).optional().nullable(),
         regionSecondary: z.string().trim().min(1).optional().nullable(),
         roadAddress: z.string().trim().min(1).optional().nullable(),
         jibunAddress: z.string().trim().min(1).optional().nullable(),
@@ -108,20 +101,10 @@ export const VendorUpsertBodySchema = z
         zonecode: z.string().trim().min(1).optional().nullable(),
         latitude: z.number().min(-90).max(90).optional().nullable(),
         longitude: z.number().min(-180).max(180).optional().nullable(),
-        priceMin: z.number().int().min(0).optional().nullable(),
-        priceMax: z.number().int().min(0).optional().nullable(),
+        contactPhoneSecondary: z.string().trim().min(1).optional().nullable(),
         categoryIds: z.array(zUuid).max(50).optional(),
         profileImageFileId: z.union([zUuid, z.null()]).optional(),
     })
-    .refine(
-        (value) =>
-            value.priceMin === undefined ||
-            value.priceMax === undefined ||
-            value.priceMin === null ||
-            value.priceMax === null ||
-            value.priceMin <= value.priceMax,
-        { message: "priceMin은 priceMax보다 클 수 없습니다.", path: ["priceMin"] },
-    )
     .strict();
 
 export type VendorUpsertBody = z.infer<typeof VendorUpsertBodySchema>;
@@ -131,7 +114,7 @@ export const VendorPatchBodySchema = z
         name: zNonEmptyString.optional(),
         summary: z.string().trim().min(1).optional().nullable(),
         description: z.string().trim().min(1).optional().nullable(),
-        regionPrimary: z.string().trim().min(1).optional().nullable(),
+        regionPrimary: z.array(z.string().trim().min(1)).max(18).optional().nullable(),
         regionSecondary: z.string().trim().min(1).optional().nullable(),
         roadAddress: z.string().trim().min(1).optional().nullable(),
         jibunAddress: z.string().trim().min(1).optional().nullable(),
@@ -139,21 +122,11 @@ export const VendorPatchBodySchema = z
         zonecode: z.string().trim().min(1).optional().nullable(),
         latitude: z.number().min(-90).max(90).optional().nullable(),
         longitude: z.number().min(-180).max(180).optional().nullable(),
-        priceMin: z.number().int().min(0).optional().nullable(),
-        priceMax: z.number().int().min(0).optional().nullable(),
+        contactPhoneSecondary: z.string().trim().min(1).optional().nullable(),
         status: z.enum(["draft", "inactive"]).optional(),
         categoryIds: z.array(zUuid).max(50).optional(),
         profileImageFileId: z.union([zUuid, z.null()]).optional(),
     })
-    .refine(
-        (value) =>
-            value.priceMin === undefined ||
-            value.priceMax === undefined ||
-            value.priceMin === null ||
-            value.priceMax === null ||
-            value.priceMin <= value.priceMax,
-        { message: "priceMin은 priceMax보다 클 수 없습니다.", path: ["priceMin"] },
-    )
     .refine(
         (value) =>
             value.name !== undefined ||
@@ -167,8 +140,7 @@ export const VendorPatchBodySchema = z
             value.zonecode !== undefined ||
             value.latitude !== undefined ||
             value.longitude !== undefined ||
-            value.priceMin !== undefined ||
-            value.priceMax !== undefined ||
+            value.contactPhoneSecondary !== undefined ||
             value.status !== undefined ||
             value.categoryIds !== undefined ||
             value.profileImageFileId !== undefined,

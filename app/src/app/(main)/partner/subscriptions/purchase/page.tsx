@@ -1,16 +1,16 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CheckCircle2, ChevronRight } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { ArrowLeft, ChevronRight } from "lucide-react";
 import { subscriptionsApi } from "@/api-client/subscriptions";
-import { creditsApi } from "@/api-client/credits";
 import { vendorPricingApi } from "@/api-client/vendor-pricing";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Button } from "@/components/ui/Button/button";
 import type { SubscriptionPlan } from "@/lib/schema/subscription";
 import type { CategoryView } from "@/lib/schema/category";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 
 function formatKRW(amount: number): string {
     return new Intl.NumberFormat("ko-KR").format(amount) + "원";
@@ -31,10 +31,13 @@ type Step = "category" | "plan" | "confirm";
 
 export default function SubscriptionPurchasePage() {
     const router = useRouter();
-    const queryClient = useQueryClient();
     const [step, setStep] = useState<Step>("category");
     const [selectedCategory, setSelectedCategory] = useState<CategoryView | null>(null);
     const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+    const [paymentError, setPaymentError] = useState<string | null>(null);
+    const widgetsRef = useRef<Awaited<
+        ReturnType<Awaited<ReturnType<typeof loadTossPayments>>["widgets"]>
+    > | null>(null);
 
     // 업체 카테고리 목록 (pricing에서 가져옴 — vendor_categories 기반)
     const { data: pricingData, isLoading: pricingLoading } = useQuery({
@@ -54,25 +57,65 @@ export default function SubscriptionPurchasePage() {
         queryFn: () => subscriptionsApi.listPlans(),
     });
 
-    // 크레딧 잔액
-    const { data: creditData } = useQuery({
-        queryKey: ["credits", "balance"],
-        queryFn: () => creditsApi.getBalance(),
-    });
-
-    const purchaseMutation = useMutation({
+    const prepareMutation = useMutation({
         mutationFn: () =>
-            subscriptionsApi.purchase({
+            subscriptionsApi.prepare({
                 categoryId: selectedCategory!.id,
                 planId: selectedPlan!.id,
                 autoRenew: false,
             }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
-            queryClient.invalidateQueries({ queryKey: ["credits", "balance"] });
-            router.push("/partner/subscriptions");
-        },
     });
+
+    // Step 3 진입 시 토스 위젯 초기화
+    useEffect(() => {
+        if (step !== "confirm" || !selectedCategory || !selectedPlan) return;
+        setPaymentError(null);
+        widgetsRef.current = null;
+
+        prepareMutation.mutate(undefined, {
+            onSuccess: async (res) => {
+                try {
+                    const { clientKey, orderId, amount } = res.data;
+                    const tossPayments = await loadTossPayments(clientKey);
+                    const widgets = tossPayments.widgets({ customerKey: orderId });
+                    await widgets.setAmount({ currency: "KRW", value: amount });
+                    await widgets.renderPaymentMethods({
+                        selector: "#payment-widget",
+                        variantKey: "DEFAULT",
+                    });
+                    widgetsRef.current = widgets;
+                } catch (err) {
+                    setPaymentError(
+                        err instanceof Error ? err.message : "결제 위젯 초기화에 실패했습니다.",
+                    );
+                }
+            },
+            onError: (err) => {
+                const msg =
+                    (err as { response?: { data?: { message?: string } }; message?: string })
+                        .response?.data?.message ?? (err as Error).message ?? "결제 준비 실패";
+                setPaymentError(msg);
+            },
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [step, selectedCategory?.id, selectedPlan?.id]);
+
+    const handlePay = async () => {
+        if (!widgetsRef.current || !prepareMutation.data) return;
+        const { orderId, orderName, customerName } = prepareMutation.data.data;
+        try {
+            await widgetsRef.current.requestPayment({
+                orderId,
+                orderName,
+                customerName,
+                successUrl: `${window.location.origin}/partner/payments/success`,
+                failUrl: `${window.location.origin}/partner/payments/fail`,
+            });
+        } catch (err) {
+            if ((err as { code?: string }).code === "USER_CANCEL") return;
+            setPaymentError(err instanceof Error ? err.message : "결제 요청 실패");
+        }
+    };
 
     const isLoading = pricingLoading || subscriptionLoading || planLoading;
 
@@ -112,7 +155,6 @@ export default function SubscriptionPurchasePage() {
         .filter((cat, idx, arr) => arr.findIndex((c) => c.id === cat.id) === idx);
 
     const plans = planData?.data?.items ?? [];
-    const creditBalance = creditData?.data?.account?.balance ?? 0;
     const selectedCategoryRemainingDays = selectedCategory
         ? activeRemainingDaysByCategoryId.get(selectedCategory.id)
         : undefined;
@@ -287,65 +329,31 @@ export default function SubscriptionPurchasePage() {
                         </div>
                     </div>
 
-                    {/* 크레딧 잔액 */}
+                    {/* 토스 결제 위젯 */}
                     <div className="bg-white rounded-xl border border-gray-200 p-5">
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-500">보유 크레딧</span>
-                            <span
-                                className={`text-lg font-bold ${
-                                    creditBalance >= selectedPlan.price
-                                        ? "text-content-primary"
-                                        : "text-red-500"
-                                }`}
-                            >
-                                {formatKRW(creditBalance)}
-                            </span>
-                        </div>
-                        {creditBalance < selectedPlan.price && (
-                            <div className="mt-3 p-3 bg-red-50 rounded-lg">
-                                <p className="text-sm text-red-600">
-                                    크레딧이 {formatKRW(selectedPlan.price - creditBalance)} 부족합니다.
-                                </p>
-                                <button
-                                    type="button"
-                                    className="text-sm text-red-600 font-medium underline mt-1"
-                                    onClick={() => router.push("/partner/credits")}
-                                >
-                                    크레딧 충전하기
-                                </button>
+                        <p className="text-sm font-medium mb-3">결제 수단 선택</p>
+                        {prepareMutation.isPending && (
+                            <div className="flex justify-center py-6">
+                                <Spinner />
                             </div>
                         )}
-                        {creditBalance >= selectedPlan.price && (
-                            <div className="mt-2 flex items-center gap-1 text-sm text-gray-400">
-                                <CheckCircle2 className="w-4 h-4 text-primary" />
-                                결제 후 잔액: {formatKRW(creditBalance - selectedPlan.price)}
-                            </div>
-                        )}
+                        <div id="payment-widget" />
                     </div>
 
-                    {/* 에러 메시지 */}
-                    {purchaseMutation.isError && (
+                    {paymentError && (
                         <div className="p-3 bg-red-50 rounded-lg text-sm text-red-600">
-                            {(purchaseMutation.error as { message?: string })?.message ??
-                                "구독 구매에 실패했습니다."}
+                            {paymentError}
                         </div>
                     )}
 
-                    {/* 구매 버튼 */}
                     <Button
                         variant="primary"
                         size="lg"
                         className="w-full"
-                        onClick={() => purchaseMutation.mutate()}
-                        disabled={
-                            creditBalance < selectedPlan.price || purchaseMutation.isPending
-                        }
+                        onClick={handlePay}
+                        disabled={prepareMutation.isPending || !prepareMutation.data}
                     >
-                        {purchaseMutation.isPending ? (
-                            <Spinner size="sm" />
-                        ) : (
-                            `${formatKRW(selectedPlan.price)} ${isExtensionPurchase ? "구독 연장" : "구독 시작"}`
-                        )}
+                        {`${formatKRW(selectedPlan.price)} ${isExtensionPurchase ? "구독 연장 결제" : "구독 시작 결제"}`}
                     </Button>
                 </div>
             )}

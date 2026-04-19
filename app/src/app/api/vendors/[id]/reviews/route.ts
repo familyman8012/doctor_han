@@ -48,7 +48,7 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
     // 쿼리 빌드
     const baseQuery = supabase
         .from("reviews")
-        .select("*", { count: "exact" })
+        .select("*, product:products(id, title), lead:leads(id, service_name, category_ids)", { count: "exact" })
         .eq("vendor_id", vendorId)
         .eq("status", "published");
 
@@ -103,11 +103,39 @@ export const GET = withApi(async (req: NextRequest, routeCtx: { params: Promise<
     const reviewIds = reviewRows.map((r) => r.id);
     const repliesMap = await getRepliesByReviewIds(supabase, reviewIds);
 
-    const items = reviewRows.map((row) => {
+    // 리뷰들의 lead.category_ids에 등장하는 카테고리 id → name 맵 생성
+    type ReviewRowWithJoins = (typeof reviewRows)[number] & {
+        product?: { id: string; title: string } | null;
+        lead?: { id: string; service_name: string | null; category_ids: string[] | null } | null;
+    };
+    const categoryIdSet = new Set<string>();
+    for (const row of reviewRows as ReviewRowWithJoins[]) {
+        const ids = row.lead?.category_ids ?? [];
+        for (const cid of ids) {
+            if (cid) categoryIdSet.add(cid);
+        }
+    }
+    const categoryNameMap = new Map<string, string>();
+    if (categoryIdSet.size > 0) {
+        const { data: categoryRows } = await supabase
+            .from("categories")
+            .select("id, name")
+            .in("id", Array.from(categoryIdSet));
+        for (const c of categoryRows ?? []) {
+            categoryNameMap.set(c.id, c.name);
+        }
+    }
+
+    const items = (reviewRows as ReviewRowWithJoins[]).map((row) => {
         const replyRow = repliesMap.get(row.id);
+        const firstCategoryId = row.lead?.category_ids?.[0] ?? null;
+        const categoryName = firstCategoryId ? (categoryNameMap.get(firstCategoryId) ?? null) : null;
         return {
             ...mapReviewRow(row),
             reply: replyRow ? mapReviewReplyRow(replyRow) : null,
+            productName: row.product?.title ?? null,
+            leadServiceName: row.lead?.service_name ?? null,
+            categoryName,
         };
     });
 

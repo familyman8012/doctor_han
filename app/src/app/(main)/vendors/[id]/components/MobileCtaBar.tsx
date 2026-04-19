@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/Button/button";
 import { cn } from "@/components/utils";
 import { useIsAuthenticated, useUserRole } from "@/stores/auth";
 import { RequireApproval } from "@/components/widgets/RequireApproval";
-import { formatPriceCompact } from "@/lib/utils/format";
 import type { VendorDetail } from "@/lib/schema/vendor";
 
 interface MobileCtaBarProps {
@@ -40,9 +39,7 @@ export function MobileCtaBar({ vendor, isFavorited, onFavoriteClick }: MobileCta
                             )}
                         />
                     </button>
-                    <span className="text-sm font-bold text-content-primary truncate">
-                        {formatPriceCompact(vendor.priceMin, vendor.priceMax)}
-                    </span>
+                    <span className="text-sm text-gray-500 truncate">가격 문의</span>
                 </div>
 
                 {/* Right: CTA */}

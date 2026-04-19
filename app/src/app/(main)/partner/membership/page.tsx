@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Shield, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import { membershipApi } from "@/api-client/membership";
-import { creditsApi } from "@/api-client/credits";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Button } from "@/components/ui/Button/button";
 import { Badge } from "@/components/ui/Badge/Badge";
 import type { MembershipPlan, VendorMembership } from "@/lib/schema/vendor-membership";
+import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 
 function formatKRW(amount: number): string {
     return new Intl.NumberFormat("ko-KR").format(amount) + "원";
@@ -40,8 +40,12 @@ function getStatusColor(status: VendorMembership["status"]): "success" | "neutra
 }
 
 export default function PartnerMembershipPage() {
-    const queryClient = useQueryClient();
     const [showPurchase, setShowPurchase] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
+    const [paymentError, setPaymentError] = useState<string | null>(null);
+    const widgetsRef = useRef<Awaited<
+        ReturnType<Awaited<ReturnType<typeof loadTossPayments>>["widgets"]>
+    > | null>(null);
 
     const { data: statusData, isLoading: statusLoading } = useQuery({
         queryKey: ["membership", "status"],
@@ -54,19 +58,59 @@ export default function PartnerMembershipPage() {
         enabled: showPurchase,
     });
 
-    const { data: creditData } = useQuery({
-        queryKey: ["credits", "balance"],
-        queryFn: () => creditsApi.getBalance(),
+    const prepareMutation = useMutation({
+        mutationFn: (planId: string) => membershipApi.prepare({ planId }),
     });
 
-    const purchaseMutation = useMutation({
-        mutationFn: (planId: string) => membershipApi.purchase({ planId }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["membership"] });
-            queryClient.invalidateQueries({ queryKey: ["credits"] });
-            setShowPurchase(false);
-        },
-    });
+    useEffect(() => {
+        if (!selectedPlan) return;
+        setPaymentError(null);
+        widgetsRef.current = null;
+
+        prepareMutation.mutate(selectedPlan.id, {
+            onSuccess: async (res) => {
+                try {
+                    const { clientKey, orderId, amount } = res.data;
+                    const tossPayments = await loadTossPayments(clientKey);
+                    const widgets = tossPayments.widgets({ customerKey: orderId });
+                    await widgets.setAmount({ currency: "KRW", value: amount });
+                    await widgets.renderPaymentMethods({
+                        selector: "#membership-payment-widget",
+                        variantKey: "DEFAULT",
+                    });
+                    widgetsRef.current = widgets;
+                } catch (err) {
+                    setPaymentError(
+                        err instanceof Error ? err.message : "결제 위젯 초기화 실패",
+                    );
+                }
+            },
+            onError: (err) => {
+                const msg =
+                    (err as { response?: { data?: { message?: string } }; message?: string })
+                        .response?.data?.message ?? (err as Error).message ?? "결제 준비 실패";
+                setPaymentError(msg);
+            },
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedPlan?.id]);
+
+    const handlePay = async () => {
+        if (!widgetsRef.current || !prepareMutation.data) return;
+        const { orderId, orderName, customerName } = prepareMutation.data.data;
+        try {
+            await widgetsRef.current.requestPayment({
+                orderId,
+                orderName,
+                customerName,
+                successUrl: `${window.location.origin}/partner/payments/success`,
+                failUrl: `${window.location.origin}/partner/payments/fail`,
+            });
+        } catch (err) {
+            if ((err as { code?: string }).code === "USER_CANCEL") return;
+            setPaymentError(err instanceof Error ? err.message : "결제 요청 실패");
+        }
+    };
 
     if (statusLoading) {
         return (
@@ -80,7 +124,6 @@ export default function PartnerMembershipPage() {
     const membership = status?.membership;
     const isRequired = status?.isRequired ?? false;
     const inGracePeriod = status?.inGracePeriod ?? false;
-    const creditBalance = creditData?.data?.account?.balance ?? 0;
 
     // S등급 아닌 업체
     if (!isRequired) {
@@ -211,14 +254,9 @@ export default function PartnerMembershipPage() {
             )}
 
             {/* 구매 패널 */}
-            {showPurchase && (
+            {showPurchase && !selectedPlan && (
                 <div className="bg-white rounded-xl border border-gray-200 p-5">
-                    <h2 className="text-lg font-bold text-content-primary mb-4">멤버십 구매</h2>
-
-                    <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-500">보유 크레딧</p>
-                        <p className="text-lg font-bold text-content-primary">{formatKRW(creditBalance)}</p>
-                    </div>
+                    <h2 className="text-lg font-bold text-content-primary mb-4">멤버십 플랜 선택</h2>
 
                     {plansLoading ? (
                         <div className="flex justify-center py-4">
@@ -228,8 +266,6 @@ export default function PartnerMembershipPage() {
                         <div className="space-y-3">
                             {(plansData?.data?.items ?? []).map((plan: MembershipPlan) => {
                                 const hasPromo = plan.effectivePrice < plan.price;
-                                const canAfford = creditBalance >= plan.effectivePrice;
-
                                 return (
                                     <div
                                         key={plan.id}
@@ -255,21 +291,14 @@ export default function PartnerMembershipPage() {
                                         <Button
                                             variant="primary"
                                             size="sm"
-                                            disabled={!canAfford || purchaseMutation.isPending}
-                                            onClick={() => purchaseMutation.mutate(plan.id)}
+                                            onClick={() => setSelectedPlan(plan)}
                                         >
-                                            {purchaseMutation.isPending ? "처리 중..." : canAfford ? "구매" : "잔액 부족"}
+                                            선택
                                         </Button>
                                     </div>
                                 );
                             })}
                         </div>
-                    )}
-
-                    {purchaseMutation.isError && (
-                        <p className="text-sm text-red-500 mt-3">
-                            구매에 실패했습니다. 다시 시도해주세요.
-                        </p>
                     )}
 
                     <div className="mt-4 flex justify-end">
@@ -279,6 +308,40 @@ export default function PartnerMembershipPage() {
                             onClick={() => setShowPurchase(false)}
                         >
                             취소
+                        </Button>
+                    </div>
+                </div>
+            )}
+
+            {/* 토스 결제 위젯 */}
+            {selectedPlan && (
+                <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+                    <h2 className="text-lg font-bold text-content-primary">
+                        결제: {selectedPlan.name} ({formatKRW(selectedPlan.effectivePrice)})
+                    </h2>
+                    {prepareMutation.isPending && (
+                        <div className="flex justify-center py-6">
+                            <Spinner />
+                        </div>
+                    )}
+                    <div id="membership-payment-widget" />
+                    {paymentError && (
+                        <p className="text-sm text-red-500">{paymentError}</p>
+                    )}
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="ghostSecondary"
+                            size="sm"
+                            onClick={() => setSelectedPlan(null)}
+                        >
+                            플랜 다시 선택
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={handlePay}
+                            disabled={prepareMutation.isPending || !prepareMutation.data}
+                        >
+                            {formatKRW(selectedPlan.effectivePrice)} 결제하기
                         </Button>
                     </div>
                 </div>

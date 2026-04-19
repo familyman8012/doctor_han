@@ -7,6 +7,7 @@ import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
 import { withRole } from "@/server/auth/guards";
 import { fetchProductThumbnailsByProductIds } from "@/server/product/repository";
+import { computeResubmitChangedFields } from "@/server/product/mapper";
 
 // ============================================
 // Query Schema
@@ -53,9 +54,22 @@ export const GET = withApi(
         }
 
         if (query.q) {
+            // 상품명 + 요약 + 업체명(vendor.name) 으로 검색 확장
+            const { data: matchedVendors } = await ctx.supabase
+                .from("vendors")
+                .select("id")
+                .ilike("name", `%${query.q}%`)
+                .limit(200);
+            const vendorIds = (matchedVendors ?? []).map((v) => v.id);
+
             const orFilter = buildOrIlikeFilter(["title", "summary"], query.q);
-            if (orFilter) {
-                qb = qb.or(orFilter);
+            const vendorClause = vendorIds.length > 0
+                ? `vendor_id.in.(${vendorIds.join(",")})`
+                : null;
+
+            const finalOr = [orFilter, vendorClause].filter(Boolean).join(",");
+            if (finalOr) {
+                qb = qb.or(finalOr);
             }
         }
 
@@ -84,6 +98,18 @@ export const GET = withApi(
             const category = row.categories as { id: string; name: string; slug: string };
             const thumbnail = thumbnailMap.get(row.id as string) ?? null;
 
+            const firstPublishedAt = (row.first_published_at as string) ?? null;
+            const isResubmit =
+                (row.status as string) === "pending_review" && !!firstPublishedAt;
+            const resubmitReason = (row.resubmit_reason as string) ?? null;
+            const resubmitChangedFields = isResubmit
+                ? computeResubmitChangedFields(
+                      row,
+                      (row.last_active_snapshot as Record<string, unknown> | null) ?? null,
+                      category.name,
+                  )
+                : [];
+
             return {
                 id: row.id as string,
                 vendorId: row.vendor_id as string,
@@ -100,6 +126,10 @@ export const GET = withApi(
                 ratingAvg: (row.rating_avg as number) ?? null,
                 reviewCount: (row.review_count as number) ?? 0,
                 thumbnail,
+                firstPublishedAt,
+                isResubmit,
+                resubmitReason,
+                resubmitChangedFields,
                 createdAt: row.created_at as string,
                 updatedAt: row.updated_at as string,
             };

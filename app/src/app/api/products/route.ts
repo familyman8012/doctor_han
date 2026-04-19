@@ -4,20 +4,27 @@ import { internalServerError } from "@/server/api/errors";
 import { buildOrIlikeFilter } from "@/server/api/postgrest";
 import { ok } from "@/server/api/response";
 import { withApi } from "@/server/api/with-api";
+import { getCategoryWithDescendantIds } from "@/server/category/helpers";
 import { mapProductListItem, resolveProductImageUrl } from "@/server/product/mapper";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import type { NextRequest } from "next/server";
 
 type ParsedQuery = z.infer<typeof ProductListQuerySchema>;
 
-function applyFiltersAndSort<T>(qb: T, query: ParsedQuery): T {
+function applyFiltersAndSort<T>(qb: T, query: ParsedQuery, matchedVendorIds: string[] = []): T {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result = qb as any;
 
     if (query.q) {
-        const orFilter = buildOrIlikeFilter(["title", "summary", "description"], query.q);
-        if (orFilter) {
-            result = result.or(orFilter);
+        const baseFilter = buildOrIlikeFilter(["title", "summary", "description"], query.q);
+        // 업체명(vendors.name)도 검색 대상 — 매칭되는 vendor_id들을 in 필터로 포함
+        const parts: string[] = [];
+        if (baseFilter) parts.push(baseFilter);
+        if (matchedVendorIds.length > 0) {
+            parts.push(`vendor_id.in.(${matchedVendorIds.join(",")})`);
+        }
+        if (parts.length > 0) {
+            result = result.or(parts.join(","));
         }
     }
 
@@ -88,18 +95,37 @@ export const GET = withApi(async (req: NextRequest) => {
     const from = (query.page - 1) * query.pageSize;
     const to = from + query.pageSize - 1;
 
+    // 검색어에 매칭되는 업체 ID 미리 조회 → products.vendor_id 필터에 활용
+    let matchedVendorIds: string[] = [];
+    if (query.q) {
+        const likePattern = `%${query.q}%`;
+        const { data: vendorRows } = await supabase
+            .from("vendors")
+            .select("id")
+            .eq("status", "active")
+            .ilike("name", likePattern)
+            .limit(200);
+        matchedVendorIds = ((vendorRows ?? []) as Array<{ id: string }>).map((v) => v.id);
+    }
+
+    // 상위 카테고리 선택 시 하위 카테고리의 상품도 포함
+    let categoryIds: string[] | null = null;
+    if (query.categoryId) {
+        categoryIds = await getCategoryWithDescendantIds(supabase, query.categoryId);
+    }
+
     // RLS ensures only 'active' products are visible to non-owners
-    const baseQuery = query.categoryId
+    const baseQuery = categoryIds
         ? supabase
               .from("products" as never)
               .select("*, vendors!inner(id, name), categories!inner(slug)", { count: "exact" })
-              .eq("category_id" as never, query.categoryId)
+              .in("category_id" as never, categoryIds)
         : supabase
               .from("products" as never)
               .select("*, vendors!inner(id, name), categories!inner(slug)", { count: "exact" });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const filteredQuery = applyFiltersAndSort(baseQuery as any, query);
+    const filteredQuery = applyFiltersAndSort(baseQuery as any, query, matchedVendorIds);
 
     const { data, error, count } = await filteredQuery.eq("status", "active").range(from, to);
 

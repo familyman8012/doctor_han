@@ -1,20 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { AlertCircle, ArrowLeft, Package } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
+import { RichEditor } from "@/components/ui/RichEditor/RichEditor";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { ProductImageManager, type ProductImageItem } from "@/components/widgets/ProductImageManager";
 import { ProductFaqEditor, type ProductFaqItem } from "@/components/widgets/ProductFaqEditor";
 import type { ProductPriceType } from "@/lib/schema/product";
 import type { VendorMeResponse } from "@/lib/schema/vendor";
+import type { FileSignedUploadResponse } from "@/lib/schema/file";
+import { getSupabaseBrowserClient } from "@/server/supabase/browser";
 
 interface CategoryOption {
     id: string;
@@ -51,6 +54,7 @@ export default function PartnerProductNewPage() {
         register,
         handleSubmit,
         getValues,
+        control,
         formState: { errors },
     } = useForm<ProductFormData>({
         defaultValues: {
@@ -72,6 +76,23 @@ export default function PartnerProductNewPage() {
             return res.data.data.vendor ?? null;
         },
     });
+
+    const handleRichImageUpload = useCallback(async (file: File): Promise<string> => {
+        const signedRes = await api.post<FileSignedUploadResponse>("/api/files/signed-upload", {
+            purpose: "rich_content",
+            fileName: file.name,
+            mimeType: file.type,
+            sizeBytes: file.size,
+        });
+        const { bucket, path, token } = signedRes.data.data.upload;
+        const fileId = signedRes.data.data.file.id;
+        const supabase = getSupabaseBrowserClient();
+        const { error: uploadError } = await supabase.storage
+            .from(bucket)
+            .uploadToSignedUrl(path, token, file, { cacheControl: "3600" });
+        if (uploadError) throw uploadError;
+        return `/api/files/open?fileId=${fileId}`;
+    }, []);
 
     const vendorCategories = (vendor?.categories ?? []) as CategoryOption[];
     const productCategories = vendorCategories.filter((category) => category.listingType === "product");
@@ -288,18 +309,27 @@ export default function PartnerProductNewPage() {
                     {...register("summary")}
                 />
 
-                {/* Description */}
+                {/* Description (WYSIWYG) */}
                 <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-content-primary mb-1.5">
+                    <label className="block text-sm font-medium text-content-primary mb-1.5">
                         상세 설명
                     </label>
-                    <textarea
-                        id="description"
-                        rows={6}
-                        placeholder="상품의 상세 내용을 작성하세요 (선택)"
-                        className="w-full px-3 py-2 text-sm text-content-primary border border-gray-200 rounded-lg bg-white transition-all placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-50 disabled:cursor-not-allowed resize-y"
-                        {...register("description")}
+                    <Controller
+                        control={control}
+                        name="description"
+                        render={({ field }) => (
+                            <RichEditor
+                                value={field.value ?? ""}
+                                onChange={field.onChange}
+                                onImageUpload={handleRichImageUpload}
+                                placeholder="상품의 상세 내용을 작성하세요. 이미지도 삽입할 수 있습니다."
+                                minHeight={280}
+                            />
+                        )}
                     />
+                    <p className="mt-1.5 text-xs text-gray-500">
+                        서식과 이미지를 활용해 상품을 풍성하게 소개할 수 있습니다
+                    </p>
                 </div>
 
                 {/* Images */}
@@ -399,9 +429,9 @@ export default function PartnerProductNewPage() {
                     <Button
                         type="button"
                         variant="secondary"
-                        onClick={() => router.back()}
+                        onClick={() => router.push("/partner/products")}
                     >
-                        취소
+                        목록으로 가기
                     </Button>
                     <Button
                         type="button"

@@ -167,8 +167,7 @@ export const POST = withApi(
                 zonecode: body.zonecode ?? null,
                 latitude: body.latitude ?? null,
                 longitude: body.longitude ?? null,
-                price_min: body.priceMin ?? null,
-                price_max: body.priceMax ?? null,
+                contact_phone_secondary: body.contactPhoneSecondary ?? null,
                 profile_image_url: profileImageUrl,
                 status: initialStatus,
             })
@@ -244,8 +243,7 @@ export const PATCH = withApi(
         if (typeof body.zonecode !== "undefined") update.zonecode = body.zonecode;
         if (typeof body.latitude !== "undefined") update.latitude = body.latitude;
         if (typeof body.longitude !== "undefined") update.longitude = body.longitude;
-        if (typeof body.priceMin !== "undefined") update.price_min = body.priceMin;
-        if (typeof body.priceMax !== "undefined") update.price_max = body.priceMax;
+        if (typeof body.contactPhoneSecondary !== "undefined") update.contact_phone_secondary = body.contactPhoneSecondary;
         if (typeof body.status !== "undefined") update.status = body.status;
 
         // 프로필 이미지 처리

@@ -18,8 +18,6 @@ import { mapRankedVendorRow } from "./mapper";
 export async function searchVendors(params: {
     query: string;
     categoryId?: string;
-    priceMin?: number;
-    priceMax?: number;
     sort: string;
     page: number;
     pageSize: number;
@@ -31,8 +29,6 @@ export async function searchVendors(params: {
     const { rows, total } = await searchVendorsRanked(admin, {
         query: params.query,
         categoryId: params.categoryId,
-        priceMin: params.priceMin,
-        priceMax: params.priceMax,
         sort: params.sort,
         limit: params.pageSize,
         offset,

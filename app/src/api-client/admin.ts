@@ -6,6 +6,8 @@ import type {
     AdminVerificationActionResponse,
     AdminUserListQuery,
     AdminUserListResponse,
+    AdminUserStatusPatchBody,
+    AdminUserDeleteBody,
     AdminVendorListQuery,
     AdminVendorListResponse,
     AdminCategoryCreateBody,
@@ -105,6 +107,18 @@ export const adminApi = {
     // 사용자 목록 조회
     getUsers: async (params?: Partial<AdminUserListQuery>): Promise<AdminUserListResponse> => {
         const response = await api.get<AdminUserListResponse>("/api/admin/users", { params });
+        return response.data;
+    },
+
+    // 사용자 상태 변경 (active/suspended/banned/inactive)
+    updateUserStatus: async (id: string, body: AdminUserStatusPatchBody) => {
+        const response = await api.patch(`/api/admin/users/${id}/status`, body);
+        return response.data;
+    },
+
+    // 사용자 완전 삭제
+    deleteUser: async (id: string, body: AdminUserDeleteBody) => {
+        const response = await api.delete(`/api/admin/users/${id}`, { data: body });
         return response.data;
     },
 

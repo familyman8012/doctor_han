@@ -13,14 +13,15 @@ import type {
     BannerListQuery,
     BannerListResponse,
     JumpupResponse,
+    PriorityPrepareResponse,
     PriorityPurchaseBody,
-    PriorityPurchaseResponse,
     PrioritySlotListQuery,
     PrioritySlotListResponse,
     PriorityVendorListResponse,
     VendorAdsQuery,
     VendorAdsResponse,
 } from "@/lib/schema/ad";
+import type { ApiSuccessResponse } from "@/lib/api/types";
 import api from "./client";
 
 export const adsApi = {
@@ -61,9 +62,12 @@ export const adsApi = {
     // Vendor
     // ============================================
 
-    purchasePrioritySlot: async (body: PriorityPurchaseBody): Promise<PriorityPurchaseResponse> => {
-        const response = await api.post<PriorityPurchaseResponse>(
-            "/api/ads/priority/purchase",
+    /** 토스 즉시결제 준비 (우선순위 슬롯) */
+    preparePrioritySlot: async (
+        body: PriorityPurchaseBody,
+    ): Promise<ApiSuccessResponse<PriorityPrepareResponse>> => {
+        const response = await api.post<ApiSuccessResponse<PriorityPrepareResponse>>(
+            "/api/ads/priority/prepare",
             body,
         );
         return response.data;

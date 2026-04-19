@@ -2,17 +2,19 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { Building2, MapPin, Tag, CheckCircle, Clock, XCircle, AlertCircle, User, Mail, Phone, Camera } from "lucide-react";
+import { useForm, Controller } from "react-hook-form";
+import { Building2, MapPin, Tag, CheckCircle, Clock, XCircle, AlertCircle, User, Camera } from "lucide-react";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
+import { Select, type IOption } from "@/components/ui/Select/Select";
+import { RichEditor } from "@/components/ui/RichEditor/RichEditor";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { useAuthStore, useProfile, useProfileCompletion } from "@/stores/auth";
 import { toast } from "sonner";
 import { ProfileCompletionBanner } from "@/components/widgets/ProfileCompletionBanner";
 import { VendorAddressSearch, type VendorAddressData } from "@/components/widgets/VendorAddressSearch";
-import { normalizeRegionPrimaryValue } from "@/lib/constants/regions";
+import { REGION_OPTIONS } from "@/lib/constants/regions";
 import type { VendorDetail } from "@/lib/schema/vendor";
 import type { MeData } from "@/lib/schema/profile";
 import type { FileSignedUploadResponse } from "@/lib/schema/file";
@@ -31,11 +33,14 @@ interface VendorFormData {
     name: string;
     summary: string;
     description: string;
-    regionPrimary: string;
     regionSecondary: string;
-    priceMin: string;
-    priceMax: string;
 }
+
+// 서비스 지역 옵션: "전국" + 17개 시도
+const SERVICE_REGION_OPTIONS: IOption[] = [
+    { value: "전국", label: "전국" },
+    ...REGION_OPTIONS.map((r) => ({ value: r.value, label: r.label })),
+];
 
 interface AddressState {
     roadAddress: string | null;
@@ -46,18 +51,6 @@ interface AddressState {
     longitude: number | null;
 }
 
-/**
- * Parse region_primary (city/province) and region_secondary (district)
- * from a Korean road address string.
- */
-function parseRegionFromAddress(roadAddress: string): { regionPrimary: string; regionSecondary: string } {
-    const parts = roadAddress.trim().split(/\s+/);
-    return {
-        regionPrimary: normalizeRegionPrimaryValue(parts[0]) ?? "",
-        regionSecondary: parts[1] ?? "",
-    };
-}
-
 function normalizeOptionalText(value: string | null | undefined): string | null {
     const trimmed = value?.trim();
     return trimmed ? trimmed : null;
@@ -65,7 +58,9 @@ function normalizeOptionalText(value: string | null | undefined): string | null 
 
 interface AccountFormData {
     displayName: string;
+    position: string;
     phone: string;
+    contactPhoneSecondary: string;
 }
 
 export default function PartnerProfilePage() {
@@ -78,6 +73,8 @@ export default function PartnerProfilePage() {
     const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
     const [initialCategoryIds, setInitialCategoryIds] = useState<string[]>([]);
     const [initialAddress, setInitialAddress] = useState<string>("");
+    const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
+    const [initialRegions, setInitialRegions] = useState<string[]>([]);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const [addressState, setAddressState] = useState<AddressState>({
@@ -159,21 +156,41 @@ export default function PartnerProfilePage() {
     } = useForm<AccountFormData>({
         defaultValues: {
             displayName: profile?.displayName ?? "",
+            position: profile?.position ?? "",
             phone: profile?.phone ?? "",
+            contactPhoneSecondary: "",
         },
     });
 
-    const { register, handleSubmit, reset, formState: { errors, isDirty: isFormDirty } } = useForm<VendorFormData>({
+    const { register, handleSubmit, reset, control, formState: { errors, isDirty: isFormDirty } } = useForm<VendorFormData>({
         defaultValues: {
             name: "",
             summary: "",
             description: "",
-            regionPrimary: "",
             regionSecondary: "",
-            priceMin: "",
-            priceMax: "",
         },
     });
+
+    // 본문 이미지 업로드 (WYSIWYG 에디터에서 사용)
+    const handleRichImageUpload = useCallback(async (file: File): Promise<string> => {
+        const signedRes = await api.post<FileSignedUploadResponse>("/api/files/signed-upload", {
+            purpose: "rich_content",
+            fileName: file.name,
+            mimeType: file.type,
+            sizeBytes: file.size,
+        });
+
+        const { bucket, path, token } = signedRes.data.data.upload;
+        const fileId = signedRes.data.data.file.id;
+
+        const supabase = getSupabaseBrowserClient();
+        const { error: uploadError } = await supabase.storage
+            .from(bucket)
+            .uploadToSignedUrl(path, token, file, { cacheControl: "3600" });
+        if (uploadError) throw uploadError;
+
+        return `/api/files/open?fileId=${fileId}`;
+    }, []);
 
     // 폼 초기값 설정: vendorData가 변경될 때 폼을 리셋하고 카테고리/주소도 동기화
     useEffect(() => {
@@ -182,10 +199,7 @@ export default function PartnerProfilePage() {
                 name: vendorData.name ?? "",
                 summary: vendorData.summary ?? "",
                 description: vendorData.description ?? "",
-                regionPrimary: vendorData.regionPrimary ?? "",
                 regionSecondary: vendorData.regionSecondary ?? "",
-                priceMin: vendorData.priceMin?.toString() ?? "",
-                priceMax: vendorData.priceMax?.toString() ?? "",
             });
             const newCategoryIds = vendorData.categories?.map((c) => c.id) ?? [];
             // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -193,6 +207,9 @@ export default function PartnerProfilePage() {
             setInitialCategoryIds(newCategoryIds);
             const addrKey = [vendorData.roadAddress, vendorData.addressDetail].filter(Boolean).join("|");
             setInitialAddress(addrKey);
+            const regions = vendorData.regionPrimary ?? [];
+            setSelectedRegions(regions);
+            setInitialRegions(regions);
             setAddressState({
                 roadAddress: vendorData.roadAddress ?? null,
                 jibunAddress: vendorData.jibunAddress ?? null,
@@ -204,41 +221,33 @@ export default function PartnerProfilePage() {
         }
     }, [vendorData, reset]);
 
-    // 계정 정보 초기값 설정
+    // 계정 정보 초기값 설정 (담당자 정보 + 업체 대표번호)
     useEffect(() => {
         resetAccount({
             displayName: profile?.displayName ?? "",
+            position: profile?.position ?? "",
             phone: profile?.phone ?? "",
+            contactPhoneSecondary: vendorData?.contactPhoneSecondary ?? "",
         });
-    }, [profile?.displayName, profile?.phone, resetAccount]);
+    }, [profile?.displayName, profile?.position, profile?.phone, vendorData?.contactPhoneSecondary, resetAccount]);
 
     // 업체 프로필 생성/수정
     const saveMutation = useMutation({
         mutationFn: async (data: VendorFormData) => {
-            // Auto-fill region from structured address if available
-            let regionPrimary = normalizeRegionPrimaryValue(data.regionPrimary) ?? null;
-            let regionSecondary = data.regionSecondary || null;
             const normalizedRoadAddress = normalizeOptionalText(addressState.roadAddress);
-            if (normalizedRoadAddress) {
-                const parsed = parseRegionFromAddress(normalizedRoadAddress);
-                regionPrimary = parsed.regionPrimary || regionPrimary;
-                regionSecondary = parsed.regionSecondary || regionSecondary;
-            }
 
             const payload = {
                 name: data.name,
                 summary: data.summary || null,
                 description: data.description || null,
-                regionPrimary,
-                regionSecondary,
+                regionPrimary: selectedRegions.length > 0 ? selectedRegions : null,
+                regionSecondary: data.regionSecondary || null,
                 roadAddress: normalizedRoadAddress,
                 jibunAddress: normalizeOptionalText(addressState.jibunAddress),
                 addressDetail: normalizeOptionalText(addressState.addressDetail),
                 zonecode: normalizeOptionalText(addressState.zonecode),
                 latitude: addressState.latitude,
                 longitude: addressState.longitude,
-                priceMin: data.priceMin ? parseInt(data.priceMin, 10) : null,
-                priceMax: data.priceMax ? parseInt(data.priceMax, 10) : null,
                 categoryIds: selectedCategoryIds,
             };
 
@@ -303,23 +312,33 @@ export default function PartnerProfilePage() {
         }
     };
 
-    // 계정 정보 수정
+    // 계정/담당자 정보 수정 (profile + 업체 대표번호)
     const updateAccountMutation = useMutation({
         mutationFn: async (data: AccountFormData) => {
             await api.patch("/api/profile", {
                 displayName: data.displayName,
+                position: data.position?.trim() ? data.position.trim() : null,
                 phone: data.phone || undefined,
             });
+            // 업체 프로필이 이미 존재할 때만 업체 대표번호 반영
+            if (vendorData) {
+                await api.patch("/api/vendors/me", {
+                    contactPhoneSecondary: data.contactPhoneSecondary?.trim() ? data.contactPhoneSecondary.trim() : null,
+                });
+            }
         },
         onSuccess: async () => {
-            toast.success("계정 정보가 수정되었습니다");
+            toast.success("담당자 정보가 수정되었습니다");
             const res = await api.get<{ data: MeData }>("/api/me");
             const data = res.data.data;
             setAuth(data);
             queryClient.setQueryData(["auth", "me"], data);
+            queryClient.invalidateQueries({ queryKey: ["vendor", "me"] });
             resetAccount({
                 displayName: data.profile?.displayName ?? "",
+                position: data.profile?.position ?? "",
                 phone: data.profile?.phone ?? "",
+                contactPhoneSecondary: vendorData?.contactPhoneSecondary ?? "",
             });
         },
     });
@@ -338,11 +357,12 @@ export default function PartnerProfilePage() {
         saveMutation.mutate(data);
     };
 
-    // 업체 폼 dirty 판단: 폼 필드 + 카테고리 + 주소
+    // 업체 폼 dirty 판단: 폼 필드 + 카테고리 + 주소 + 서비스 지역
     const isCategoryDirty = JSON.stringify([...selectedCategoryIds].sort()) !== JSON.stringify([...initialCategoryIds].sort());
     const currentAddrKey = [addressState.roadAddress, addressState.addressDetail].filter(Boolean).join("|");
     const isAddressDirty = currentAddrKey !== initialAddress;
-    const isVendorDirty = !vendorData || isFormDirty || isCategoryDirty || isAddressDirty;
+    const isRegionsDirty = JSON.stringify([...selectedRegions].sort()) !== JSON.stringify([...initialRegions].sort());
+    const isVendorDirty = !vendorData || isFormDirty || isCategoryDirty || isAddressDirty || isRegionsDirty;
 
     const verification = vendorVerification;
     const verificationStatus = verification?.status;
@@ -369,29 +389,25 @@ export default function PartnerProfilePage() {
             {/* 프로필 완성도 배너 */}
             {profileCompletion && <ProfileCompletionBanner completion={profileCompletion} />}
 
-            {/* 계정 정보 */}
+            {/* 담당자 정보 */}
             <form
                 onSubmit={handleSubmitAccount((data) => updateAccountMutation.mutate(data))}
                 className="bg-white rounded-xl border border-gray-200 p-6 space-y-5"
             >
                 <h2 className="text-lg font-semibold text-content-primary flex items-center gap-2">
                     <User className="w-5 h-5 text-primary" />
-                    내 계정 정보
+                    담당자 정보
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            닉네임 <span className="text-red-500">*</span>
+                            담당자 이름 <span className="text-red-500">*</span>
                         </label>
-                        <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <Input
-                                {...registerAccount("displayName", { required: "닉네임을 입력해주세요" })}
-                                placeholder="닉네임"
-                                className="pl-10"
-                            />
-                        </div>
+                        <Input
+                            {...registerAccount("displayName", { required: "담당자 이름을 입력해주세요" })}
+                            placeholder="예: 홍길동"
+                        />
                         {accountErrors.displayName && (
                             <p className="text-sm text-red-500 mt-1">{accountErrors.displayName.message}</p>
                         )}
@@ -399,16 +415,36 @@ export default function PartnerProfilePage() {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            연락처
+                            직책 <span className="text-gray-400 text-xs">(선택)</span>
                         </label>
-                        <div className="relative">
-                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <Input
-                                {...registerAccount("phone")}
-                                placeholder="010-0000-0000"
-                                className="pl-10"
-                            />
-                        </div>
+                        <Input
+                            {...registerAccount("position")}
+                            placeholder="예: 대표, 영업담당, 마케팅팀장"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            담당자 휴대폰
+                        </label>
+                        <Input
+                            {...registerAccount("phone")}
+                            placeholder="예: 010-1234-5678"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            업체 대표번호 <span className="text-gray-400 text-xs">(선택)</span>
+                        </label>
+                        <Input
+                            {...registerAccount("contactPhoneSecondary")}
+                            placeholder="예: 02-1234-5678"
+                            disabled={!vendorData}
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                            {vendorData ? "업체 대표전화(유선)" : "업체 프로필 생성 후 입력할 수 있습니다"}
+                        </p>
                     </div>
                 </div>
 
@@ -416,14 +452,11 @@ export default function PartnerProfilePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                         이메일
                     </label>
-                    <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input
-                            value={user?.email ?? ""}
-                            disabled
-                            className="pl-10 bg-gray-50"
-                        />
-                    </div>
+                    <Input
+                        value={user?.email ?? ""}
+                        disabled
+                        className="bg-gray-50"
+                    />
                 </div>
 
                 <div className="flex justify-end">
@@ -546,7 +579,7 @@ export default function PartnerProfilePage() {
                             </label>
                             <Input
                                 {...register("name", { required: "업체명을 입력해주세요" })}
-                                placeholder="업체명을 입력하세요"
+                                placeholder="예: 메디허브 한약방"
                             />
                             {errors.name && (
                                 <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
@@ -564,17 +597,27 @@ export default function PartnerProfilePage() {
                             />
                         </div>
 
-                        {/* 상세 설명 */}
+                        {/* 상세 설명 (WYSIWYG) */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                 상세 설명
                             </label>
-                            <textarea
-                                {...register("description")}
-                                rows={5}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                                placeholder="업체에 대해 자세히 설명해주세요"
+                            <Controller
+                                control={control}
+                                name="description"
+                                render={({ field }) => (
+                                    <RichEditor
+                                        value={field.value ?? ""}
+                                        onChange={field.onChange}
+                                        onImageUpload={handleRichImageUpload}
+                                        placeholder="업체에 대해 자세히 설명해주세요. 이미지도 삽입할 수 있습니다."
+                                        minHeight={280}
+                                    />
+                                )}
                             />
+                            <p className="mt-1.5 text-xs text-gray-500">
+                                서식과 이미지를 활용해 업체를 풍성하게 소개할 수 있습니다
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -595,63 +638,62 @@ export default function PartnerProfilePage() {
                         disabled={saveMutation.isPending || geocodeMutation.isPending}
                     />
 
-                    {/* Fallback: region text inputs (always available) */}
+                    {/* 서비스 가능 지역 (주소와 별개) */}
                     <div className="mt-5 pt-5 border-t border-gray-100">
                         <p className="text-sm text-gray-500 mb-3">
-                            서비스 가능 지역 (주소와 별도로 설정할 수 있습니다)
+                            서비스 가능 지역 (사업장 주소와 별도로 설정할 수 있습니다)
                         </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                    주요 지역
+                                    주요 지역 <span className="text-xs text-gray-400 font-normal">(복수 선택)</span>
                                 </label>
-                                <Input
-                                    {...register("regionPrimary")}
-                                    placeholder="예: 서울"
+                                <Select
+                                    isMulti
+                                    isSearchable
+                                    options={SERVICE_REGION_OPTIONS.map((opt) => ({
+                                        ...opt,
+                                        // "전국" 선택 시 나머지 disabled, 다른 지역 선택 시 "전국" disabled
+                                        isDisabled:
+                                            (selectedRegions.includes("전국") && opt.value !== "전국") ||
+                                            (selectedRegions.length > 0 && !selectedRegions.includes("전국") && opt.value === "전국"),
+                                    }))}
+                                    value={SERVICE_REGION_OPTIONS.filter((o) => selectedRegions.includes(String(o.value)))}
+                                    onChange={(option) => {
+                                        if (!option) {
+                                            setSelectedRegions([]);
+                                            return;
+                                        }
+                                        const opts = Array.isArray(option) ? option : [option];
+                                        const values = opts.map((o) => String(o.value));
+                                        // "전국"이 추가되면 전국 단독
+                                        if (values.includes("전국") && !selectedRegions.includes("전국")) {
+                                            setSelectedRegions(["전국"]);
+                                            return;
+                                        }
+                                        setSelectedRegions(values);
+                                    }}
+                                    placeholder="서비스 가능한 지역을 선택하세요"
+                                    noOptionsMessage={() => "옵션이 없습니다"}
                                 />
+                                <p className="mt-1.5 text-xs text-gray-500">
+                                    전국 서비스면 &quot;전국&quot;, 특정 지역만이면 해당 시/도를 선택하세요
+                                </p>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                    세부 지역
+                                    세부 지역 <span className="text-xs text-gray-400 font-normal">(선택)</span>
                                 </label>
                                 <Input
                                     {...register("regionSecondary")}
-                                    placeholder="예: 강남구, 서초구"
+                                    placeholder="예: 강남구, 서초구, 송파구"
                                 />
+                                <p className="mt-1.5 text-xs text-gray-500">
+                                    특정 구/군 단위로 제한이 있다면 자유롭게 작성하세요
+                                </p>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                {/* 가격 정보 */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-content-primary mb-5">가격 범위</h2>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                최소 가격
-                            </label>
-                            <Input
-                                {...register("priceMin")}
-                                type="number"
-                                placeholder="최소 가격 (원)"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                최대 가격
-                            </label>
-                            <Input
-                                {...register("priceMax")}
-                                type="number"
-                                placeholder="최대 가격 (원)"
-                            />
-                        </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                        가격 범위를 설정하면 고객이 필터링하여 검색할 수 있습니다
-                    </p>
                 </div>
 
                 {/* 카테고리 */}

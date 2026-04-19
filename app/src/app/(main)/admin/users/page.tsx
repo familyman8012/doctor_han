@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
-import { Search, User, Stethoscope, Building2, Shield } from "lucide-react";
+import { Search, User, Stethoscope, Building2, Shield, Settings } from "lucide-react";
 import dayjs from "dayjs";
 import { adminApi } from "@/api-client/admin";
 import { Button } from "@/components/ui/Button/button";
@@ -12,7 +11,8 @@ import { Badge } from "@/components/ui/Badge/Badge";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { Empty } from "@/components/ui/Empty/Empty";
 import Pagination from "@/components/widgets/Pagination/Pagination";
-import type { ProfileRole, ProfileStatus } from "@/lib/schema/profile";
+import type { ProfileRole, ProfileStatus, ProfileView } from "@/lib/schema/profile";
+import { UserActionModal } from "./components/UserActionModal";
 
 const PAGE_SIZE = 20;
 
@@ -26,8 +26,9 @@ const ROLE_OPTIONS: { value: ProfileRole | "all"; label: string; icon: typeof Us
 const STATUS_OPTIONS: { value: ProfileStatus | "all"; label: string }[] = [
     { value: "all", label: "전체" },
     { value: "active", label: "활성" },
-    { value: "inactive", label: "비활성" },
-    { value: "banned", label: "정지" },
+    { value: "suspended", label: "임시정지" },
+    { value: "banned", label: "영구정지" },
+    { value: "inactive", label: "탈퇴" },
 ];
 
 export default function AdminUsersPage() {
@@ -35,6 +36,7 @@ export default function AdminUsersPage() {
     const [status, setStatus] = useState<ProfileStatus | "all">("all");
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
+    const [actionTarget, setActionTarget] = useState<ProfileView | null>(null);
 
     const { data, isLoading } = useQuery({
         queryKey: ["admin", "users", role, status, search, page],
@@ -81,10 +83,12 @@ export default function AdminUsersPage() {
         switch (status) {
             case "active":
                 return <Badge color="success" size="xs">활성</Badge>;
-            case "inactive":
-                return <Badge color="neutral" size="xs">비활성</Badge>;
+            case "suspended":
+                return <Badge color="warning" size="xs">임시정지</Badge>;
             case "banned":
-                return <Badge color="error" size="xs">정지</Badge>;
+                return <Badge color="error" size="xs">영구정지</Badge>;
+            case "inactive":
+                return <Badge color="neutral" size="xs">탈퇴</Badge>;
         }
     };
 
@@ -164,12 +168,13 @@ export default function AdminUsersPage() {
                 ) : (
                     <>
                         {/* 테이블 헤더 - 데스크탑 */}
-                        <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-3 bg-gray-50 border-b border-gray-100 text-xs font-medium text-gray-500">
+                        <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-4 px-4 py-3 bg-gray-50 border-b border-gray-100 text-xs font-medium text-gray-500">
                             <div>사용자</div>
                             <div>역할</div>
                             <div>상태</div>
                             <div>연락처</div>
                             <div>가입일</div>
+                            <div>관리</div>
                         </div>
 
                         {/* 목록 */}
@@ -196,18 +201,28 @@ export default function AdminUsersPage() {
                                         <p className="text-sm text-gray-500">
                                             {user.email ?? "-"} {user.phone && `/ ${user.phone}`}
                                         </p>
+                                        {user.role !== "admin" && (
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                onClick={() => setActionTarget(user)}
+                                                LeadingIcon={<Settings />}
+                                            >
+                                                관리
+                                            </Button>
+                                        )}
                                     </div>
 
                                     {/* 데스크탑 레이아웃 */}
-                                    <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 items-center">
+                                    <div className="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-4 items-center">
                                         <div className="flex items-center gap-3">
                                             <div className="relative w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center shrink-0 overflow-hidden">
                                                 {user.avatarUrl ? (
-                                                    <Image
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img
                                                         src={user.avatarUrl}
                                                         alt=""
-                                                        fill
-                                                        className="object-cover"
+                                                        className="absolute inset-0 w-full h-full object-cover"
                                                     />
                                                 ) : (
                                                     <User className="w-4 h-4 text-gray-400" />
@@ -227,6 +242,18 @@ export default function AdminUsersPage() {
                                         <div className="text-sm text-gray-600">{user.phone ?? "-"}</div>
                                         <div className="text-sm text-gray-500">
                                             {dayjs(user.createdAt).format("YYYY.MM.DD")}
+                                        </div>
+                                        <div>
+                                            {user.role !== "admin" && (
+                                                <Button
+                                                    size="xs"
+                                                    variant="secondary"
+                                                    onClick={() => setActionTarget(user)}
+                                                    LeadingIcon={<Settings />}
+                                                >
+                                                    관리
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -251,6 +278,15 @@ export default function AdminUsersPage() {
             <div className="text-sm text-gray-500 text-center">
                 총 <span className="font-medium text-content-primary">{total}</span>명의 사용자
             </div>
+
+            {/* 상태 관리 모달 */}
+            {actionTarget && (
+                <UserActionModal
+                    user={actionTarget}
+                    isOpen={!!actionTarget}
+                    onClose={() => setActionTarget(null)}
+                />
+            )}
         </div>
     );
 }

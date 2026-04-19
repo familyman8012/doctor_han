@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/Button/button";
-import { formatPrice } from "@/lib/utils/format";
 import type { VendorDetail } from "@/lib/schema/vendor";
 
 interface PricingTabProps {
@@ -35,9 +34,9 @@ export function PricingTab({ vendor }: PricingTabProps) {
                 </div>
             ) : (
                 <div className="bg-white rounded-lg border border-gray-100 p-6 text-center">
-                    <p className="text-sm text-gray-500 mb-1">기본 가격</p>
-                    <p className="text-2xl font-bold text-content-primary">
-                        {formatPrice(vendor.priceMin, vendor.priceMax)}
+                    <p className="text-lg text-gray-500">가격 문의</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                        문의를 통해 맞춤 견적을 안내해 드립니다
                     </p>
                 </div>
             )}

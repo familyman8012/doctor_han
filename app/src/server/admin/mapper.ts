@@ -46,8 +46,6 @@ export function mapAdminVendorListItemRow(input: {
         summary: row.summary,
         regionPrimary: row.region_primary,
         regionSecondary: row.region_secondary,
-        priceMin: row.price_min,
-        priceMax: row.price_max,
         status: row.status,
         ratingAvg: row.rating_avg,
         reviewCount: row.review_count,

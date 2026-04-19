@@ -7,10 +7,8 @@ export interface VendorCardData {
     id: string;
     name: string;
     summary: string | null;
-    regionPrimary: string | null;
+    regionPrimary: string[] | null;
     regionSecondary: string | null;
-    priceMin: number | null;
-    priceMax: number | null;
     ratingAvg: number | null;
     reviewCount: number;
     badges: VendorBadge[];

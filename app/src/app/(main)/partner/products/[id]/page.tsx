@@ -1,19 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { AlertCircle, ArrowLeft, Package, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/api-client/client";
 import { Button } from "@/components/ui/Button/button";
 import { Input } from "@/components/ui/Input/Input";
+import { RichEditor } from "@/components/ui/RichEditor/RichEditor";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
 import { ProductImageManager, type ProductImageItem } from "@/components/widgets/ProductImageManager";
 import { ProductFaqEditor, type ProductFaqItem } from "@/components/widgets/ProductFaqEditor";
 import { cn } from "@/components/utils";
 import type { ProductDetail, ProductPriceType } from "@/lib/schema/product";
+import type { FileSignedUploadResponse } from "@/lib/schema/file";
+import { getSupabaseBrowserClient } from "@/server/supabase/browser";
 
 interface CategoryOption {
     id: string;
@@ -161,6 +164,9 @@ function ProductEditForm({
 
     const [priceType, setPriceType] = useState<ProductPriceType>(product.priceType);
     const [status, setStatus] = useState<string>(product.status);
+    const [resubmitModalOpen, setResubmitModalOpen] = useState(false);
+    const [resubmitReasonInput, setResubmitReasonInput] = useState("");
+    const [pendingFormData, setPendingFormData] = useState<ProductFormData | null>(null);
 
     // Initialize images from product data
     const [images, setImages] = useState<ProductImageItem[]>(() =>
@@ -187,6 +193,7 @@ function ProductEditForm({
     const {
         register,
         handleSubmit,
+        control,
         formState: { errors, isDirty },
     } = useForm<ProductFormData>({
         defaultValues: {
@@ -202,8 +209,26 @@ function ProductEditForm({
     const categoryName =
         categories.find((c) => c.id === product.categoryId)?.name ?? "-";
 
+    const handleRichImageUpload = useCallback(async (file: File): Promise<string> => {
+        const signedRes = await api.post<FileSignedUploadResponse>("/api/files/signed-upload", {
+            purpose: "rich_content",
+            fileName: file.name,
+            mimeType: file.type,
+            sizeBytes: file.size,
+        });
+        const { bucket, path, token } = signedRes.data.data.upload;
+        const fileId = signedRes.data.data.file.id;
+        const supabase = getSupabaseBrowserClient();
+        const { error: uploadError } = await supabase.storage
+            .from(bucket)
+            .uploadToSignedUrl(path, token, file, { cacheControl: "3600" });
+        if (uploadError) throw uploadError;
+        return `/api/files/open?fileId=${fileId}`;
+    }, []);
+
     const updateMutation = useMutation({
-        mutationFn: async (data: ProductFormData) => {
+        mutationFn: async (args: { data: ProductFormData; resubmitReason?: string }) => {
+            const { data, resubmitReason } = args;
             // Check all images are uploaded
             const uploading = images.some((img) => img.status === "uploading");
             if (uploading) {
@@ -257,6 +282,10 @@ function ProductEditForm({
                 sortOrder: i,
             }));
 
+            if (resubmitReason) {
+                body.resubmitReason = resubmitReason;
+            }
+
             const res = await api.patch(`/api/vendors/me/products/${productId}`, body);
             return res.data;
         },
@@ -266,6 +295,9 @@ function ProductEditForm({
             } else {
                 toast.success("상품이 수정되었습니다.");
             }
+            setResubmitModalOpen(false);
+            setResubmitReasonInput("");
+            setPendingFormData(null);
             queryClient.invalidateQueries({ queryKey: ["vendor", "me", "products"] });
             queryClient.invalidateQueries({ queryKey: ["vendor", "me", "products", productId] });
         },
@@ -275,7 +307,13 @@ function ProductEditForm({
     });
 
     const onSubmit = (data: ProductFormData) => {
-        updateMutation.mutate(data);
+        if (product.status === "active") {
+            // active 상품 재수정은 사유 입력 모달 경유
+            setPendingFormData(data);
+            setResubmitModalOpen(true);
+            return;
+        }
+        updateMutation.mutate({ data });
     };
 
     return (
@@ -371,18 +409,27 @@ function ProductEditForm({
                     {...register("summary")}
                 />
 
-                {/* Description */}
+                {/* Description (WYSIWYG) */}
                 <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-content-primary mb-1.5">
+                    <label className="block text-sm font-medium text-content-primary mb-1.5">
                         상세 설명
                     </label>
-                    <textarea
-                        id="description"
-                        rows={6}
-                        placeholder="상품의 상세 내용을 작성하세요 (선택)"
-                        className="w-full px-3 py-2 text-sm text-content-primary border border-gray-200 rounded-lg bg-white transition-all placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-50 disabled:cursor-not-allowed resize-y"
-                        {...register("description")}
+                    <Controller
+                        control={control}
+                        name="description"
+                        render={({ field }) => (
+                            <RichEditor
+                                value={field.value ?? ""}
+                                onChange={field.onChange}
+                                onImageUpload={handleRichImageUpload}
+                                placeholder="상품의 상세 내용을 작성하세요. 이미지도 삽입할 수 있습니다."
+                                minHeight={280}
+                            />
+                        )}
                     />
+                    <p className="mt-1.5 text-xs text-gray-500">
+                        서식과 이미지를 활용해 상품을 풍성하게 소개할 수 있습니다
+                    </p>
                 </div>
 
                 {/* Images */}
@@ -523,7 +570,7 @@ function ProductEditForm({
                         variant="secondary"
                         onClick={() => router.push("/partner/products")}
                     >
-                        취소
+                        목록으로 가기
                     </Button>
                     <Button
                         type="submit"
@@ -534,6 +581,55 @@ function ProductEditForm({
                     </Button>
                 </div>
             </form>
+
+            {/* 재수정 사유 모달 (active 상품 수정 시) */}
+            {resubmitModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                    <div className="bg-white rounded-xl w-full max-w-md p-5 space-y-4">
+                        <div>
+                            <h3 className="text-lg font-bold text-content-primary">변경 사유 작성</h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                                활성 상품을 수정하면 관리자 재검토를 거치게 됩니다. 무엇이 바뀌었는지 간단히 적어주세요.
+                            </p>
+                        </div>
+                        <textarea
+                            value={resubmitReasonInput}
+                            onChange={(e) => setResubmitReasonInput(e.target.value)}
+                            placeholder="예: 가격 인하 (500,000 → 450,000)"
+                            maxLength={1000}
+                            className="w-full border border-gray-200 rounded-lg p-3 text-sm resize-none h-28 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                        />
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                    setResubmitModalOpen(false);
+                                    setResubmitReasonInput("");
+                                    setPendingFormData(null);
+                                }}
+                            >
+                                취소
+                            </Button>
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                isLoading={updateMutation.isPending}
+                                disabled={updateMutation.isPending || !resubmitReasonInput.trim() || !pendingFormData}
+                                onClick={() => {
+                                    if (!pendingFormData || !resubmitReasonInput.trim()) return;
+                                    updateMutation.mutate({
+                                        data: pendingFormData,
+                                        resubmitReason: resubmitReasonInput.trim(),
+                                    });
+                                }}
+                            >
+                                수정 후 검토 요청
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

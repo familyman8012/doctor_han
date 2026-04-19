@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import dayjs from "dayjs";
-import { ArrowLeft, User, Phone, Mail, Clock, FileText, MessageSquare } from "lucide-react";
+import { ArrowLeft, User, Phone, Mail, Clock, FileText, MessageSquare, RefreshCw } from "lucide-react";
 import { leadsApi } from "@/api-client/leads";
 import { Button } from "@/components/ui/Button/button";
 import { Spinner } from "@/components/ui/Spinner/Spinner";
@@ -181,145 +181,165 @@ export default function PartnerLeadDetailPage() {
             </nav>
 
             {/* 헤더 */}
-            <div className="bg-white rounded-xl border border-gray-100 p-6">
-                <div className="flex items-start justify-between mb-4">
-                    <div>
-                        <Badge color={statusConfig.color} size="md">{statusConfig.label}</Badge>
+            <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">현재 상태</span>
+                            <Badge color={statusConfig.color} size="md">{statusConfig.label}</Badge>
+                        </div>
                         {lead.serviceName && (
-                            <p className="text-gray-500 mt-2">{lead.serviceName}</p>
+                            <p className="text-content-primary font-medium mt-1">{lead.serviceName}</p>
                         )}
+                        <p className="text-xs text-gray-400 mt-2">
+                            {dayjs(lead.createdAt).format("YYYY년 MM월 DD일 HH:mm")} 접수
+                        </p>
                     </div>
                     {canChangeStatus && (
                         <Button
-                            variant="secondary"
-                            size="sm"
+                            variant="primary"
+                            size="md"
+                            LeadingIcon={<RefreshCw className="w-4 h-4" />}
                             onClick={() => setShowStatusModal(true)}
+                            className="w-full sm:w-auto shrink-0"
                         >
-                            상태 변경
+                            상태 변경하기
                         </Button>
                     )}
                 </div>
-
-                <p className="text-xs text-gray-400">
-                    {dayjs(lead.createdAt).format("YYYY년 MM월 DD일 HH:mm")} 접수
-                </p>
             </div>
 
             {/* 탭 */}
-            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-                <Tabs
-                    id="partner-lead-detail-tabs"
-                    tabs={tabs}
-                    activeTabIndex={activeTabIndex}
-                    onTabChange={setActiveTabIndex}
-                    className="px-4"
-                />
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="pt-3 pb-1">
+                    <Tabs
+                        id="partner-lead-detail-tabs"
+                        tabs={tabs}
+                        activeTabIndex={activeTabIndex}
+                        onTabChange={setActiveTabIndex}
+                        className="px-6"
+                    />
+                </div>
 
                 {/* 탭 컨텐츠 */}
-                <div className="p-6">
+                <div className="p-6 sm:p-8">
                     {activeTabIndex === 0 && (
-                        <div className="space-y-6">
+                        <div className="space-y-10">
                             {/* 고객 정보 */}
-                            <div>
-                                <h2 className="text-lg font-bold text-content-primary mb-4">고객 정보</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center">
-                                            <User className="w-5 h-5 text-content-primary" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500">이름</p>
-                                            <p className="text-content-primary font-medium">{lead.contactName}</p>
+                            <section>
+                                <div className="flex items-center gap-2 pb-3 mb-5 border-b border-gray-200">
+                                    <span className="inline-block w-1 h-4 bg-primary rounded-sm" aria-hidden />
+                                    <h2 className="text-base font-bold text-content-primary">고객 정보</h2>
+                                </div>
+                                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                                    <div className="flex items-start gap-3">
+                                        <User className="w-4 h-4 text-gray-400 mt-1 shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                            <dt className="text-xs text-gray-500">이름</dt>
+                                            <dd className="text-sm text-content-primary font-medium mt-0.5">{lead.contactName}</dd>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                            <Phone className="w-4 h-4 text-gray-500" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500">연락처</p>
-                                            <a
-                                                href={`tel:${lead.contactPhone}`}
-                                                className="text-content-primary font-medium hover:text-primary"
-                                            >
-                                                {lead.contactPhone}
-                                            </a>
+                                    <div className="flex items-start gap-3">
+                                        <Phone className="w-4 h-4 text-gray-400 mt-1 shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                            <dt className="text-xs text-gray-500">연락처</dt>
+                                            <dd className="text-sm mt-0.5">
+                                                <a
+                                                    href={`tel:${lead.contactPhone}`}
+                                                    className="text-content-primary font-medium hover:text-primary"
+                                                >
+                                                    {lead.contactPhone}
+                                                </a>
+                                            </dd>
                                         </div>
                                     </div>
                                     {lead.contactEmail && (
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                                <Mail className="w-4 h-4 text-gray-500" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm text-gray-500">이메일</p>
-                                                <a
-                                                    href={`mailto:${lead.contactEmail}`}
-                                                    className="text-content-primary font-medium hover:text-primary"
-                                                >
-                                                    {lead.contactEmail}
-                                                </a>
+                                        <div className="flex items-start gap-3">
+                                            <Mail className="w-4 h-4 text-gray-400 mt-1 shrink-0" />
+                                            <div className="flex-1 min-w-0">
+                                                <dt className="text-xs text-gray-500">이메일</dt>
+                                                <dd className="text-sm mt-0.5 break-all">
+                                                    <a
+                                                        href={`mailto:${lead.contactEmail}`}
+                                                        className="text-content-primary font-medium hover:text-primary"
+                                                    >
+                                                        {lead.contactEmail}
+                                                    </a>
+                                                </dd>
                                             </div>
                                         </div>
                                     )}
                                     {lead.preferredChannel && (
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                                <MessageSquare className="w-4 h-4 text-gray-500" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm text-gray-500">선호 연락 방법</p>
-                                                <p className="text-content-primary font-medium">
+                                        <div className="flex items-start gap-3">
+                                            <MessageSquare className="w-4 h-4 text-gray-400 mt-1 shrink-0" />
+                                            <div className="flex-1 min-w-0">
+                                                <dt className="text-xs text-gray-500">선호 연락 방법</dt>
+                                                <dd className="text-sm text-content-primary font-medium mt-0.5">
                                                     {CHANNEL_LABELS[lead.preferredChannel] ?? lead.preferredChannel}
-                                                </p>
+                                                </dd>
                                             </div>
                                         </div>
                                     )}
                                     {lead.preferredTime && (
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                                <Clock className="w-4 h-4 text-gray-500" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm text-gray-500">선호 연락 시간</p>
-                                                <p className="text-content-primary font-medium">
+                                        <div className="flex items-start gap-3">
+                                            <Clock className="w-4 h-4 text-gray-400 mt-1 shrink-0" />
+                                            <div className="flex-1 min-w-0">
+                                                <dt className="text-xs text-gray-500">선호 연락 시간</dt>
+                                                <dd className="text-sm text-content-primary font-medium mt-0.5">
                                                     {TIME_LABELS[lead.preferredTime] ?? lead.preferredTime}
-                                                </p>
+                                                </dd>
                                             </div>
                                         </div>
                                     )}
-                                </div>
-                            </div>
+                                </dl>
+                            </section>
 
                             {/* 문의 내용 */}
-                            <div>
-                                <h2 className="text-lg font-bold text-content-primary mb-4 flex items-center gap-2">
-                                    <FileText className="w-5 h-5 text-gray-400" />
-                                    문의 내용
-                                </h2>
-                                <p className="text-gray-700 whitespace-pre-wrap">{lead.content}</p>
-                            </div>
+                            <section>
+                                <div className="flex items-center gap-2 pb-3 mb-5 border-b border-gray-200">
+                                    <span className="inline-block w-1 h-4 bg-primary rounded-sm" aria-hidden />
+                                    <h2 className="text-base font-bold text-content-primary">문의 내용</h2>
+                                </div>
+                                <blockquote className="border-l-4 border-gray-200 bg-gray-50 rounded-r-lg p-4 text-sm text-gray-700 whitespace-pre-wrap">
+                                    {lead.content}
+                                </blockquote>
+                            </section>
 
                             {/* 첨부파일 */}
                             {lead.attachments.length > 0 && (
-                                <LeadAttachments attachments={lead.attachments} />
+                                <section>
+                                    <div className="flex items-center gap-2 pb-3 mb-5 border-b border-gray-200">
+                                        <span className="inline-block w-1 h-4 bg-primary rounded-sm" aria-hidden />
+                                        <h2 className="text-base font-bold text-content-primary">첨부파일</h2>
+                                    </div>
+                                    <LeadAttachments attachments={lead.attachments} />
+                                </section>
                             )}
 
-                            {/* 상태 이력 */}
+                            {/* 상태 변경 이력 */}
                             {lead.statusHistory.length > 0 && (
-                                <LeadStatusHistory history={lead.statusHistory} />
+                                <section>
+                                    <div className="flex items-center gap-2 pb-3 mb-5 border-b border-gray-200">
+                                        <span className="inline-block w-1 h-4 bg-primary rounded-sm" aria-hidden />
+                                        <h2 className="text-base font-bold text-content-primary">상태 변경 이력</h2>
+                                    </div>
+                                    <LeadStatusHistory history={lead.statusHistory} />
+                                </section>
                             )}
 
-                            {/* 허위 리드 신고 */}
-                            <div className="pt-4 border-t border-gray-200">
-                                <button
+                            {/* 기타 액션 */}
+                            <section className="pt-6 border-t border-gray-100">
+                                <p className="text-xs text-gray-500 mb-2">문의 내용에 문제가 있다면</p>
+                                <Button
                                     type="button"
+                                    variant="secondary"
+                                    size="sm"
                                     onClick={() => setShowReportModal(true)}
-                                    className="text-sm text-red-500 hover:text-red-600 underline"
+                                    className="text-red-500 border-red-200 hover:bg-red-50"
                                 >
                                     허위 리드 신고
-                                </button>
-                            </div>
+                                </Button>
+                            </section>
                         </div>
                     )}
 

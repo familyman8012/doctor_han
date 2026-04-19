@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Star, User, Flag, MessageSquare } from "lucide-react";
+import { Star, User, Siren, MessageSquare } from "lucide-react";
 import dayjs from "dayjs";
 import type { VendorReviewListItem } from "@/lib/schema/review";
 import { ImageLightbox } from "../gallery/ImageLightbox";
@@ -58,7 +58,7 @@ export function ReviewCard({ review, currentUserId, onReport }: ReviewCardProps)
                                 className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                                 title="리뷰 신고"
                             >
-                                <Flag className="w-4 h-4" />
+                                <Siren className="w-4 h-4" />
                             </button>
                         )}
                     </div>

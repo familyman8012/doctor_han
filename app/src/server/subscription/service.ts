@@ -1,11 +1,13 @@
 import "server-only";
 
 import type { Database, Json } from "@/lib/database.types";
-import type { SubscriptionPlan, VendorSubscription } from "@/lib/schema/subscription";
+import type { SubscriptionPlan, SubscriptionPrepareResponse, VendorSubscription } from "@/lib/schema/subscription";
 import { badRequest, conflict, forbidden, internalServerError, notFound } from "@/server/api/errors";
 import { mapCategoryRow } from "@/server/category/mapper";
 import { fetchNotificationSettings, insertNotificationDelivery } from "@/server/notification/repository";
 import { RESEND_FROM_EMAIL, resend } from "@/server/notification/resend";
+import { createPayment } from "@/server/payment/repository";
+import { getClientKey } from "@/server/payment/toss-client";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { mapSubscriptionPlanRow, mapVendorSubscriptionRow, type VendorSubscriptionRow } from "./mapper";
@@ -62,7 +64,8 @@ export async function listPlans(): Promise<{ items: SubscriptionPlan[] }> {
 }
 
 /**
- * 구독 구매/연장: purchase_vendor_subscription RPC로 원자 처리
+ * [레거시] 구독 구매/연장: 크레딧 차감 RPC. 토스 즉시결제로 대체되어 사용 안 함.
+ * prepareSubscriptionPayment → 토스 승인 플로우를 대신 사용.
  */
 export async function purchaseSubscription(
     _supabase: SupabaseClient<Database>,
@@ -129,6 +132,78 @@ export async function purchaseSubscription(
     return {
         subscription: mapVendorSubscriptionRow(normalizedRow, plan, category),
         creditBalance: purchaseRow.new_balance,
+    };
+}
+
+/**
+ * 토스 즉시결제 준비: payment ready 생성 + metadata에 구매 정보 저장 → orderId 반환
+ * success 콜백에서 /api/payments/confirm 호출 → dispatchPaymentFulfillment로 구독 생성
+ */
+export async function prepareSubscriptionPayment(
+    _supabase: SupabaseClient<Database>,
+    userId: string,
+    vendorId: string,
+    body: { categoryId: string; planId: string; autoRenew?: boolean },
+    customerName: string,
+): Promise<SubscriptionPrepareResponse> {
+    const admin = createSupabaseAdminClient();
+
+    // plan 조회 (가격/이름 확인)
+    const { data: planRow, error: planErr } = await admin
+        .from("subscription_plans")
+        .select("id, name, price, is_active")
+        .eq("id", body.planId)
+        .maybeSingle();
+
+    if (planErr) {
+        throw internalServerError("플랜을 조회할 수 없습니다.");
+    }
+    if (!planRow || !planRow.is_active) {
+        throw notFound("구독 플랜을 찾을 수 없습니다.");
+    }
+
+    // 업체-카테고리 매핑 확인
+    const { data: vcRow } = await admin
+        .from("vendor_categories")
+        .select("vendor_id")
+        .eq("vendor_id", vendorId)
+        .eq("category_id", body.categoryId)
+        .maybeSingle();
+    if (!vcRow) {
+        throw badRequest("업체에 등록되지 않은 카테고리입니다.");
+    }
+
+    // 활성 구독 연장창 체크 (7일 이내여야 연장 가능)
+    const existing = await getActiveSubscription(admin, vendorId, body.categoryId);
+    if (existing && new Date(existing.expires_at).getTime() > Date.now() + 7 * 24 * 60 * 60 * 1000) {
+        throw conflict("현재 구독 만료 7일 전부터 연장 구매할 수 있습니다.");
+    }
+
+    // payment 레코드 생성
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const randomPart = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+    const orderId = `MDHB-${dateStr}-${randomPart}`;
+
+    const payment = await createPayment(admin, {
+        orderId,
+        vendorId,
+        userId,
+        amount: planRow.price,
+        metadata: {
+            purpose: "subscription",
+            planId: body.planId,
+            categoryId: body.categoryId,
+            autoRenew: body.autoRenew ?? false,
+        },
+    });
+
+    return {
+        orderId,
+        amount: planRow.price,
+        paymentId: payment.id,
+        clientKey: getClientKey(),
+        customerName,
+        orderName: `메디허브 구독: ${planRow.name}`,
     };
 }
 

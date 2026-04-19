@@ -61,7 +61,14 @@ export default function AdminAdReportsPage() {
                     <Spinner size="lg" />
                 </div>
             ) : items.length === 0 ? (
-                <Empty title="리포트 데이터가 없습니다" description="선택한 기간에 데이터가 없습니다." />
+                <Empty
+                    title="아직 광고 노출 데이터가 없습니다"
+                    description={
+                        startDate || endDate
+                            ? "선택한 기간에 노출/클릭 기록이 없습니다. 다른 기간을 선택해보세요."
+                            : "캠페인이 활성화되고 배너가 실제로 노출되면 이곳에 캠페인별 노출수·클릭수·CTR이 자동으로 집계됩니다."
+                    }
+                />
             ) : (
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">

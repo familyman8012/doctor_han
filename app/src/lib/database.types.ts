@@ -256,6 +256,7 @@ export type Database = {
           id: string
           jumpup_last_used_at: string | null
           jumpup_remaining: number
+          payment_id: string | null
           price_paid: number
           priority_slot_id: string
           starts_at: string
@@ -272,6 +273,7 @@ export type Database = {
           id?: string
           jumpup_last_used_at?: string | null
           jumpup_remaining?: number
+          payment_id?: string | null
           price_paid?: number
           priority_slot_id: string
           starts_at: string
@@ -288,6 +290,7 @@ export type Database = {
           id?: string
           jumpup_last_used_at?: string | null
           jumpup_remaining?: number
+          payment_id?: string | null
           price_paid?: number
           priority_slot_id?: string
           starts_at?: string
@@ -302,6 +305,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_priority_purchases_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
             referencedColumns: ["id"]
           },
           {
@@ -1922,8 +1932,10 @@ export type Database = {
           category_id: string
           created_at: string
           description: string | null
+          first_published_at: string | null
           id: string
           inquiry_count: number
+          last_active_snapshot: Json | null
           price_max: number | null
           price_min: number | null
           price_type: string
@@ -1931,6 +1943,7 @@ export type Database = {
           published_at: string | null
           rating_avg: number
           rejection_reason: string | null
+          resubmit_reason: string | null
           review_count: number
           sort_order: number
           status: Database["public"]["Enums"]["product_status"]
@@ -1944,8 +1957,10 @@ export type Database = {
           category_id: string
           created_at?: string
           description?: string | null
+          first_published_at?: string | null
           id?: string
           inquiry_count?: number
+          last_active_snapshot?: Json | null
           price_max?: number | null
           price_min?: number | null
           price_type?: string
@@ -1953,6 +1968,7 @@ export type Database = {
           published_at?: string | null
           rating_avg?: number
           rejection_reason?: string | null
+          resubmit_reason?: string | null
           review_count?: number
           sort_order?: number
           status?: Database["public"]["Enums"]["product_status"]
@@ -1966,8 +1982,10 @@ export type Database = {
           category_id?: string
           created_at?: string
           description?: string | null
+          first_published_at?: string | null
           id?: string
           inquiry_count?: number
+          last_active_snapshot?: Json | null
           price_max?: number | null
           price_min?: number | null
           price_type?: string
@@ -1975,6 +1993,7 @@ export type Database = {
           published_at?: string | null
           rating_avg?: number
           rejection_reason?: string | null
+          resubmit_reason?: string | null
           review_count?: number
           sort_order?: number
           status?: Database["public"]["Enums"]["product_status"]
@@ -2016,6 +2035,10 @@ export type Database = {
           privacy_agreed_version: string | null
           role: Database["public"]["Enums"]["profile_role"]
           status: Database["public"]["Enums"]["profile_status"]
+          status_changed_at: string | null
+          status_changed_by: string | null
+          status_reason: string | null
+          suspended_until: string | null
           terms_agreed_at: string | null
           terms_agreed_version: string | null
           updated_at: string
@@ -2034,6 +2057,10 @@ export type Database = {
           privacy_agreed_version?: string | null
           role: Database["public"]["Enums"]["profile_role"]
           status?: Database["public"]["Enums"]["profile_status"]
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+          status_reason?: string | null
+          suspended_until?: string | null
           terms_agreed_at?: string | null
           terms_agreed_version?: string | null
           updated_at?: string
@@ -2052,11 +2079,23 @@ export type Database = {
           privacy_agreed_version?: string | null
           role?: Database["public"]["Enums"]["profile_role"]
           status?: Database["public"]["Enums"]["profile_status"]
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+          status_reason?: string | null
+          suspended_until?: string | null
           terms_agreed_at?: string | null
           terms_agreed_version?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_status_changed_by_fkey"
+            columns: ["status_changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rate_limits: {
         Row: {
@@ -3235,6 +3274,7 @@ export type Database = {
           expires_at: string
           id: string
           lead_count: number
+          payment_id: string | null
           plan_id: string
           price_paid: number
           starts_at: string
@@ -3251,6 +3291,7 @@ export type Database = {
           expires_at: string
           id?: string
           lead_count?: number
+          payment_id?: string | null
           plan_id: string
           price_paid: number
           starts_at?: string
@@ -3267,6 +3308,7 @@ export type Database = {
           expires_at?: string
           id?: string
           lead_count?: number
+          payment_id?: string | null
           plan_id?: string
           price_paid?: number
           starts_at?: string
@@ -3287,6 +3329,13 @@ export type Database = {
             columns: ["credit_transaction_id"]
             isOneToOne: false
             referencedRelation: "credit_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_subscriptions_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
             referencedColumns: ["id"]
           },
           {
@@ -3382,6 +3431,7 @@ export type Database = {
         Row: {
           address_detail: string | null
           badges: Json
+          contact_phone_secondary: string | null
           created_at: string
           description: string | null
           id: string
@@ -3391,11 +3441,9 @@ export type Database = {
           name: string
           owner_user_id: string
           popularity_score: number
-          price_max: number | null
-          price_min: number | null
           profile_image_url: string | null
           rating_avg: number | null
-          region_primary: string | null
+          region_primary: string[] | null
           region_secondary: string | null
           review_count: number
           road_address: string | null
@@ -3407,6 +3455,7 @@ export type Database = {
         Insert: {
           address_detail?: string | null
           badges?: Json
+          contact_phone_secondary?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -3416,11 +3465,9 @@ export type Database = {
           name: string
           owner_user_id: string
           popularity_score?: number
-          price_max?: number | null
-          price_min?: number | null
           profile_image_url?: string | null
           rating_avg?: number | null
-          region_primary?: string | null
+          region_primary?: string[] | null
           region_secondary?: string | null
           review_count?: number
           road_address?: string | null
@@ -3432,6 +3479,7 @@ export type Database = {
         Update: {
           address_detail?: string | null
           badges?: Json
+          contact_phone_secondary?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -3441,11 +3489,9 @@ export type Database = {
           name?: string
           owner_user_id?: string
           popularity_score?: number
-          price_max?: number | null
-          price_min?: number | null
           profile_image_url?: string | null
           rating_avg?: number | null
-          region_primary?: string | null
+          region_primary?: string[] | null
           region_secondary?: string | null
           review_count?: number
           road_address?: string | null
@@ -3599,12 +3645,34 @@ export type Database = {
           transaction_id: string
         }[]
       }
+      purchase_ad_priority_slot_direct: {
+        Args: {
+          p_payment_id: string
+          p_priority_slot_id: string
+          p_vendor_id: string
+        }
+        Returns: {
+          purchase_id: string
+        }[]
+      }
       purchase_vendor_membership: {
         Args: { p_auto_renew?: boolean; p_plan_id: string; p_vendor_id: string }
         Returns: {
           membership_id: string
           new_balance: number
           transaction_id: string
+          was_extended: boolean
+        }[]
+      }
+      purchase_vendor_membership_direct: {
+        Args: {
+          p_auto_renew?: boolean
+          p_payment_id: string
+          p_plan_id: string
+          p_vendor_id: string
+        }
+        Returns: {
+          membership_id: string
           was_extended: boolean
         }[]
       }
@@ -3620,6 +3688,20 @@ export type Database = {
           new_balance: number
           subscription_id: string
           transaction_id: string
+          was_extended: boolean
+        }[]
+      }
+      purchase_vendor_subscription_direct: {
+        Args: {
+          p_auto_renew?: boolean
+          p_category_id: string
+          p_extension_window_days?: number
+          p_payment_id: string
+          p_plan_id: string
+          p_vendor_id: string
+        }
+        Returns: {
+          subscription_id: string
           was_extended: boolean
         }[]
       }
@@ -3658,8 +3740,6 @@ export type Database = {
           p_category_id?: string
           p_limit?: number
           p_offset?: number
-          p_price_max?: number
-          p_price_min?: number
           p_query: string
           p_sort?: string
         }
@@ -3670,11 +3750,9 @@ export type Database = {
           latitude: number
           longitude: number
           name: string
-          price_max: number
-          price_min: number
           rank: number
           rating_avg: number
-          region_primary: string
+          region_primary: string[]
           region_secondary: string
           review_count: number
           road_address: string
@@ -3744,6 +3822,7 @@ export type Database = {
         | "review_photo"
         | "lead_message_attachment"
         | "product_image"
+        | "rich_content"
       help_article_type: "faq" | "notice" | "guide"
       lead_charge_refund_reason:
         | "duplicate_30d"
@@ -3818,7 +3897,7 @@ export type Database = {
         | "inactive"
         | "rejected"
       profile_role: "doctor" | "vendor" | "admin"
-      profile_status: "active" | "inactive" | "banned"
+      profile_status: "active" | "inactive" | "banned" | "suspended"
       refund_request_reason:
         | "wrong_contact"
         | "spam_lead"
@@ -4047,6 +4126,7 @@ export const Constants = {
         "review_photo",
         "lead_message_attachment",
         "product_image",
+        "rich_content",
       ],
       help_article_type: ["faq", "notice", "guide"],
       lead_charge_refund_reason: [
@@ -4130,7 +4210,7 @@ export const Constants = {
         "rejected",
       ],
       profile_role: ["doctor", "vendor", "admin"],
-      profile_status: ["active", "inactive", "banned"],
+      profile_status: ["active", "inactive", "banned", "suspended"],
       refund_request_reason: [
         "wrong_contact",
         "spam_lead",

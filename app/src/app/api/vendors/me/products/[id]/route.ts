@@ -165,10 +165,16 @@ export const PATCH = withApi(
             }
         }
 
-        // active 상품이 내용 변경되면 → pending_review로 자동 전환
+        // active 상품이 내용 변경되면 → pending_review로 자동 전환 + 재수정 사유 저장
         const hasContentChange = Object.keys(updateData).some((k) => k !== "status") || body.images !== undefined || body.faqs !== undefined;
         if (currentStatus === "active" && hasContentChange && updateData.status === undefined) {
+            if (!body.resubmitReason || body.resubmitReason.trim().length === 0) {
+                throw badRequest("활성 상품을 재수정할 때는 변경 사유를 입력해주세요.", {
+                    field: "resubmitReason",
+                });
+            }
             updateData.status = "pending_review";
+            updateData.resubmit_reason = body.resubmitReason.trim();
         }
 
         let updated: Record<string, unknown>;

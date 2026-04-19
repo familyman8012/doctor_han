@@ -10,7 +10,6 @@ import { cn } from "@/components/utils";
 import api from "@/api-client/client";
 import { RequireApproval } from "@/components/widgets/RequireApproval";
 import { useIsAuthenticated, useUserRole } from "@/stores/auth";
-import { formatPrice } from "@/lib/utils/format";
 import type { VendorDetail } from "@/lib/schema/vendor";
 
 interface StickyCtaPanelProps {
@@ -81,9 +80,7 @@ export function StickyCtaPanel({ vendor, isFavorited }: StickyCtaPanelProps) {
                         ))}
                     </ul>
                 ) : (
-                    <p className="text-2xl font-bold text-content-primary">
-                        {formatPrice(vendor.priceMin, vendor.priceMax)}
-                    </p>
+                    <p className="text-xl text-gray-500">가격 문의</p>
                 )}
                 <p className="text-xs text-gray-400 mt-2">
                     * 정확한 가격은 문의를 통해 확인해 주세요.

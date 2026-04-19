@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Star, User, Flag, ChevronDown } from "lucide-react";
+import { Star, User, Siren, ChevronDown } from "lucide-react";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -173,7 +173,7 @@ export function ProductReviewSection({ productId, ratingAvg, reviewCount, curren
                                                     className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                                                     title="리뷰 신고"
                                                 >
-                                                    <Flag className="w-4 h-4" />
+                                                    <Siren className="w-4 h-4" />
                                                 </button>
                                             )}
                                         </div>
